@@ -1,7 +1,10 @@
 {
   "$schema": "https://railway.app",
+  "build": {
+    "builder": "NIXPACKS"
+  },
   "deploy": {
-    "startCommand": "npx serve dist -l $PORT --single",
+    "startCommand": "npx --yes serve dist -l $PORT --single",
     "restartPolicyType": "ON_FAILURE"
   }
 }
