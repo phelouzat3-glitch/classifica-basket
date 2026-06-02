@@ -1,5 +1,5 @@
 {
-  "$schema": "https://railway.app",
+  "name": "basket-api",
   "build": {
     "builder": "NIXPACKS"
   },
