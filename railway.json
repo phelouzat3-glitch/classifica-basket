@@ -1,10 +1,7 @@
 {
-  "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "NODE_ENV=production npm run build"
-  },
+  "$schema": "https://railway.app",
   "deploy": {
-    "startCommand": "npx serve dist --single",
+    "startCommand": "npx serve dist -l $PORT --single",
     "restartPolicyType": "ON_FAILURE"
   }
 }
