@@ -1,7 +1,4 @@
-import { colors } from "@/src/theme/colors";
-import { spacing } from "@/src/theme/spacing";
-import { typography } from "@/src/theme/typography";
-import { useRouter } from "expo-router"; // 🌟 Importiamo il router per gestire i click
+import { useRouter } from "expo-router";
 import {
   FlatList,
   RefreshControl,
@@ -34,24 +31,25 @@ type Props = {
 
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
   return (
-    <FlatList
-      style={{ flex: 1 }}
-      data={teams}
-      keyExtractor={(team) => team.id.toString()}
-      ListHeaderComponent={<TableHeader />}
-      ListFooterComponent={<Legend />}
-      renderItem={({ item }) => <TeamRow team={item} />}
-      showsVerticalScrollIndicator={true}
-      contentContainerStyle={{ paddingBottom: 80 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#E8600A"
-          colors={["#E8600A"]}
-        />
-      }
-    />
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={teams}
+        keyExtractor={(team) => team.id.toString()}
+        ListHeaderComponent={<TableHeader />}
+        ListFooterComponent={<Legend />}
+        renderItem={({ item }) => <TeamRow team={item} />}
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF6B00"
+            colors={["#FF6B00"]}
+          />
+        }
+      />
+    </View>
   );
 }
 
@@ -62,7 +60,10 @@ function Legend() {
         <View
           style={[
             styles.legendDot,
-            { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" },
+            {
+              backgroundColor: "rgba(59, 130, 246, 0.15)",
+              borderColor: "#3B82F6",
+            },
           ]}
         />
         <Text style={styles.legendText}>Playoff (1°–8°)</Text>
@@ -71,7 +72,10 @@ function Legend() {
         <View
           style={[
             styles.legendDot,
-            { backgroundColor: "#FFFBEB", borderColor: "#FDE68A" },
+            {
+              backgroundColor: "rgba(245, 158, 11, 0.15)",
+              borderColor: "#F59E0B",
+            },
           ]}
         />
         <Text style={styles.legendText}>Playout (9°–13°)</Text>
@@ -80,7 +84,10 @@ function Legend() {
         <View
           style={[
             styles.legendDot,
-            { backgroundColor: "#FEF2F2", borderColor: "#FECACA" },
+            {
+              backgroundColor: "rgba(239, 68, 68, 0.15)",
+              borderColor: "#EF4444",
+            },
           ]}
         />
         <Text style={styles.legendText}>Retrocessione (14°–)</Text>
@@ -90,8 +97,8 @@ function Legend() {
           style={[
             styles.legendDot,
             {
-              backgroundColor: "#FFF2E6",
-              borderColor: "#E8600A",
+              backgroundColor: "rgba(255, 107, 0, 0.15)",
+              borderColor: "#FF6B00",
               borderWidth: 1.5,
             },
           ]}
@@ -118,24 +125,23 @@ function TableHeader() {
 function TeamRow({ team }: { team: Team }) {
   const isMyTeam = team.isMyTeam;
   const pos = team.position;
-  const router = useRouter(); // 🌟 Inizializziamo il router qui dentro
+  const router = useRouter();
 
+  // Zones de couleurs adaptées pour le thème sombre (Arrière-plans transparents et subtils)
   let positionStyle = {};
   if (pos >= 1 && pos <= 8) {
-    positionStyle = { backgroundColor: "#EFF6FF" };
+    positionStyle = { backgroundColor: "rgba(59, 130, 246, 0.05)" }; // Bleu discret
   } else if (pos >= 9 && pos <= 13) {
-    positionStyle = { backgroundColor: "#FFFBEB" };
+    positionStyle = { backgroundColor: "rgba(245, 158, 11, 0.05)" }; // Orange discret
   } else if (pos >= 14) {
-    positionStyle = { backgroundColor: "#FEF2F2" };
+    positionStyle = { backgroundColor: "rgba(239, 68, 68, 0.05)" }; // Rouge discret
   }
 
   return (
-    /* 🌟 Abbiamo cambiato la View in un TouchableOpacity per renderla cliccabile */
     <TouchableOpacity
       style={[styles.row, positionStyle, isMyTeam && styles.rowMyTeam]}
       activeOpacity={0.7}
       onPress={() => {
-        // Reindirizza l'utente allo schermo dei dettagli passando il nome reale della squadra cliccata
         router.push({
           pathname: "/team-detail",
           params: { teamName: team.name },
@@ -180,14 +186,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.headerBg || "#1A242D",
-    paddingHorizontal: spacing.base || 16,
-    paddingVertical: spacing.md || 12,
+    backgroundColor: "#161B22", // S'accorde avec le fond de l'écran principal
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#21262D",
   },
   headerCell: {
-    color: colors.textMuted || "#9AA3AD",
-    fontSize: typography.xs || 12,
-    fontWeight: "600",
+    color: "#8B949E", // Gris clair lisible sur fond sombre
+    fontSize: 12,
+    fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     textAlign: "center",
@@ -195,18 +203,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    paddingHorizontal: spacing.base || 16,
-    minHeight: 52,
+    backgroundColor: "#0D1117", // Lignes sombres
+    paddingHorizontal: 16,
+    minHeight: 56,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F3F6",
+    borderBottomColor: "#21262D",
     position: "relative",
   },
   rowMyTeam: {
-    backgroundColor: "#FFF2E6",
-    borderTopWidth: 1.5,
-    borderBottomWidth: 1.5,
-    borderColor: "#E8600A",
+    backgroundColor: "rgba(255, 107, 0, 0.1)", // Fond orange translucide
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#FF6B00",
     zIndex: 10,
   },
   myTeamBar: {
@@ -215,31 +223,33 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: "#E8600A",
+    backgroundColor: "#FF6B00",
   },
   cell: {
-    fontSize: typography.md || 14,
-    color: "#5A6472",
+    fontSize: 14,
+    color: "#C9D1D9", // Texte blanc/gris doux pour le Dark Mode
     textAlign: "center",
+    fontWeight: "500",
   },
-  cellWin: { color: colors.win || "#4CD137", fontWeight: "700" },
-  cellLoss: { color: colors.loss || "#E74C3C" },
+  cellWin: { color: "#4CD137", fontWeight: "700" }, // Vert néon éclatant
+  cellLoss: { color: "#FF453A" }, // Rouge néon éclatant
   teamName: {
-    fontSize: typography.sm || 14,
-    fontWeight: "700",
-    color: "#0F1923",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF", // Noms d'équipes en blanc pur
   },
   teamNameMyTeam: {
-    fontWeight: "900",
-    color: "#E8600A",
+    fontWeight: "800",
+    color: "#FF6B00",
   },
   myTeamLabel: {
     fontSize: 11,
-    color: "#E8600A",
+    color: "#FF6B00",
     fontWeight: "600",
+    marginTop: 2,
   },
   colPos: { width: 32 },
-  colTeam: { flex: 1, paddingVertical: spacing.sm || 8 },
+  colTeam: { flex: 1, paddingVertical: 8 },
   colNum: { width: 32 },
   colPct: { width: 44, textAlign: "center" },
   colGb: { width: 36, textAlign: "center" },
@@ -248,24 +258,23 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 12,
     padding: 16,
-    backgroundColor: colors.bgCard || "#1A242D",
+    backgroundColor: "#161B22",
     borderTopWidth: 1,
-    borderTopColor: colors.border || "#2C3A47",
-    marginTop: 16,
+    borderTopColor: "#21262D",
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
   },
   legendDot: {
     width: 12,
     height: 12,
-    borderRadius: 2,
+    borderRadius: 3,
     borderWidth: 1,
   },
   legendText: {
-    fontSize: typography.xs || 12,
-    color: colors.textSecondary || "#DCDDE1",
+    fontSize: 12,
+    color: "#8B949E",
   },
 });

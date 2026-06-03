@@ -1,7 +1,7 @@
 {
-  "name": "basket-api",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "RAILPACK",
+    "buildCommand": "npx expo export --platform web"
   },
   "deploy": {
     "startCommand": "npx --yes serve dist -l $PORT --single",
