@@ -2,9 +2,11 @@ import { useRouter } from "expo-router";
 import {
   FlatList,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { PositionBadge } from "./PositionBadge";
@@ -32,26 +34,35 @@ type Props = {
   onRefresh: () => void;
 };
 
+const MIN_TABLE_WIDTH = 500;
+
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
+  const { width: screenWidth } = useWindowDimensions();
+  const tableWidth = Math.max(screenWidth - 16, MIN_TABLE_WIDTH);
+
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
-        data={teams}
-        keyExtractor={(team) => team.id.toString()}
-        ListHeaderComponent={<TableHeader />}
-        ListFooterComponent={<Legend />}
-        renderItem={({ item }) => <TeamRow team={item} />}
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#FF6B00"
-            colors={["#FF6B00"]}
+      <ScrollView horizontal showsHorizontalScrollIndicator nestedScrollEnabled>
+        <View style={{ width: tableWidth }}>
+          <FlatList
+            data={teams}
+            keyExtractor={(team) => team.id.toString()}
+            ListHeaderComponent={<TableHeader />}
+            ListFooterComponent={<Legend />}
+            renderItem={({ item }) => <TeamRow team={item} />}
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#FF6B00"
+                colors={["#FF6B00"]}
+              />
+            }
           />
-        }
-      />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -218,8 +229,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#161B22",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#21262D",
   },
@@ -235,8 +246,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#0D1117",
-    paddingHorizontal: 16,
-    minHeight: 48,
+    paddingHorizontal: 8,
+    minHeight: 44,
     borderBottomWidth: 1,
     borderBottomColor: "#21262D",
     position: "relative",
@@ -257,7 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF6B00",
   },
   cell: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#C9D1D9",
     textAlign: "center",
     fontWeight: "500",
@@ -265,7 +276,7 @@ const styles = StyleSheet.create({
   cellWin: { color: "#4CD137", fontWeight: "700" },
   cellLoss: { color: "#FF453A" },
   teamName: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#FFFFFF",
   },
@@ -279,21 +290,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  colPos: { width: 30 },
-  colTeam: { minWidth: 110, flex: 1, paddingVertical: 8 },
-  colNum: { width: 28 },
-  colPct: { width: 42, textAlign: "center" },
-  colGb: { width: 32, textAlign: "center" },
-  colPf: { width: 32, textAlign: "center" },
-  colPa: { width: 32, textAlign: "center" },
-  colDiff: { width: 36, textAlign: "center" },
-  colLast10: { width: 56, textAlign: "center" },
-  colStreak: { width: 42, textAlign: "center" },
+  colPos: { width: 28 },
+  colTeam: { minWidth: 100, flex: 1, paddingVertical: 6 },
+  colNum: { width: 24 },
+  colPct: { width: 38, textAlign: "center" },
+  colGb: { width: 28, textAlign: "center" },
+  colPf: { width: 28, textAlign: "center" },
+  colPa: { width: 28, textAlign: "center" },
+  colDiff: { width: 34, textAlign: "center" },
+  colLast10: { width: 52, textAlign: "center" },
+  colStreak: { width: 38, textAlign: "center" },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    padding: 16,
+    gap: 8,
+    padding: 12,
     backgroundColor: "#161B22",
     borderTopWidth: 1,
     borderTopColor: "#21262D",
@@ -301,16 +312,16 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
   legendDot: {
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: 3,
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#8B949E",
   },
 });

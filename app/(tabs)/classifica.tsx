@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 12,
     borderRadius: 14,
-    overflow: "visible",
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
