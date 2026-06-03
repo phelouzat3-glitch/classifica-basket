@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import {
   FlatList,
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,26 @@ import {
   View,
 } from "react-native";
 import { PositionBadge } from "./PositionBadge";
+
+const LOGOS: Record<string, any> = {
+  'union-basket-prato': require('@/assets/images/teams/union-basket-prato.png'),
+  'abc-castelfiorentino': require('@/assets/images/teams/abc-castelfiorentino.png'),
+  'pallacanestro-prato-dragons': require('@/assets/images/teams/pallacanestro-prato-dragons.png'),
+  'pallacanestro-agliana-2000': require('@/assets/images/teams/pallacanestro-agliana-2000.png'),
+  'us-livorno-basket': require('@/assets/images/teams/us-livorno-basket.png'),
+  'basket-sei-rose-rosignano': require('@/assets/images/teams/basket-sei-rose-rosignano.png'),
+  'cus-firenze-basket': require('@/assets/images/teams/cus-firenze-basket.png'),
+  'dukes-sansepolcro': require('@/assets/images/teams/dukes-sansepolcro.png'),
+  'folgore-fucecchio': require('@/assets/images/teams/folgore-fucecchio.png'),
+  'bottegone-basket-2001': require('@/assets/images/teams/bottegone-basket-2001.png'),
+  'virtus-certaldo': require('@/assets/images/teams/virtus-certaldo.png'),
+  'unione-sportiva-pino-firenze': require('@/assets/images/teams/unione-sportiva-pino-firenze.png'),
+  'sancat-basket-firenze': require('@/assets/images/teams/sancat-basket-firenze.png'),
+  'valdisieve-basket': require('@/assets/images/teams/valdisieve-basket.png'),
+  'fides-montevarchi': require('@/assets/images/teams/fides-montevarchi.png'),
+  'don-bosco-livorno': require('@/assets/images/teams/don-bosco-livorno.png'),
+  'basket-san-vincenzo': require('@/assets/images/teams/basket-san-vincenzo.png'),
+};
 
 type Team = {
   id: number;
@@ -144,13 +165,18 @@ function TeamRow({ team }: { team: Team }) {
       </View>
 
       <View style={styles.colTeam}>
-        <Text
-          style={[styles.teamName, isMyTeam && styles.teamNameMyTeam]}
-          numberOfLines={1}
-        >
-          {isMyTeam ? `★ ${team.name}` : team.name}
-        </Text>
-        {isMyTeam && <Text style={styles.myTeamLabel}>La nostra squadra</Text>}
+        {LOGOS[team.teamId] && (
+          <Image source={LOGOS[team.teamId]} style={styles.teamLogo} />
+        )}
+        <View style={styles.teamInfo}>
+          <Text
+            style={[styles.teamName, isMyTeam && styles.teamNameMyTeam]}
+            numberOfLines={1}
+          >
+            {isMyTeam ? `★ ${team.name}` : team.name}
+          </Text>
+          {isMyTeam && <Text style={styles.myTeamLabel}>La nostra squadra</Text>}
+        </View>
       </View>
 
       <Text style={[styles.cell, styles.colNum, styles.cellNum, styles.cellWin]}>{team.wins}</Text>
@@ -247,6 +273,15 @@ const styles = StyleSheet.create({
   },
   cellWin: { color: "#4CD137", fontWeight: "700" },
   cellLoss: { color: "#FF453A" },
+  teamLogo: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#1C2230",
+  },
+  teamInfo: {
+    flex: 1,
+  },
   teamName: {
     fontSize: 13,
     fontWeight: "700",
@@ -264,7 +299,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   colPos: { width: 36 },
-  colTeam: { minWidth: 110, flex: 1, paddingVertical: 6, paddingLeft: 6 },
+  colTeam: { minWidth: 110, flex: 1, paddingVertical: 6, paddingLeft: 6, flexDirection: "row", alignItems: "center", gap: 8 },
   colNum: { width: 26 },
   colPct: { width: 40, textAlign: "right" },
   colGb: { width: 30, textAlign: "right" },
