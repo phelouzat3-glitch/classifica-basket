@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { PositionBadge } from "./PositionBadge";
@@ -36,15 +37,14 @@ type Props = {
 const MIN_TABLE_WIDTH = 520;
 
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
+  const { width: screenWidth } = useWindowDimensions();
+  const availableWidth = screenWidth - 18;
+  const tableWidth = Math.max(availableWidth, MIN_TABLE_WIDTH);
+
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled
-        contentContainerStyle={{ flexGrow: 1 }}
-      >
-        <View style={{ minWidth: MIN_TABLE_WIDTH, flex: 1 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled>
+        <View style={{ width: tableWidth }}>
           <FlatList
             data={teams}
             keyExtractor={(team) => team.id.toString()}
@@ -258,8 +258,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  colPos: { width: 32 },
-  colTeam: { minWidth: 110, flex: 1, paddingVertical: 6 },
+  colPos: { width: 36 },
+  colTeam: { minWidth: 110, flex: 1, paddingVertical: 6, paddingLeft: 6 },
   colNum: { width: 26 },
   colPct: { width: 40, textAlign: "right" },
   colGb: { width: 30, textAlign: "right" },
