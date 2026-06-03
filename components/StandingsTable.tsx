@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#2A3440",
   },
   headerCell: {
-    color: "#9AA8B9",
+    color: "#FFFFFF",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
   cellWin: { color: "#4CD137", fontWeight: "700" },
   cellLoss: { color: "#FF453A" },
   teamName: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: "#FFFFFF",
     textAlign: "left",
   },
