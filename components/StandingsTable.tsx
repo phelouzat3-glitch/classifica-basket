@@ -72,19 +72,19 @@ function Legend() {
   return (
     <View style={styles.legend}>
       <View style={styles.legendItem}>
-        <View style={[styles.legendDot, { backgroundColor: "rgba(59, 130, 246, 0.2)", borderColor: "#3B82F6" }]} />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(59, 130, 246, 0.4)", borderColor: "#60A5FA" }]} />
         <Text style={styles.legendText}>Playoff (1°–8°)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View style={[styles.legendDot, { backgroundColor: "rgba(245, 158, 11, 0.2)", borderColor: "#F59E0B" }]} />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(245, 158, 11, 0.4)", borderColor: "#FBBF24" }]} />
         <Text style={styles.legendText}>Playout (9°–13°)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View style={[styles.legendDot, { backgroundColor: "rgba(239, 68, 68, 0.2)", borderColor: "#EF4444" }]} />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(239, 68, 68, 0.4)", borderColor: "#F87171" }]} />
         <Text style={styles.legendText}>Retrocessione (14°–)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View style={[styles.legendDot, { borderColor: "#FF6B00", borderWidth: 1.5, backgroundColor: "transparent" }]} />
+        <View style={[styles.legendDot, { borderColor: "#FF8C42", borderWidth: 1.5, backgroundColor: "rgba(255, 107, 0, 0.25)" }]} />
         <Text style={styles.legendText}>★ La nostra squadra</Text>
       </View>
     </View>
@@ -273,9 +273,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     padding: 12,
-    backgroundColor: "#10141C",
+    backgroundColor: "#141A24",
     borderTopWidth: 1,
-    borderTopColor: "#1E2530",
+    borderTopColor: "#2A3440",
   },
   legendItem: {
     flexDirection: "row",
@@ -289,7 +289,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   legendText: {
-    fontSize: 11,
-    color: "#8B949E",
+    fontSize: 12,
+    color: "#C9D1D9",
+    fontWeight: "500",
   },
 });
