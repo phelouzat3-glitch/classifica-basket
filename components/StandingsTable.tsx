@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { PositionBadge } from "./PositionBadge";
@@ -34,16 +33,18 @@ type Props = {
   onRefresh: () => void;
 };
 
-const MIN_TABLE_WIDTH = 500;
+const MIN_TABLE_WIDTH = 520;
 
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
-  const { width: screenWidth } = useWindowDimensions();
-  const tableWidth = Math.max(screenWidth - 16, MIN_TABLE_WIDTH);
-
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator nestedScrollEnabled>
-        <View style={{ width: tableWidth }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <View style={{ minWidth: MIN_TABLE_WIDTH, flex: 1 }}>
           <FlatList
             data={teams}
             keyExtractor={(team) => team.id.toString()}
@@ -71,52 +72,19 @@ function Legend() {
   return (
     <View style={styles.legend}>
       <View style={styles.legendItem}>
-        <View
-          style={[
-            styles.legendDot,
-            {
-              backgroundColor: "rgba(59, 130, 246, 0.15)",
-              borderColor: "#3B82F6",
-            },
-          ]}
-        />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(59, 130, 246, 0.2)", borderColor: "#3B82F6" }]} />
         <Text style={styles.legendText}>Playoff (1°–8°)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View
-          style={[
-            styles.legendDot,
-            {
-              backgroundColor: "rgba(245, 158, 11, 0.15)",
-              borderColor: "#F59E0B",
-            },
-          ]}
-        />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(245, 158, 11, 0.2)", borderColor: "#F59E0B" }]} />
         <Text style={styles.legendText}>Playout (9°–13°)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View
-          style={[
-            styles.legendDot,
-            {
-              backgroundColor: "rgba(239, 68, 68, 0.15)",
-              borderColor: "#EF4444",
-            },
-          ]}
-        />
+        <View style={[styles.legendDot, { backgroundColor: "rgba(239, 68, 68, 0.2)", borderColor: "#EF4444" }]} />
         <Text style={styles.legendText}>Retrocessione (14°–)</Text>
       </View>
       <View style={styles.legendItem}>
-        <View
-          style={[
-            styles.legendDot,
-            {
-              backgroundColor: "rgba(255, 107, 0, 0.15)",
-              borderColor: "#FF6B00",
-              borderWidth: 1.5,
-            },
-          ]}
-        />
+        <View style={[styles.legendDot, { borderColor: "#FF6B00", borderWidth: 1.5, backgroundColor: "transparent" }]} />
         <Text style={styles.legendText}>★ La nostra squadra</Text>
       </View>
     </View>
@@ -126,7 +94,7 @@ function Legend() {
 function TableHeader() {
   return (
     <View style={styles.header}>
-      <Text style={[styles.headerCell, styles.colPos]}>#</Text>
+      <Text style={[styles.headerCell, styles.colPos]}>POS</Text>
       <Text style={[styles.headerCell, styles.colTeam]}>Squadra</Text>
       <Text style={[styles.headerCell, styles.colNum]}>V</Text>
       <Text style={[styles.headerCell, styles.colNum]}>P</Text>
@@ -148,11 +116,11 @@ function TeamRow({ team }: { team: Team }) {
 
   let positionStyle = {};
   if (pos >= 1 && pos <= 8) {
-    positionStyle = { backgroundColor: "rgba(59, 130, 246, 0.05)" };
+    positionStyle = { backgroundColor: "rgba(59, 130, 246, 0.04)" };
   } else if (pos >= 9 && pos <= 13) {
-    positionStyle = { backgroundColor: "rgba(245, 158, 11, 0.05)" };
+    positionStyle = { backgroundColor: "rgba(245, 158, 11, 0.04)" };
   } else if (pos >= 14) {
-    positionStyle = { backgroundColor: "rgba(239, 68, 68, 0.05)" };
+    positionStyle = { backgroundColor: "rgba(239, 68, 68, 0.04)" };
   }
 
   const diff = team.diff ?? (team.pf != null && team.pa != null ? team.pf - team.pa : null);
@@ -184,37 +152,32 @@ function TeamRow({ team }: { team: Team }) {
         {isMyTeam && <Text style={styles.myTeamLabel}>La nostra squadra</Text>}
       </View>
 
-      <Text style={[styles.cell, styles.colNum, styles.cellWin]}>
-        {team.wins}
-      </Text>
-      <Text style={[styles.cell, styles.colNum, styles.cellLoss]}>
-        {team.losses}
-      </Text>
-      <Text style={[styles.cell, styles.colPct]}>
+      <Text style={[styles.cell, styles.colNum, styles.cellNum, styles.cellWin]}>{team.wins}</Text>
+      <Text style={[styles.cell, styles.colNum, styles.cellNum, styles.cellLoss]}>{team.losses}</Text>
+      <Text style={[styles.cell, styles.colPct, styles.cellNum]}>
         {typeof team.pct === "number"
           ? team.pct.toFixed(3).replace("0.", ".")
           : ".000"}
       </Text>
-      <Text style={[styles.cell, styles.colGb]}>
-        {team.gb === "-" ? "-" : team.gb}
-      </Text>
-
-      <Text style={[styles.cell, styles.colPf]}>{team.pf ?? "-"}</Text>
-      <Text style={[styles.cell, styles.colPa]}>{team.pa ?? "-"}</Text>
+      <Text style={[styles.cell, styles.colGb, styles.cellNum]}>{team.gb === "-" ? "-" : team.gb}</Text>
+      <Text style={[styles.cell, styles.colPf, styles.cellNum]}>{team.pf ?? "-"}</Text>
+      <Text style={[styles.cell, styles.colPa, styles.cellNum]}>{team.pa ?? "-"}</Text>
       <Text
         style={[
           styles.cell,
           styles.colDiff,
+          styles.cellNum,
           diff != null && diff > 0 ? styles.cellWin : diff != null && diff < 0 ? styles.cellLoss : null,
         ]}
       >
         {diff != null ? (diff > 0 ? `+${diff}` : `${diff}`) : "-"}
       </Text>
-      <Text style={[styles.cell, styles.colLast10]}>{team.last10}</Text>
+      <Text style={[styles.cell, styles.colLast10, styles.cellNum]}>{team.last10}</Text>
       <Text
         style={[
           styles.cell,
           styles.colStreak,
+          styles.cellNum,
           team.streak.startsWith("W") ? styles.cellWin : styles.cellLoss,
         ]}
       >
@@ -228,14 +191,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#161B22",
-    paddingHorizontal: 8,
+    backgroundColor: "#1C2230",
+    paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#21262D",
+    borderBottomColor: "#2A3440",
   },
   headerCell: {
-    color: "#8B949E",
+    color: "#9AA8B9",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -246,14 +209,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#0D1117",
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     minHeight: 44,
     borderBottomWidth: 1,
-    borderBottomColor: "#21262D",
+    borderBottomColor: "#1E2530",
     position: "relative",
   },
   rowMyTeam: {
-    backgroundColor: "rgba(255, 107, 0, 0.1)",
+    backgroundColor: "rgba(255, 107, 0, 0.08)",
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#FF6B00",
@@ -273,12 +236,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "500",
   },
+  cellNum: {
+    textAlign: "right",
+    paddingRight: 2,
+  },
   cellWin: { color: "#4CD137", fontWeight: "700" },
   cellLoss: { color: "#FF453A" },
   teamName: {
     fontSize: 12,
     fontWeight: "600",
     color: "#FFFFFF",
+    textAlign: "left",
   },
   teamNameMyTeam: {
     fontWeight: "800",
@@ -290,24 +258,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
-  colPos: { width: 28 },
-  colTeam: { minWidth: 100, flex: 1, paddingVertical: 6 },
-  colNum: { width: 24 },
-  colPct: { width: 38, textAlign: "center" },
-  colGb: { width: 28, textAlign: "center" },
-  colPf: { width: 28, textAlign: "center" },
-  colPa: { width: 28, textAlign: "center" },
-  colDiff: { width: 34, textAlign: "center" },
-  colLast10: { width: 52, textAlign: "center" },
-  colStreak: { width: 38, textAlign: "center" },
+  colPos: { width: 32 },
+  colTeam: { minWidth: 110, flex: 1, paddingVertical: 6 },
+  colNum: { width: 26 },
+  colPct: { width: 40, textAlign: "right" },
+  colGb: { width: 30, textAlign: "right" },
+  colPf: { width: 30, textAlign: "right" },
+  colPa: { width: 30, textAlign: "right" },
+  colDiff: { width: 36, textAlign: "right" },
+  colLast10: { width: 54, textAlign: "right" },
+  colStreak: { width: 40, textAlign: "right" },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 10,
     padding: 12,
-    backgroundColor: "#161B22",
+    backgroundColor: "#10141C",
     borderTopWidth: 1,
-    borderTopColor: "#21262D",
+    borderTopColor: "#1E2530",
   },
   legendItem: {
     flexDirection: "row",

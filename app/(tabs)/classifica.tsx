@@ -324,8 +324,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    borderColor: "#2A3440",
+    backgroundColor: "#10141C",
   },
 
   // ── Centered states ───────────────────────────────────────────────────────
