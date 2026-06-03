@@ -5,6 +5,13 @@ const path = require("path");
 const PORT = process.env.PORT || 3000;
 const DIST = path.join(__dirname, "dist");
 
+try {
+  fs.accessSync(DIST, fs.constants.R_OK);
+  console.error(`[startup] dist found at ${DIST}`);
+} catch {
+  console.error(`[startup] dist NOT found at ${DIST}`);
+}
+
 const MIME = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -52,4 +59,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[fatal]", err);
 });
