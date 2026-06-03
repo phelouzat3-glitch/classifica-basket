@@ -38,12 +38,13 @@ const MIN_TABLE_WIDTH = 520;
 
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
   const { width: screenWidth } = useWindowDimensions();
-  const availableWidth = screenWidth - 18;
+  const containerWidth = Math.min(screenWidth, 900);
+  const availableWidth = containerWidth - 18;
   const tableWidth = Math.max(availableWidth, MIN_TABLE_WIDTH);
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled>
+      <ScrollView horizontal showsHorizontalScrollIndicator nestedScrollEnabled>
         <View style={{ width: tableWidth }}>
           <FlatList
             data={teams}
@@ -95,7 +96,7 @@ function TableHeader() {
   return (
     <View style={styles.header}>
       <Text style={[styles.headerCell, styles.colPos]}>POS</Text>
-      <Text style={[styles.headerCell, styles.colTeam]}>Squadra</Text>
+      <Text style={[styles.headerCell, styles.colTeam, styles.headerTeam]}>Squadra</Text>
       <Text style={[styles.headerCell, styles.colNum]}>V</Text>
       <Text style={[styles.headerCell, styles.colNum]}>P</Text>
       <Text style={[styles.headerCell, styles.colPct]}>PCT</Text>
@@ -204,6 +205,10 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
     textAlign: "center",
+  },
+  headerTeam: {
+    textAlign: "left",
+    paddingLeft: 6,
   },
   row: {
     flexDirection: "row",
