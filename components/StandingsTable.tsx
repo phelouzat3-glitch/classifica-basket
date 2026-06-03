@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import {
   FlatList,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,6 +19,9 @@ type Team = {
   losses: number;
   pct: number;
   gb: string;
+  pf: number | null;
+  pa: number | null;
+  diff: number | null;
   last10: string;
   streak: string;
   isMyTeam: boolean;
@@ -29,26 +33,32 @@ type Props = {
   onRefresh: () => void;
 };
 
+const TABLE_WIDTH = 600;
+
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
-        data={teams}
-        keyExtractor={(team) => team.id.toString()}
-        ListHeaderComponent={<TableHeader />}
-        ListFooterComponent={<Legend />}
-        renderItem={({ item }) => <TeamRow team={item} />}
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#FF6B00"
-            colors={["#FF6B00"]}
+      <ScrollView horizontal showsHorizontalScrollIndicator nestedScrollEnabled>
+        <View style={{ width: TABLE_WIDTH }}>
+          <FlatList
+            data={teams}
+            keyExtractor={(team) => team.id.toString()}
+            ListHeaderComponent={<TableHeader />}
+            ListFooterComponent={<Legend />}
+            renderItem={({ item }) => <TeamRow team={item} />}
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#FF6B00"
+                colors={["#FF6B00"]}
+              />
+            }
           />
-        }
-      />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -118,6 +128,11 @@ function TableHeader() {
       <Text style={[styles.headerCell, styles.colNum]}>P</Text>
       <Text style={[styles.headerCell, styles.colPct]}>PCT</Text>
       <Text style={[styles.headerCell, styles.colGb]}>GB</Text>
+      <Text style={[styles.headerCell, styles.colPf]}>PF</Text>
+      <Text style={[styles.headerCell, styles.colPa]}>PA</Text>
+      <Text style={[styles.headerCell, styles.colDiff]}>Diff</Text>
+      <Text style={[styles.headerCell, styles.colLast10]}>Ultime 10</Text>
+      <Text style={[styles.headerCell, styles.colStreak]}>Serie</Text>
     </View>
   );
 }
@@ -127,15 +142,16 @@ function TeamRow({ team }: { team: Team }) {
   const pos = team.position;
   const router = useRouter();
 
-  // Zones de couleurs adaptées pour le thème sombre (Arrière-plans transparents et subtils)
   let positionStyle = {};
   if (pos >= 1 && pos <= 8) {
-    positionStyle = { backgroundColor: "rgba(59, 130, 246, 0.05)" }; // Bleu discret
+    positionStyle = { backgroundColor: "rgba(59, 130, 246, 0.05)" };
   } else if (pos >= 9 && pos <= 13) {
-    positionStyle = { backgroundColor: "rgba(245, 158, 11, 0.05)" }; // Orange discret
+    positionStyle = { backgroundColor: "rgba(245, 158, 11, 0.05)" };
   } else if (pos >= 14) {
-    positionStyle = { backgroundColor: "rgba(239, 68, 68, 0.05)" }; // Rouge discret
+    positionStyle = { backgroundColor: "rgba(239, 68, 68, 0.05)" };
   }
+
+  const diff = team.diff ?? (team.pf != null && team.pa != null ? team.pf - team.pa : null);
 
   return (
     <TouchableOpacity
@@ -178,6 +194,28 @@ function TeamRow({ team }: { team: Team }) {
       <Text style={[styles.cell, styles.colGb]}>
         {team.gb === "-" ? "-" : team.gb}
       </Text>
+
+      <Text style={[styles.cell, styles.colPf]}>{team.pf ?? "-"}</Text>
+      <Text style={[styles.cell, styles.colPa]}>{team.pa ?? "-"}</Text>
+      <Text
+        style={[
+          styles.cell,
+          styles.colDiff,
+          diff != null && diff > 0 ? styles.cellWin : diff != null && diff < 0 ? styles.cellLoss : null,
+        ]}
+      >
+        {diff != null ? (diff > 0 ? `+${diff}` : `${diff}`) : "-"}
+      </Text>
+      <Text style={[styles.cell, styles.colLast10]}>{team.last10}</Text>
+      <Text
+        style={[
+          styles.cell,
+          styles.colStreak,
+          team.streak.startsWith("W") ? styles.cellWin : styles.cellLoss,
+        ]}
+      >
+        {team.streak}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -186,14 +224,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#161B22", // S'accorde avec le fond de l'écran principal
+    backgroundColor: "#161B22",
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: "#21262D",
   },
   headerCell: {
-    color: "#8B949E", // Gris clair lisible sur fond sombre
+    color: "#8B949E",
     fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -203,7 +241,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0D1117", // Lignes sombres
+    backgroundColor: "#0D1117",
     paddingHorizontal: 16,
     minHeight: 56,
     borderBottomWidth: 1,
@@ -211,7 +249,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   rowMyTeam: {
-    backgroundColor: "rgba(255, 107, 0, 0.1)", // Fond orange translucide
+    backgroundColor: "rgba(255, 107, 0, 0.1)",
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#FF6B00",
@@ -227,16 +265,16 @@ const styles = StyleSheet.create({
   },
   cell: {
     fontSize: 14,
-    color: "#C9D1D9", // Texte blanc/gris doux pour le Dark Mode
+    color: "#C9D1D9",
     textAlign: "center",
     fontWeight: "500",
   },
-  cellWin: { color: "#4CD137", fontWeight: "700" }, // Vert néon éclatant
-  cellLoss: { color: "#FF453A" }, // Rouge néon éclatant
+  cellWin: { color: "#4CD137", fontWeight: "700" },
+  cellLoss: { color: "#FF453A" },
   teamName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#FFFFFF", // Noms d'équipes en blanc pur
+    color: "#FFFFFF",
   },
   teamNameMyTeam: {
     fontWeight: "800",
@@ -249,10 +287,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   colPos: { width: 32 },
-  colTeam: { flex: 1, paddingVertical: 8 },
-  colNum: { width: 32 },
+  colTeam: { width: 140, paddingVertical: 8 },
+  colNum: { width: 28 },
   colPct: { width: 44, textAlign: "center" },
   colGb: { width: 36, textAlign: "center" },
+  colPf: { width: 36, textAlign: "center" },
+  colPa: { width: 36, textAlign: "center" },
+  colDiff: { width: 40, textAlign: "center" },
+  colLast10: { width: 60, textAlign: "center" },
+  colStreak: { width: 44, textAlign: "center" },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",

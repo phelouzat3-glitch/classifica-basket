@@ -5,7 +5,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "npx --yes serve dist -l $PORT -s --no-request-logging",
     "restartPolicyType": "ON_FAILURE"
   }
 }

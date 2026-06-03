@@ -1,8 +1,9 @@
 import { StandingsTable } from "@/components/StandingsTable";
 import { API_URL } from "@/src/config/api";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   StatusBar,
   StyleSheet,
   Text,
@@ -10,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type TeamFromApi = {
   id: number;
@@ -20,6 +23,9 @@ type TeamFromApi = {
   losses: number;
   pct: number;
   gb: string;
+  pf: number | null;
+  pa: number | null;
+  diff: number | null;
   last10: string;
   streak: string;
   is_my_team: boolean;
@@ -34,6 +40,9 @@ type Team = {
   losses: number;
   pct: number;
   gb: string;
+  pf: number | null;
+  pa: number | null;
+  diff: number | null;
   last10: string;
   streak: string;
   isMyTeam: boolean;
@@ -49,11 +58,16 @@ function mapTeam(t: TeamFromApi): Team {
     losses: t.losses,
     pct: t.pct,
     gb: t.gb,
+    pf: t.pf,
+    pa: t.pa,
+    diff: t.diff,
     last10: t.last10,
     streak: t.streak,
     isMyTeam: t.is_my_team,
   };
 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClassificaScreen() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -63,72 +77,98 @@ export default function ClassificaScreen() {
 
   const insets = useSafeAreaInsets();
 
-  const fetchStandings = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    setError(null);
+  // Fade-in animation for content
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
 
-    try {
-      const res = await fetch(`${API_URL}/standings`);
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      const data = (await res.json()) as TeamFromApi[];
-      setTeams(data.map(mapTeam));
-    } catch (e: any) {
-      setError(e.message || "Errore di rete");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  const fetchStandings = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(`${API_URL}/standings`);
+        if (!res.ok) throw new Error(`Errore ${res.status}`);
+        const data = (await res.json()) as TeamFromApi[];
+        setTeams(data.map(mapTeam));
+        if (!isRefresh) animateIn();
+      } catch (e: any) {
+        setError(e.message || "Impossibile connettersi al server");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [animateIn],
+  );
 
   useEffect(() => {
     fetchStandings();
   }, [fetchStandings]);
 
-  const onRefresh = useCallback(() => {
-    fetchStandings(true);
-  }, [fetchStandings]);
+  const onRefresh = useCallback(() => fetchStandings(true), [fetchStandings]);
 
-  // Schermata di caricamento (Loading) Premium
+  // ── Loading ──────────────────────────────────────────────────────────────
+
   if (loading && !refreshing) {
     return (
       <View
         style={[
-          styles.mainContainer,
+          styles.root,
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#FF6B00" />
-          <Text style={styles.loadingText}>Caricamento statistiche...</Text>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+          <Text style={styles.loadingLabel}>Caricamento in corso…</Text>
         </View>
       </View>
     );
   }
 
-  // Schermata di errore a forma di scheda (Card)
+  // ── Error ────────────────────────────────────────────────────────────────
+
   if (error && teams.length === 0) {
     return (
       <View
         style={[
-          styles.mainContainer,
+          styles.root,
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
-        <View style={styles.centerContainer}>
+        <View style={styles.centered}>
           <View style={styles.errorCard}>
-            <Text style={styles.errorTitle}>
-              Ups! Si è verificato un errore
-            </Text>
-            <Text style={styles.errorText}>{error}</Text>
+            <View style={styles.errorIconWrap}>
+              <Text style={styles.errorIcon}>!</Text>
+            </View>
+            <Text style={styles.errorTitle}>Errore di caricamento</Text>
+            <Text style={styles.errorBody}>{error}</Text>
             <TouchableOpacity
               onPress={() => fetchStandings()}
-              style={styles.retryButton}
-              activeOpacity={0.8}
+              style={styles.retryBtn}
+              activeOpacity={0.75}
             >
-              <Text style={styles.retryButtonText}>Riprova</Text>
+              <Text style={styles.retryBtnText}>Riprova</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -136,143 +176,225 @@ export default function ClassificaScreen() {
     );
   }
 
+  // ── Main ─────────────────────────────────────────────────────────────────
+
   return (
     <View
       style={[
-        styles.mainContainer,
+        styles.root,
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
       <StatusBar barStyle="light-content" />
 
-      {/* Intestazione stilizzata */}
-      <View style={styles.headerContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.pageTitle}>Classifica</Text>
-          <View style={styles.badgeLive}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.badgeText}>LIVE</Text>
+      {/* Header */}
+      <Animated.View
+        style={[
+          styles.header,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <View style={styles.headerTop}>
+          <Text style={styles.eyebrow}>Stagione Regolare 2025 · 26</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.pageTitle}>Classifica</Text>
+            <View style={styles.livePill}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
           </View>
         </View>
-        <Text style={styles.subtitle}>Stagione Regolare 2025/2026</Text>
-      </View>
 
-      {/* Tabella della classifica */}
-      <View style={styles.tableContainer}>
+        {/* Thin accent rule */}
+        <View style={styles.headerRule} />
+      </Animated.View>
+
+      {/* Table */}
+      <Animated.View
+        style={[
+          styles.tableWrapper,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <StandingsTable
           teams={teams}
           refreshing={refreshing}
           onRefresh={onRefresh}
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
 
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+
+const COLORS = {
+  bg: "#08090B", // Near-black canvas
+  surface: "#10131A", // Card surface
+  border: "#1C2030", // Subtle border
+  borderLight: "#252C3D", // Slightly brighter border
+  accent: "#E8A838", // Warm gold — sport authority
+  accentMuted: "rgba(232, 168, 56, 0.12)",
+  accentBorder: "rgba(232, 168, 56, 0.25)",
+  live: "#F0533A",
+  liveMuted: "rgba(240, 83, 58, 0.12)",
+  liveBorder: "rgba(240, 83, 58, 0.25)",
+  textPrimary: "#EDF0F7",
+  textSecondary: "#6B7492",
+  textMuted: "#3E4660",
+} as const;
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  mainContainer: {
+  root: {
     flex: 1,
-    backgroundColor: "#0D1117", // Sfondo ultra scuro stile NBA / GitHub Dark
+    backgroundColor: COLORS.bg,
   },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#21262D",
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  header: {
+    paddingHorizontal: 22,
+    paddingTop: 20,
+    paddingBottom: 0,
   },
-  titleRow: {
+  headerTop: {
+    flexDirection: "column",
+    marginBottom: 18,
+  },
+  headerTitleRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 10,
+    flexWrap: "nowrap",
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: COLORS.textSecondary,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    marginBottom: 6,
   },
   pageTitle: {
-    fontSize: 32,
-    fontWeight: "900", // Stile di scrittura molto spesso e aggressivo "sport"
-    color: "#FFFFFF",
-    letterSpacing: 0.5,
+    fontSize: 30,
+    fontWeight: "800",
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
+    lineHeight: 38,
+    flexShrink: 1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#8B949E",
-    marginTop: 4,
-    fontWeight: "500",
+  headerRule: {
+    height: 1,
+    backgroundColor: COLORS.border,
   },
-  badgeLive: {
+
+  // ── Live pill ─────────────────────────────────────────────────────────────
+  livePill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 69, 58, 0.15)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginLeft: 12,
+    alignSelf: "center",
+    backgroundColor: COLORS.liveMuted,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 69, 58, 0.3)",
+    borderColor: COLORS.liveBorder,
   },
-  pulseDot: {
-    width: 6,
-    height: 6,
+  liveDot: {
+    width: 5,
+    height: 5,
     borderRadius: 3,
-    backgroundColor: "#FF453A",
-    marginRight: 6,
+    backgroundColor: COLORS.live,
+    marginRight: 5,
   },
-  badgeText: {
-    color: "#FF453A",
-    fontSize: 11,
-    fontWeight: "bold",
-    letterSpacing: 0.5,
+  liveText: {
+    color: COLORS.live,
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1,
   },
-  tableContainer: {
+
+  // ── Table wrapper ─────────────────────────────────────────────────────────
+  tableWrapper: {
     flex: 1,
-    backgroundColor: "#161B22", // Colore di sfondo leggermente più chiaro per la tabella
-    marginHorizontal: 12,
+    marginHorizontal: 16,
     marginTop: 16,
-    borderRadius: 16,
-    overflow: "hidden", // Mantiene puliti gli angoli arrotondati
+    marginBottom: 12,
+    borderRadius: 14,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#21262D",
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
   },
-  centerContainer: {
+
+  // ── Centered states ───────────────────────────────────────────────────────
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    paddingHorizontal: 32,
   },
-  loadingText: {
-    color: "#8B949E",
-    marginTop: 12,
-    fontSize: 14,
+  loadingLabel: {
+    marginTop: 14,
+    color: COLORS.textSecondary,
+    fontSize: 13,
     fontWeight: "500",
+    letterSpacing: 0.2,
   },
+
+  // ── Error card ────────────────────────────────────────────────────────────
   errorCard: {
-    backgroundColor: "#161B22",
-    width: "100%",
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
-    padding: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 28,
     alignItems: "center",
+    width: "100%",
     borderWidth: 1,
-    borderColor: "rgba(255, 69, 58, 0.2)",
+    borderColor: COLORS.border,
+  },
+  errorIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(240, 83, 58, 0.1)",
+    borderWidth: 1,
+    borderColor: COLORS.liveBorder,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  errorIcon: {
+    color: COLORS.live,
+    fontSize: 20,
+    fontWeight: "800",
+    lineHeight: 22,
   },
   errorTitle: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
     marginBottom: 8,
+    letterSpacing: -0.2,
   },
-  errorText: {
-    color: "#8B949E",
-    marginBottom: 20,
+  errorBody: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
     textAlign: "center",
-    fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 19,
+    marginBottom: 24,
   },
-  retryButton: {
-    backgroundColor: "#FF6B00", // Arancione basket dinamico
-    paddingVertical: 12,
-    paddingHorizontal: 28,
+  retryBtn: {
+    backgroundColor: COLORS.accent,
+    paddingVertical: 11,
+    paddingHorizontal: 32,
     borderRadius: 10,
   },
-  retryButtonText: {
-    color: "#FFFFFF",
+  retryBtnText: {
+    color: "#08090B",
     fontWeight: "700",
-    fontSize: 15,
+    fontSize: 14,
+    letterSpacing: 0.2,
   },
 });
