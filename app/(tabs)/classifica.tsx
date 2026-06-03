@@ -318,11 +318,11 @@ const styles = StyleSheet.create({
   // ── Table wrapper ─────────────────────────────────────────────────────────
   tableWrapper: {
     flex: 1,
-    marginHorizontal: 16,
+    marginHorizontal: 8,
     marginTop: 16,
     marginBottom: 12,
     borderRadius: 14,
-    overflow: "hidden",
+    overflow: "visible",
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,

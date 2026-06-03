@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import {
   FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -33,32 +32,26 @@ type Props = {
   onRefresh: () => void;
 };
 
-const TABLE_WIDTH = 600;
-
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator nestedScrollEnabled>
-        <View style={{ width: TABLE_WIDTH }}>
-          <FlatList
-            data={teams}
-            keyExtractor={(team) => team.id.toString()}
-            ListHeaderComponent={<TableHeader />}
-            ListFooterComponent={<Legend />}
-            renderItem={({ item }) => <TeamRow team={item} />}
-            showsVerticalScrollIndicator={true}
-            contentContainerStyle={{ paddingBottom: 40 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor="#FF6B00"
-                colors={["#FF6B00"]}
-              />
-            }
+      <FlatList
+        data={teams}
+        keyExtractor={(team) => team.id.toString()}
+        ListHeaderComponent={<TableHeader />}
+        ListFooterComponent={<Legend />}
+        renderItem={({ item }) => <TeamRow team={item} />}
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF6B00"
+            colors={["#FF6B00"]}
           />
-        </View>
-      </ScrollView>
+        }
+      />
     </View>
   );
 }
@@ -232,7 +225,7 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     color: "#8B949E",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -243,7 +236,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#0D1117",
     paddingHorizontal: 16,
-    minHeight: 56,
+    minHeight: 48,
     borderBottomWidth: 1,
     borderBottomColor: "#21262D",
     position: "relative",
@@ -264,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF6B00",
   },
   cell: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#C9D1D9",
     textAlign: "center",
     fontWeight: "500",
@@ -272,7 +265,7 @@ const styles = StyleSheet.create({
   cellWin: { color: "#4CD137", fontWeight: "700" },
   cellLoss: { color: "#FF453A" },
   teamName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: "#FFFFFF",
   },
@@ -281,21 +274,21 @@ const styles = StyleSheet.create({
     color: "#FF6B00",
   },
   myTeamLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#FF6B00",
     fontWeight: "600",
     marginTop: 2,
   },
-  colPos: { width: 32 },
-  colTeam: { width: 140, paddingVertical: 8 },
+  colPos: { width: 30 },
+  colTeam: { minWidth: 110, flex: 1, paddingVertical: 8 },
   colNum: { width: 28 },
-  colPct: { width: 44, textAlign: "center" },
-  colGb: { width: 36, textAlign: "center" },
-  colPf: { width: 36, textAlign: "center" },
-  colPa: { width: 36, textAlign: "center" },
-  colDiff: { width: 40, textAlign: "center" },
-  colLast10: { width: 60, textAlign: "center" },
-  colStreak: { width: 44, textAlign: "center" },
+  colPct: { width: 42, textAlign: "center" },
+  colGb: { width: 32, textAlign: "center" },
+  colPf: { width: 32, textAlign: "center" },
+  colPa: { width: 32, textAlign: "center" },
+  colDiff: { width: 36, textAlign: "center" },
+  colLast10: { width: 56, textAlign: "center" },
+  colStreak: { width: 42, textAlign: "center" },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
