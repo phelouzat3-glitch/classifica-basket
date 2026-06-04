@@ -19,15 +19,15 @@ const { width } = Dimensions.get("window");
 type PlayerDetail = {
   id: number;
   name: string;
-  jersey_number: number;
+  jerseyNumber: number;
   role: string;
-  photo_url: string | null;
+  photoUrl: string | null;
   height: string;
   age: number;
-  games_played: number;
-  points_per_game: number;
-  rebounds_per_game: number;
-  assists_per_game: number;
+  gamesPlayed: number;
+  pointsPerGame: number;
+  reboundsPerGame: number;
+  assistsPerGame: number;
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -104,10 +104,10 @@ export default function PlayerDetailScreen() {
   const roleColor = ROLE_COLORS[player.role] ?? COLORS.accent;
 
   const stats = [
-    { label: "PTS", value: player.points_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
-    { label: "RIM", value: player.rebounds_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
-    { label: "ASS", value: player.assists_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
-    { label: "GP", value: player.games_played?.toString() ?? "0", sub: "partite" },
+    { label: "PTS", value: player.pointsPerGame?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "RIM", value: player.reboundsPerGame?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "ASS", value: player.assistsPerGame?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "GP", value: player.gamesPlayed?.toString() ?? "0", sub: "partite" },
   ];
 
   return (
@@ -135,7 +135,7 @@ export default function PlayerDetailScreen() {
             ]}
           >
             <Text style={[styles.bigJerseyText, { color: roleColor }]}>
-              {player.jersey_number}
+              {player.jerseyNumber}
             </Text>
           </View>
 
@@ -182,7 +182,7 @@ export default function PlayerDetailScreen() {
           onPress={async () => {
             try {
               await Share.share({
-                message: `🏀 ${player.name} · #${player.jersey_number} · ${player.role}\n📊 PTS: ${player.points_per_game?.toFixed(1) ?? "0.0"} | RIM: ${player.rebounds_per_game?.toFixed(1) ?? "0.0"} | ASS: ${player.assists_per_game?.toFixed(1) ?? "0.0"}\n\n🔗 https://classifica-basket.vercel.app`,
+                message: `🏀 ${player.name} · #${player.jerseyNumber} · ${player.role}\n📊 PTS: ${player.pointsPerGame?.toFixed(1) ?? "0.0"} | RIM: ${player.reboundsPerGame?.toFixed(1) ?? "0.0"} | ASS: ${player.assistsPerGame?.toFixed(1) ?? "0.0"}\n\n🔗 https://classifica-basket.vercel.app`,
               });
             } catch {}
           }}
