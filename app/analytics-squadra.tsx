@@ -92,7 +92,7 @@ export default function AnalyticsSquadraScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>← Torna a Esplora</Text>
+          <Text style={styles.backButtonText}>← Torna a Statistiche</Text>
         </TouchableOpacity>
       </View>
 

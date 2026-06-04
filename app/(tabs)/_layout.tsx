@@ -25,9 +25,9 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2. Seconda Scheda: Esplora (Il carrefour del tuo progetto) */}
+      {/* 2. Seconda Scheda: Statistiche */}
       <Tabs.Screen
-        name="explore" // Assicurati che il file si chiami explore.tsx in app/(tabs)/
+        name="statistiche"
         options={{
           title: "Statistiche",
           tabBarIcon: ({ color, size }) => (

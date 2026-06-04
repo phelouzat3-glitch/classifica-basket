@@ -26,6 +26,7 @@ type Standing = {
   last10: string;
   streak: string;
   is_my_team: boolean;
+  season: string;
 };
 
 type Analytics = {

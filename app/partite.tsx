@@ -140,7 +140,7 @@ export default function PartiteScreen() {
       {/* Intestazione superiore con reindirizzamento sicuro alla Home */}
       <View style={styles.headerRow}>
         <TouchableOpacity
-          onPress={() => router.replace("/explore" as any)} // Usa replace per evitare di accumulare schermate nella cronologia
+          onPress={() => router.replace("/statistiche" as any)}
           style={styles.backButton}
           activeOpacity={0.7}
         >
