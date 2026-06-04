@@ -29,9 +29,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="explore" // Assicurati che il file si chiami explore.tsx in app/(tabs)/
         options={{
-          title: "Esplora",
+          title: "Statistiche",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass" size={size} color={color} />
+            <Ionicons name="analytics" size={size} color={color} />
           ),
         }}
       />
