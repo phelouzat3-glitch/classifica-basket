@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ORANGE = "#E8600A";
@@ -8,6 +9,25 @@ const ORANGE = "#E8600A";
 export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [spinAnim]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -26,7 +46,7 @@ export default function LandingScreen() {
         </View>
 
         <View style={styles.centerSection}>
-          <Text style={styles.ballEmoji}>🏀</Text>
+          <Animated.Text style={[styles.ballEmoji, { transform: [{ rotate: spin }] }]}>🏀</Animated.Text>
           <Text style={styles.welcome}>Benvenuto</Text>
           <Text style={styles.subtitle}>
             Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
