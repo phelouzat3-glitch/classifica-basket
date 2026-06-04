@@ -103,10 +103,10 @@ export default function PlayerDetailScreen() {
   const roleColor = ROLE_COLORS[player.role] ?? COLORS.accent;
 
   const stats = [
-    { label: "PTS", value: player.points_per_game.toFixed(1), sub: "a partita" },
-    { label: "RIM", value: player.rebounds_per_game.toFixed(1), sub: "a partita" },
-    { label: "ASS", value: player.assists_per_game.toFixed(1), sub: "a partita" },
-    { label: "GP", value: player.games_played.toString(), sub: "partite" },
+    { label: "PTS", value: player.points_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "RIM", value: player.rebounds_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "ASS", value: player.assists_per_game?.toFixed(1) ?? "0.0", sub: "a partita" },
+    { label: "GP", value: player.games_played?.toString() ?? "0", sub: "partite" },
   ];
 
   return (
