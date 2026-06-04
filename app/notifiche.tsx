@@ -31,16 +31,23 @@ export default function NotificheScreen() {
     setStatus("loading");
     try {
       const { default: Constants } = await import("expo-constants");
-      const { requestPermissionsAsync, getExpoPushTokenAsync } = await import("expo-notifications");
-      const perm = await requestPermissionsAsync();
-      if (!perm.granted) {
-        throw new Error("Permesso notifiche non concesso");
+      const Notifications = await import("expo-notifications");
+
+      const { status: existing } = await Notifications.getPermissionsAsync();
+      let finalStatus = existing;
+      if (existing !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
       }
+      if (finalStatus !== "granted") {
+        throw new Error("Permesso notifiche non concesso. Vai nelle Impostazioni del telefono > Notifiche > attiva per questa app.");
+      }
+
       const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "";
       if (!projectId) {
         throw new Error("Project ID non trovato");
       }
-      const tokenData = await getExpoPushTokenAsync({ projectId });
+      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
       const pushToken = tokenData.data;
       setToken(pushToken);
 

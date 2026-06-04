@@ -37,12 +37,21 @@ function LayoutContent() {
     let cancelled = false;
     (async () => {
       try {
-        const { requestPermissionsAsync, getExpoPushTokenAsync } = await import("expo-notifications");
+        const Notifications = await import("expo-notifications");
         const { default: Constants } = await import("expo-constants");
-        const perm = await requestPermissionsAsync();
-        if (!perm.granted || cancelled) return;
+
+        const { status: existing } = await Notifications.getPermissionsAsync();
+        let finalStatus = existing;
+        if (existing !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== "granted" || cancelled) return;
+
         const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "";
-        const tokenData = await getExpoPushTokenAsync({ projectId });
+        if (!projectId || cancelled) return;
+
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
         if (cancelled) return;
         await fetch(`${API_URL}/notifications/register`, {
           method: "POST",
