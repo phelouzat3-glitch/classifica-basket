@@ -202,13 +202,14 @@ export default function PartiteScreen() {
 
           const shareMatch = async () => {
             const dateStr = new Date(item.date).toLocaleDateString("it-IT");
-            const timeStr = item.time ? item.time.slice(0, 5) : "--:--";
+            const timeStr = item.time ? item.time.slice(0, 5) : "";
+            const dateLine = `📅 ${dateStr}${timeStr ? " - " + timeStr : ""}`;
             const scoreLine = isPlayed
               ? `${homeName} ${item.home_score} - ${item.away_score} ${awayName}`
               : `${homeName} vs ${awayName}`;
             try {
               await Share.share({
-                message: `🏀 ABC Castelfiorentino\n${scoreLine}\n📅 ${dateStr} - ${timeStr}\n\n🔗 ${window.location.href}`,
+                message: `🏀 ABC Castelfiorentino\n${scoreLine}\n${dateLine}\n\n🔗 classifica-basket.vercel.app`,
               });
             } catch {}
           };
