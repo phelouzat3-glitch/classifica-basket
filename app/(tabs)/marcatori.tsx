@@ -17,29 +17,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type PlayerFromApi = {
   id: number;
   name: string;
-  jersey_number?: number;
-  jerseyNumber?: number;
+  jerseyNumber: number;
   role: string;
-  points_per_game?: number;
-  pointsPerGame?: number;
-  rebounds_per_game?: number;
-  reboundsPerGame?: number;
-  assists_per_game?: number;
-  assistsPerGame?: number;
+  pointsPerGame: number;
+  reboundsPerGame: number;
+  assistsPerGame: number;
 };
 
-function getStat(p: PlayerFromApi, key: string): number {
-  const camel = key.replace(/_([a-z])/g, (_, l) => l.toUpperCase());
-  return (p as any)[key] ?? (p as any)[camel] ?? 0;
-}
-
-type StatKey = "points_per_game" | "rebounds_per_game" | "assists_per_game";
+type StatKey = "pointsPerGame" | "reboundsPerGame" | "assistsPerGame";
 type Category = { key: StatKey; label: string; suffix: string };
 
 const CATEGORIES: Category[] = [
-  { key: "points_per_game", label: "PTS", suffix: "PPG" },
-  { key: "rebounds_per_game", label: "RIM", suffix: "RPG" },
-  { key: "assists_per_game", label: "ASS", suffix: "APG" },
+  { key: "pointsPerGame", label: "PTS", suffix: "PPG" },
+  { key: "reboundsPerGame", label: "RIM", suffix: "RPG" },
+  { key: "assistsPerGame", label: "ASS", suffix: "APG" },
 ];
 
 export default function MarcatoriScreen() {
@@ -71,7 +62,7 @@ export default function MarcatoriScreen() {
   }, [fetchPlayers]);
 
   const sorted = [...players].sort(
-    (a, b) => getStat(b, activeCat) - getStat(a, activeCat),
+    (a, b) => (b[activeCat] ?? 0) - (a[activeCat] ?? 0),
   );
 
   const currentCat = CATEGORIES.find((c) => c.key === activeCat)!;
@@ -141,7 +132,7 @@ export default function MarcatoriScreen() {
         }
         renderItem={({ item, index }) => {
           const pos = index + 1;
-          const value = getStat(item, activeCat).toFixed(1);
+          const value = (item[activeCat] ?? 0).toFixed(1);
           const isTop3 = pos <= 3;
           const medalColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
           const medal = isTop3 ? medalColors[index] : null;
@@ -175,7 +166,7 @@ export default function MarcatoriScreen() {
               <View style={styles.playerInfo}>
                 <Text style={styles.playerName}>{item.name}</Text>
                 <Text style={styles.playerMeta}>
-                  #{item.jersey_number} · {item.role}
+                  #{item.jerseyNumber} · {item.role}
                 </Text>
               </View>
 
