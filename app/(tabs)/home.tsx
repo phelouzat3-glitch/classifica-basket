@@ -1,4 +1,5 @@
 import { API_URL } from "@/src/config/api";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
@@ -13,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+Dimensions.get("window");
 
 type Standing = {
   position: number;
@@ -46,28 +47,26 @@ type Match = {
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   const months = [
-    "Gen", "Feb", "Mar", "Apr", "Mag", "Giu",
-    "Lug", "Ago", "Set", "Ott", "Nov", "Dic",
+    "Gen",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mag",
+    "Giu",
+    "Lug",
+    "Ago",
+    "Set",
+    "Ott",
+    "Nov",
+    "Dic",
   ];
   return `${d.getDate()} ${months[d.getMonth()]}`;
-}
-
-function getInitials(name: string): string {
-  return name
-    .replace(/^abc /i, "")
-    .replace(/basket /gi, "")
-    .replace(/pallacanestro /gi, "")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 export default function HomeTabScreen() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const router = useRouter();
@@ -114,7 +113,10 @@ export default function HomeTabScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + 40 },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -132,12 +134,21 @@ export default function HomeTabScreen() {
               Stagione {myTeam?.season ?? "2025/26"}
             </Text>
           </View>
-          <View style={styles.posBadge}>
-            <Text style={styles.posBadgeLabel}>Classifica</Text>
-            <Text style={styles.posBadgeValue}>
-              {myTeam?.position ?? "-"}°
-            </Text>
+          <View style={styles.headerRight}>
+            <Pressable
+              style={({ pressed }) => [styles.notifBtn, pressed && { opacity: 0.6 }]}
+              onPress={() => router.push("/notifiche" as any)}
+            >
+              <Ionicons name="notifications-outline" size={22} color="#E8600A" />
+            </Pressable>
+            <View style={styles.posBadge}>
+              <Text style={styles.posBadgeLabel}>Classifica</Text>
+              <Text style={styles.posBadgeValue}>
+                {myTeam?.position ?? "-"}°
+              </Text>
+            </View>
           </View>
+        </View>
         </View>
 
         <View style={styles.summaryRow}>
@@ -212,7 +223,10 @@ export default function HomeTabScreen() {
         ))}
 
         <Pressable
-          style={({ pressed }) => [styles.viewAllBtn, pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [
+            styles.viewAllBtn,
+            pressed && { opacity: 0.7 },
+          ]}
           onPress={() => router.push("/classifica" as any)}
         >
           <Text style={styles.viewAllBtnText}>Vedi classifica completa</Text>
@@ -225,16 +239,30 @@ export default function HomeTabScreen() {
           const opponent = isHome ? m.away_team : m.home_team;
           const ourScore = isHome ? m.home_score : m.away_score;
           const oppScore = isHome ? m.away_score : m.home_score;
-          const won = ourScore != null && oppScore != null && ourScore > oppScore;
+          const won =
+            ourScore != null && oppScore != null && ourScore > oppScore;
 
           return (
             <Pressable
               key={m.id}
-              style={({ pressed }) => [styles.matchRow, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [
+                styles.matchRow,
+                pressed && { opacity: 0.7 },
+              ]}
               onPress={() => router.push(`/partite` as any)}
             >
-              <View style={[styles.outcomeBadge, won ? styles.winBadge : styles.lossBadge]}>
-                <Text style={[styles.outcomeText, won ? styles.winText : styles.lossText]}>
+              <View
+                style={[
+                  styles.outcomeBadge,
+                  won ? styles.winBadge : styles.lossBadge,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.outcomeText,
+                    won ? styles.winText : styles.lossText,
+                  ]}
+                >
                   {won ? "V" : "S"}
                 </Text>
               </View>
@@ -276,8 +304,14 @@ export default function HomeTabScreen() {
               <View style={styles.statsBoxDivider} />
               <View style={styles.statsBoxItem}>
                 <Text style={styles.statsBoxLabel}>Differenza</Text>
-                <Text style={[styles.statsBoxValue, { color: (myTeam.diff ?? 0) >= 0 ? "#4ADE80" : "#F87171" }]}>
-                  {myTeam.diff ?? 0 >= 0 ? "+" : ""}{myTeam.diff}
+                <Text
+                  style={[
+                    styles.statsBoxValue,
+                    { color: (myTeam.diff ?? 0) >= 0 ? "#4ADE80" : "#F87171" },
+                  ]}
+                >
+                  {(myTeam.diff ?? 0 >= 0) ? "+" : ""}
+                  {myTeam.diff}
                 </Text>
                 <Text style={styles.statsBoxSub}>totale</Text>
               </View>
@@ -301,6 +335,17 @@ const styles = StyleSheet.create({
   },
   headerSub: { fontSize: 12, color: "#64748B", marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: "700", color: "#FFFFFF" },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  notifBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(232,96,10,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 0.5,
+    borderColor: "rgba(232,96,10,0.2)",
+  },
   posBadge: {
     backgroundColor: "rgba(232,96,10,0.12)",
     borderWidth: 0.5,
@@ -310,7 +355,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
   },
-  posBadgeLabel: { fontSize: 9, color: "#64748B", fontWeight: "600", letterSpacing: 0.5, textTransform: "uppercase" },
+  posBadgeLabel: {
+    fontSize: 9,
+    color: "#64748B",
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
   posBadgeValue: { fontSize: 18, fontWeight: "800", color: "#E8600A" },
 
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
@@ -323,9 +374,23 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "rgba(255,255,255,0.06)",
   },
-  summaryCardAccent: { backgroundColor: "rgba(232,96,10,0.06)", borderColor: "rgba(232,96,10,0.15)" },
-  summaryValue: { fontSize: 18, fontWeight: "800", color: "#FFFFFF", marginBottom: 1 },
-  summaryLabel: { fontSize: 9, color: "#64748B", fontWeight: "500", textTransform: "uppercase", letterSpacing: 0.3 },
+  summaryCardAccent: {
+    backgroundColor: "rgba(232,96,10,0.06)",
+    borderColor: "rgba(232,96,10,0.15)",
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 1,
+  },
+  summaryLabel: {
+    fontSize: 9,
+    color: "#64748B",
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
 
   sectionTitle: {
     fontSize: 13,
@@ -409,9 +474,19 @@ const styles = StyleSheet.create({
   winText: { color: "#4ADE80" },
   lossText: { color: "#F87171" },
   matchInfo: { flex: 1 },
-  matchOpponent: { fontSize: 13, fontWeight: "500", color: "#E2E8F0", marginBottom: 2 },
+  matchOpponent: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#E2E8F0",
+    marginBottom: 2,
+  },
   matchMeta: { fontSize: 11, color: "#64748B" },
-  matchScore: { fontSize: 15, fontWeight: "700", color: "#FFFFFF", marginLeft: 8 },
+  matchScore: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginLeft: 8,
+  },
 
   statsBox: {
     backgroundColor: "#1E293B",
@@ -428,7 +503,19 @@ const styles = StyleSheet.create({
     height: 36,
     backgroundColor: "rgba(255,255,255,0.06)",
   },
-  statsBoxLabel: { fontSize: 10, color: "#64748B", fontWeight: "500", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.3 },
-  statsBoxValue: { fontSize: 18, fontWeight: "800", color: "#FFFFFF", marginBottom: 2 },
+  statsBoxLabel: {
+    fontSize: 10,
+    color: "#64748B",
+    fontWeight: "500",
+    marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  statsBoxValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 2,
+  },
   statsBoxSub: { fontSize: 9, color: "#64748B", fontWeight: "500" },
 });
