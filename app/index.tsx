@@ -1,7 +1,9 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
 
 const ORANGE = "#E8600A";
 
@@ -22,7 +24,10 @@ export default function LandingScreen() {
       </View>
 
       <View style={styles.centerSection}>
-        <Text style={styles.ballEmoji}>🏀</Text>
+        <View style={styles.ballContainer}>
+          <View style={styles.glowEffect} />
+          <Text style={styles.ballEmoji}>🏀</Text>
+        </View>
         <Text style={styles.welcome}>Benvenuto</Text>
         <Text style={styles.subtitle}>
           Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
@@ -101,10 +106,23 @@ const styles = StyleSheet.create({
   centerSection: {
     alignItems: "center",
   },
+  ballContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+    marginBottom: 16,
+  },
+  glowEffect: {
+    position: "absolute",
+    width: width * 0.35,
+    height: width * 0.35,
+    borderRadius: (width * 0.35) / 2,
+    backgroundColor: ORANGE,
+    opacity: 0.12,
+  },
   ballEmoji: {
     fontSize: 64,
     textAlign: "center",
-    marginBottom: 16,
   },
   welcome: {
     fontSize: 20,
