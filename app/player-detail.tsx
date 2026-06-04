@@ -6,6 +6,7 @@ import {
   Dimensions,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -175,6 +176,19 @@ export default function PlayerDetailScreen() {
             </View>
           ))}
         </View>
+
+        <Pressable
+          style={styles.shareBtn}
+          onPress={async () => {
+            try {
+              await Share.share({
+                message: `🏀 ${player.name} · #${player.jersey_number} · ${player.role}\n📊 PTS: ${player.points_per_game?.toFixed(1) ?? "0.0"} | RIM: ${player.rebounds_per_game?.toFixed(1) ?? "0.0"} | ASS: ${player.assists_per_game?.toFixed(1) ?? "0.0"}\n\n🔗 classifica-basket.vercel.app`,
+              });
+            } catch {}
+          }}
+        >
+          <Text style={styles.shareBtnText}>Condividi giocatore</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -323,5 +337,17 @@ const styles = StyleSheet.create({
   retryBtnText: {
     color: "#08090B",
     fontWeight: "700",
+  },
+  shareBtn: {
+    marginTop: 24,
+    backgroundColor: COLORS.accent,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  shareBtnText: {
+    color: "#08090B",
+    fontWeight: "700",
+    fontSize: 15,
   },
 });

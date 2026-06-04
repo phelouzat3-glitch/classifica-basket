@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -199,6 +200,19 @@ export default function PartiteScreen() {
           const homeName = item.homeTeam || item.home_team || "Squadra Casa";
           const awayName = item.awayTeam || item.away_team || "Squadra Fuori";
 
+          const shareMatch = async () => {
+            const dateStr = new Date(item.date).toLocaleDateString("it-IT");
+            const timeStr = item.time ? item.time.slice(0, 5) : "--:--";
+            const scoreLine = isPlayed
+              ? `${homeName} ${item.home_score} - ${item.away_score} ${awayName}`
+              : `${homeName} vs ${awayName}`;
+            try {
+              await Share.share({
+                message: `🏀 ABC Castelfiorentino\n${scoreLine}\n📅 ${dateStr} - ${timeStr}\n\n🔗 ${window.location.href}`,
+              });
+            } catch {}
+          };
+
           return (
             <View style={styles.matchCard}>
               <View style={styles.matchHeader}>
@@ -263,6 +277,14 @@ export default function PartiteScreen() {
                   )}
                 </View>
               </View>
+
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={shareMatch}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.shareButtonText}>Condividi</Text>
+              </TouchableOpacity>
             </View>
           );
         }}
@@ -421,5 +443,18 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  shareButton: {
+    marginTop: 12,
+    alignSelf: "flex-end",
+    backgroundColor: "#E8600A",
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  shareButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
