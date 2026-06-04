@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type MatchFromAPI = {
   id: number;
@@ -65,7 +65,10 @@ function formatTime(timeStr: string): string {
   return timeStr ? timeStr.slice(0, 5) : "";
 }
 
+const ORANGE = "#E8600A";
+
 export default function CalendarioScreen() {
+  const insets = useSafeAreaInsets();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -96,15 +99,15 @@ export default function CalendarioScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#E8600A" />
+      <View style={[styles.center, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={ORANGE} />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { paddingTop: insets.top }]}>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => fetchMatches()}>
           <Text style={styles.retryBtnText}>Riprova</Text>
@@ -114,7 +117,12 @@ export default function CalendarioScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Text style={styles.headerSmall}>ABC CASTELFIORENTINO</Text>
+        <Text style={styles.headerTitle}>Calendario</Text>
+      </View>
+
       <FlatList
         data={matches}
         keyExtractor={(item) => item.id.toString()}
@@ -123,8 +131,8 @@ export default function CalendarioScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => fetchMatches(true)}
-            tintColor="#E8600A"
-            colors={["#E8600A"]}
+            tintColor={ORANGE}
+            colors={[ORANGE]}
           />
         }
         renderItem={({ item }) => {
@@ -136,47 +144,54 @@ export default function CalendarioScreen() {
 
           return (
             <View style={[styles.card, !item.isPlayed && styles.cardFuture]}>
-              <View style={styles.cardLeft}>
-                <Text style={styles.roundNum}>{item.round}ª</Text>
-                <View style={styles.dateBox}>
-                  <Text style={styles.dateText}>{formatDate(item.date)}</Text>
-                  {item.time && (
-                    <Text style={styles.timeText}>{formatTime(item.time)}</Text>
-                  )}
+              <View style={styles.roundCol}>
+                <View style={styles.roundBadge}>
+                  <Text style={styles.roundBadgeText}>{item.round}ª</Text>
                 </View>
               </View>
 
-              <View style={styles.cardCenter}>
+              <View style={styles.bodyCol}>
                 <View style={styles.opponentRow}>
-                  <TeamLogo teamName={opponent} size={item.isPlayed ? 22 : 18} />
+                  <TeamLogo teamName={opponent} size={item.isPlayed ? 24 : 20} />
                   <Text
-                    style={[styles.opponentName, !item.isPlayed && styles.opponentNameSmall]}
+                    style={[styles.opponentName, !item.isPlayed && styles.opponentNameFuture]}
                     numberOfLines={1}
                   >
                     {opponent}
                   </Text>
                   <View style={styles.venueTag}>
                     <Text style={styles.venueTagText}>
-                      {isAbcHome ? "C" : "T"}
+                      {isAbcHome ? "Casa" : "Trasferta"}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.roundLabel}>Giornata {item.round}</Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaIcon}>📅</Text>
+                    <Text style={styles.metaText}>{formatDate(item.date)}</Text>
+                  </View>
+                  {item.time && (
+                    <View style={styles.metaItem}>
+                      <Text style={styles.metaIcon}>⏰</Text>
+                      <Text style={styles.metaText}>{formatTime(item.time)}</Text>
+                    </View>
+                  )}
+                </View>
               </View>
 
-              <View style={styles.cardRight}>
+              <View style={styles.scoreCol}>
                 {item.isPlayed ? (
                   <>
-                    <Text style={[styles.score, won && styles.scoreWon]}>
+                    <Text style={[styles.scoreNum, won && styles.scoreWin]}>
                       {ourScore}
                     </Text>
                     <Text style={styles.scoreDash}>-</Text>
-                    <Text style={[styles.score, !won && styles.scoreLost]}>
+                    <Text style={[styles.scoreNum, !won && styles.scoreLoss]}>
                       {oppScore}
                     </Text>
                   </>
                 ) : (
-                  <Text style={styles.vsText}>VS</Text>
+                  <Text style={styles.vsLabel}>VS</Text>
                 )}
               </View>
             </View>
@@ -188,48 +203,92 @@ export default function CalendarioScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0F1923" },
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+  },
   center: {
     flex: 1,
-    backgroundColor: "#0F1923",
+    backgroundColor: "#F8F9FA",
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
-  errorText: { color: "#ef4444", marginBottom: 16 },
-  retryBtn: { backgroundColor: "#E8600A", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 6 },
-  retryBtnText: { color: "#FFF", fontWeight: "bold" },
-  list: { padding: 12, paddingBottom: 40 },
+  errorText: { color: "#DC2626", marginBottom: 16, fontSize: 15 },
+  retryBtn: {
+    backgroundColor: ORANGE,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryBtnText: { color: "#FFF", fontWeight: "600" },
+
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
+    backgroundColor: "#F8F9FA",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerSmall: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: ORANGE,
+    letterSpacing: 1.5,
+    marginBottom: 2,
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#111827",
+  },
+
+  list: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1E293B",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#E8600A",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   cardFuture: {
-    borderLeftColor: "#334155",
+    borderColor: "#F0F0F0",
+    backgroundColor: "#FAFAFA",
   },
-  cardLeft: {
-    width: 60,
+
+  roundCol: {
+    width: 44,
     alignItems: "center",
-    gap: 4,
   },
-  roundNum: {
-    fontSize: 13,
+  roundBadge: {
+    backgroundColor: ORANGE,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  roundBadgeText: {
+    color: "#FFF",
+    fontSize: 12,
     fontWeight: "800",
-    color: "#E8600A",
   },
-  dateBox: { alignItems: "center" },
-  dateText: { color: "#94A3B8", fontSize: 11, fontWeight: "500" },
-  timeText: { color: "#64748B", fontSize: 10 },
-  cardCenter: {
+
+  bodyCol: {
     flex: 1,
-    paddingLeft: 10,
-    gap: 4,
+    paddingLeft: 12,
+    gap: 6,
   },
   opponentRow: {
     flexDirection: "row",
@@ -237,34 +296,65 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   opponentName: {
-    color: "#FFF",
     fontSize: 15,
     fontWeight: "700",
+    color: "#111827",
     flex: 1,
   },
-  opponentNameSmall: {
-    fontSize: 14,
+  opponentNameFuture: {
     fontWeight: "600",
-    color: "#CBD5E1",
+    color: "#6B7280",
   },
   venueTag: {
-    backgroundColor: "#0F1923",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  venueTagText: { color: "#64748B", fontSize: 10, fontWeight: "700" },
-  roundLabel: { color: "#64748B", fontSize: 10, fontWeight: "500" },
-  cardRight: {
+  venueTagText: {
+    color: "#6B7280",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  metaRow: {
+    flexDirection: "row",
+    gap: 14,
+  },
+  metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
-    minWidth: 50,
+    gap: 4,
+  },
+  metaIcon: {
+    fontSize: 11,
+  },
+  metaText: {
+    color: "#9CA3AF",
+    fontSize: 11,
+    fontWeight: "500",
+  },
+
+  scoreCol: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    minWidth: 52,
     justifyContent: "flex-end",
   },
-  score: { color: "#FFF", fontSize: 18, fontWeight: "800", minWidth: 22, textAlign: "center" },
-  scoreWon: { color: "#4ADE80" },
-  scoreLost: { color: "#F87171" },
-  scoreDash: { color: "#475569", fontSize: 16, fontWeight: "600" },
-  vsText: { color: "#475569", fontSize: 13, fontWeight: "800" },
+  scoreNum: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+    minWidth: 24,
+    textAlign: "center",
+  },
+  scoreWin: { color: "#059669" },
+  scoreLoss: { color: "#DC2626" },
+  scoreDash: { color: "#D1D5DB", fontSize: 18, fontWeight: "700" },
+  vsLabel: {
+    color: "#D1D5DB",
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
 });
