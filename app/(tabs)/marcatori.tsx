@@ -90,8 +90,8 @@ export default function MarcatoriScreen() {
   }, [fetchPlayers]);
 
   const sorted = [...players].sort((a, b) => {
-    const aVal = a[activeKey as keyof Player] ?? 0;
-    const bVal = b[activeKey as keyof Player] ?? 0;
+    const aVal = Number(a[activeKey as keyof Player] ?? 0);
+    const bVal = Number(b[activeKey as keyof Player] ?? 0);
     return bVal - aVal;
   });
 
