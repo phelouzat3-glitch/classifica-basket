@@ -209,7 +209,7 @@ export default function PartiteScreen() {
               : `${homeName} vs ${awayName}`;
             try {
               await Share.share({
-                message: `🏀 ABC Castelfiorentino\n${scoreLine}\n${dateLine}\n\n🔗 classifica-basket.vercel.app`,
+                message: `🏀 ABC Castelfiorentino\n${scoreLine}\n${dateLine}\n\n🔗 https://classifica-basket.vercel.app`,
               });
             } catch {}
           };

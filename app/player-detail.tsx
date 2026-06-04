@@ -182,7 +182,7 @@ export default function PlayerDetailScreen() {
           onPress={async () => {
             try {
               await Share.share({
-                message: `🏀 ${player.name} · #${player.jersey_number} · ${player.role}\n📊 PTS: ${player.points_per_game?.toFixed(1) ?? "0.0"} | RIM: ${player.rebounds_per_game?.toFixed(1) ?? "0.0"} | ASS: ${player.assists_per_game?.toFixed(1) ?? "0.0"}\n\n🔗 classifica-basket.vercel.app`,
+                message: `🏀 ${player.name} · #${player.jersey_number} · ${player.role}\n📊 PTS: ${player.points_per_game?.toFixed(1) ?? "0.0"} | RIM: ${player.rebounds_per_game?.toFixed(1) ?? "0.0"} | ASS: ${player.assists_per_game?.toFixed(1) ?? "0.0"}\n\n🔗 https://classifica-basket.vercel.app`,
               });
             } catch {}
           }}
