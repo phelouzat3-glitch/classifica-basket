@@ -1,12 +1,11 @@
+import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
-import { getTeamLogo, TEAM_LOGOS } from "@/src/config/teamImages";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
-  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -190,10 +189,7 @@ export default function HomeTabScreen() {
             {myTeam?.position ?? "-"}
           </Text>
           <View style={styles.standNameRow}>
-            <Image
-              source={TEAM_LOGOS["abc-castelfiorentino"]}
-              style={styles.standLogo}
-            />
+            <TeamLogo teamName="ABC Castelfiorentino" size={18} />
             <Text style={[styles.tableCell, styles.colName, styles.myTeamText]}>
               ABC Castelfiorentino
             </Text>
@@ -215,10 +211,7 @@ export default function HomeTabScreen() {
               {t.position}
             </Text>
             <View style={styles.standNameRow}>
-              <Image
-                source={TEAM_LOGOS[t.team_id]}
-                style={styles.standLogo}
-              />
+              <TeamLogo teamName={t.name} size={18} />
               <Text style={[styles.tableCell, styles.colName, styles.standText]}>
                 {t.name}
               </Text>
@@ -280,10 +273,7 @@ export default function HomeTabScreen() {
                 </Text>
               </View>
               <View style={styles.matchLogoWrap}>
-                <Image
-                  source={getTeamLogo(opponent)}
-                  style={styles.matchLogo}
-                />
+                <TeamLogo teamName={opponent} size={22} />
               </View>
               <View style={styles.matchInfo}>
                 <Text style={styles.matchOpponent} numberOfLines={1}>
@@ -448,9 +438,7 @@ const styles = StyleSheet.create({
   myTeamText: { color: "#E8600A", fontSize: 12 },
 
   standNameRow: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
-  standLogo: { width: 18, height: 18, borderRadius: 9 },
   matchLogoWrap: { width: 28, alignItems: "center" },
-  matchLogo: { width: 22, height: 22, borderRadius: 11 },
   standRow: {
     flexDirection: "row",
     paddingHorizontal: 10,

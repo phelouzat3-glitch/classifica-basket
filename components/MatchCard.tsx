@@ -1,7 +1,7 @@
 // src/components/MatchCard.tsx
-import { getTeamLogo } from "@/src/config/teamImages";
+import { TeamLogo } from "@/components/TeamLogo";
 import { colors, radius, spacing, typography } from "@/src/theme";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Match = {
   id: number;
@@ -60,10 +60,7 @@ export function MatchCard({ compact, match }: Props) {
         <View style={styles.matchRow}>
         <View style={styles.teamBlock}>
           <View style={styles.teamNameRow}>
-            <Image
-              source={getTeamLogo(match.homeTeam)}
-              style={[styles.teamLogo, homeWon && styles.teamLogoGlow]}
-            />
+            <TeamLogo teamName={match.homeTeam} size={20} />
             <Text
               style={[styles.teamName, homeWon && styles.teamWinner]}
               numberOfLines={1}
@@ -92,10 +89,7 @@ export function MatchCard({ compact, match }: Props) {
 
         <View style={[styles.teamBlock, styles.teamBlockRight]}>
           <View style={styles.teamNameRow}>
-            <Image
-              source={getTeamLogo(match.awayTeam)}
-              style={[styles.teamLogo, awayWon && styles.teamLogoGlow]}
-            />
+            <TeamLogo teamName={match.awayTeam} size={20} />
             <Text
               style={[
                 styles.teamName,
@@ -165,8 +159,7 @@ const styles = StyleSheet.create({
   teamBlock: { flex: 1 },
   teamBlockRight: { alignItems: "flex-end" },
   teamNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  teamLogo: { width: 20, height: 20, borderRadius: 10 },
-  teamLogoGlow: { opacity: 1 },
+
   teamName: {
     fontSize: typography.base,
     fontWeight: typography.semibold,
