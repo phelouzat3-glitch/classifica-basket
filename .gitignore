@@ -46,3 +46,6 @@ app-example
 
 # nested api repo
 /basket-api
+
+# frontend Railway config (usiamo Vercel)
+/railway.json
