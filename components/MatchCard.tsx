@@ -1,6 +1,7 @@
 // src/components/MatchCard.tsx
+import { getTeamLogo } from "@/src/config/teamImages";
 import { colors, radius, spacing, typography } from "@/src/theme";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 type Match = {
   id: number;
@@ -56,14 +57,20 @@ export function MatchCard({ compact, match }: Props) {
       </View>
 
       {/* Squadre e risultato */}
-      <View style={styles.matchRow}>
+        <View style={styles.matchRow}>
         <View style={styles.teamBlock}>
-          <Text
-            style={[styles.teamName, homeWon && styles.teamWinner]}
-            numberOfLines={1}
-          >
-            {match.homeTeam}
-          </Text>
+          <View style={styles.teamNameRow}>
+            <Image
+              source={getTeamLogo(match.homeTeam)}
+              style={[styles.teamLogo, homeWon && styles.teamLogoGlow]}
+            />
+            <Text
+              style={[styles.teamName, homeWon && styles.teamWinner]}
+              numberOfLines={1}
+            >
+              {match.homeTeam}
+            </Text>
+          </View>
           <Text style={styles.homeAway}>Casa</Text>
         </View>
 
@@ -84,16 +91,22 @@ export function MatchCard({ compact, match }: Props) {
         </View>
 
         <View style={[styles.teamBlock, styles.teamBlockRight]}>
-          <Text
-            style={[
-              styles.teamName,
-              styles.teamNameRight,
-              awayWon && styles.teamWinner,
-            ]}
-            numberOfLines={1}
-          >
-            {match.awayTeam}
-          </Text>
+          <View style={styles.teamNameRow}>
+            <Image
+              source={getTeamLogo(match.awayTeam)}
+              style={[styles.teamLogo, awayWon && styles.teamLogoGlow]}
+            />
+            <Text
+              style={[
+                styles.teamName,
+                styles.teamNameRight,
+                awayWon && styles.teamWinner,
+              ]}
+              numberOfLines={1}
+            >
+              {match.awayTeam}
+            </Text>
+          </View>
           <Text style={[styles.homeAway, styles.homeAwayRight]}>Ospite</Text>
         </View>
       </View>
@@ -151,6 +164,9 @@ const styles = StyleSheet.create({
   },
   teamBlock: { flex: 1 },
   teamBlockRight: { alignItems: "flex-end" },
+  teamNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  teamLogo: { width: 20, height: 20, borderRadius: 10 },
+  teamLogoGlow: { opacity: 1 },
   teamName: {
     fontSize: typography.base,
     fontWeight: typography.semibold,

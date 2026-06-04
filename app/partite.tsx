@@ -1,10 +1,14 @@
 import { API_URL } from "@/src/config/api";
+import { getTeamLogo } from "@/src/config/teamImages";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Linking,
+  Pressable,
   RefreshControl,
   Share,
   StyleSheet,
@@ -228,6 +232,10 @@ export default function PartiteScreen() {
 
               <View style={styles.teamsContainer}>
                 <View style={styles.teamRow}>
+                  <Image
+                    source={getTeamLogo(homeName)}
+                    style={styles.teamLogo}
+                  />
                   <Text
                     style={[
                       styles.teamName,
@@ -254,6 +262,10 @@ export default function PartiteScreen() {
                 </View>
 
                 <View style={styles.teamRow}>
+                  <Image
+                    source={getTeamLogo(awayName)}
+                    style={styles.teamLogo}
+                  />
                   <Text
                     style={[
                       styles.teamName,
@@ -408,7 +420,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
   },
+  teamLogo: { width: 22, height: 22, borderRadius: 11 },
   teamName: {
     fontSize: 15,
     fontWeight: "600",
