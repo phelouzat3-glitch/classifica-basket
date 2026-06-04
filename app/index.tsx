@@ -22,6 +22,7 @@ export default function LandingScreen() {
       </View>
 
       <View style={styles.centerSection}>
+        <Text style={styles.ballEmoji}>🏀</Text>
         <Text style={styles.welcome}>Benvenuto</Text>
         <Text style={styles.subtitle}>
           Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
@@ -99,6 +100,11 @@ const styles = StyleSheet.create({
   },
   centerSection: {
     alignItems: "center",
+  },
+  ballEmoji: {
+    fontSize: 64,
+    textAlign: "center",
+    marginBottom: 16,
   },
   welcome: {
     fontSize: 20,
