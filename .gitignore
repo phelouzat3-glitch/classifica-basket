@@ -43,3 +43,6 @@ app-example
 /android
 
 .vercel
+
+# nested api repo
+/basket-api

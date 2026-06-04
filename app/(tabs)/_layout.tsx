@@ -46,7 +46,18 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {/* Nasconde il file partite se è rimasto dentro la cartella (tabs) */}
+      {/* 4. Quarta Scheda: Rosa */}
+      <Tabs.Screen
+        name="rosa"
+        options={{
+          title: "Rosa",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* 5. Quinta Scheda: Calendario */}
       <Tabs.Screen
         name="calendario"
         options={{

@@ -1,7 +1,7 @@
 // app/_layout.tsx
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function RootLayout() {
   return (
@@ -13,6 +13,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="team-detail"
             options={{ headerShown: true, title: "Dettagli Squadra" }}
+          />
+          <Stack.Screen
+            name="player-detail"
+            options={{ headerShown: true, title: "Giocatore" }}
           />
           <Stack.Screen name="index" />
         </Stack>
