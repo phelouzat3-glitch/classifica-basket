@@ -136,7 +136,7 @@ export default function ClassificaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingLabel}>Caricamento in corso…</Text>
@@ -155,7 +155,7 @@ export default function ClassificaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
         <View style={styles.centered}>
           <View style={styles.errorCard}>
             <View style={styles.errorIconWrap}>
@@ -185,7 +185,7 @@ export default function ClassificaScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Header */}
       <Animated.View
@@ -229,19 +229,19 @@ export default function ClassificaScreen() {
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 
 const COLORS = {
-  bg: "#08090B", // Near-black canvas
-  surface: "#10131A", // Card surface
-  border: "#1C2030", // Subtle border
-  borderLight: "#252C3D", // Slightly brighter border
-  accent: "#E8A838", // Warm gold — sport authority
-  accentMuted: "rgba(232, 168, 56, 0.12)",
-  accentBorder: "rgba(232, 168, 56, 0.25)",
+  bg: "#F8F9FA",
+  surface: "#FFFFFF",
+  border: "#E5E7EB",
+  borderLight: "#F3F4F6",
+  accent: "#E8A838",
+  accentMuted: "rgba(232, 168, 56, 0.08)",
+  accentBorder: "rgba(232, 168, 56, 0.15)",
   live: "#F0533A",
-  liveMuted: "rgba(240, 83, 58, 0.12)",
-  liveBorder: "rgba(240, 83, 58, 0.25)",
-  textPrimary: "#EDF0F7",
-  textSecondary: "#6B7492",
-  textMuted: "#3E4660",
+  liveMuted: "rgba(240, 83, 58, 0.08)",
+  liveBorder: "rgba(240, 83, 58, 0.15)",
+  textPrimary: "#111827",
+  textSecondary: "#6B7280",
+  textMuted: "#9CA3AF",
 } as const;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -324,8 +324,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#2A3440",
-    backgroundColor: "#10141C",
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
   },
 
   // ── Centered states ───────────────────────────────────────────────────────
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(240, 83, 58, 0.1)",
+    backgroundColor: "rgba(240, 83, 58, 0.06)",
     borderWidth: 1,
     borderColor: COLORS.liveBorder,
     justifyContent: "center",
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#08090B",
+    color: "#FFFFFF",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,

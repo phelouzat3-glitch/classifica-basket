@@ -1,54 +1,59 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+const ORANGE = "#E8600A";
 
-export default function HomeTabScreen() {
+export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
-      <StatusBar style="light" />
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <StatusBar style="dark" />
 
-      {/* 1. Titolo in alto stilizzato */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>ABC BASKET</Text>
-        <View style={styles.headerUnderline} />
+      <View style={styles.topSection}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>Serie C · Girone B</Text>
+        </View>
+        <Text style={styles.teamName}>ABC Castelfiorentino</Text>
+        <Text style={styles.division}>Stagione 2025/26</Text>
       </View>
 
-      {/* 2. Pallone al centro con effetto alone */}
-      <View style={styles.ballContainer}>
-        <View style={styles.glowEffect} />
-        <Text style={styles.bigBall}>🏀</Text>
-      </View>
-
-      {/* 3. Testo centrale */}
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Abc Castelfiorentino</Text>
+      <View style={styles.centerSection}>
+        <Text style={styles.welcome}>Benvenuto</Text>
         <Text style={styles.subtitle}>
-          Sei nella tua Home. Usa la barra in basso per esplorare i risultati o
-          controllare la classifica aggiornata.
+          Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
         </Text>
+        <View style={styles.features}>
+          <View style={styles.featureRow}>
+            <Text style={styles.featureDot}>●</Text>
+            <Text style={styles.featureText}>Classifica aggiornata</Text>
+          </View>
+          <View style={styles.featureRow}>
+            <Text style={styles.featureDot}>●</Text>
+            <Text style={styles.featureText}>Calendario partite</Text>
+          </View>
+          <View style={styles.featureRow}>
+            <Text style={styles.featureDot}>●</Text>
+            <Text style={styles.featureText}>Statistiche e marcatori</Text>
+          </View>
+          <View style={styles.featureRow}>
+            <Text style={styles.featureDot}>●</Text>
+            <Text style={styles.featureText}>Rosa e dettagli giocatori</Text>
+          </View>
+        </View>
       </View>
 
-      {/* 4. Pulsante "Apri Classifica" */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          pressed && styles.buttonPressed,
-        ]}
-        onPress={() => router.push("/classifica" as any)}
-      >
-        <Text style={styles.buttonText}>Apri Classifica</Text>
-      </Pressable>
+      <View style={styles.bottomSection}>
+        <Pressable
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+          onPress={() => router.replace("/(tabs)/home" as any)}
+        >
+          <Text style={styles.buttonText}>Entra</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -56,85 +61,94 @@ export default function HomeTabScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0F172A",
-    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 32,
     justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingVertical: 30,
   },
-  headerContainer: {
+  topSection: {
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 40,
   },
-  headerText: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#94A3B8",
-    letterSpacing: 4,
+  badge: {
+    backgroundColor: `${ORANGE}12`,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: `${ORANGE}25`,
+    marginBottom: 16,
   },
-  headerUnderline: {
-    width: 40,
-    height: 3,
-    backgroundColor: "#E8600A",
-    marginTop: 8,
-    borderRadius: 2,
+  badgeText: {
+    color: ORANGE,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
-  ballContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    marginVertical: 20,
-  },
-  glowEffect: {
-    position: "absolute",
-    width: width * 0.4,
-    height: width * 0.4,
-    borderRadius: (width * 0.4) / 2,
-    backgroundColor: "#E8600A",
-    opacity: 0.15, // Crea l'effetto luce soffusa senza mandare in errore TypeScript
-  },
-  bigBall: {
-    fontSize: 90,
-    textAlign: "center",
-  },
-  textContainer: {
-    alignItems: "center",
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  title: {
+  teamName: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#ffffff",
-    marginBottom: 12,
+    color: "#111827",
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: -0.5,
+  },
+  division: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    fontWeight: "500",
+    marginTop: 4,
+  },
+  centerSection: {
+    alignItems: "center",
+  },
+  welcome: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
-    color: "#94A3B8",
+    color: "#6B7280",
     textAlign: "center",
     lineHeight: 22,
+    marginBottom: 28,
+    paddingHorizontal: 10,
+  },
+  features: {
+    gap: 12,
+    width: "100%",
+  },
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  featureDot: {
+    fontSize: 10,
+    color: ORANGE,
+  },
+  featureText: {
+    fontSize: 15,
+    color: "#374151",
+    fontWeight: "500",
+  },
+  bottomSection: {
+    paddingBottom: 20,
   },
   button: {
-    backgroundColor: "#E8600A",
+    backgroundColor: ORANGE,
     width: "100%",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#E8600A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
   },
   buttonPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
   buttonText: {
-    color: "#ffffff",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.5,

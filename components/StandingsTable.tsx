@@ -218,14 +218,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1C2230",
+    backgroundColor: "#F3F4F6",
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A3440",
+    borderBottomColor: "#E5E7EB",
   },
   headerCell: {
-    color: "#FFFFFF",
+    color: "#6B7280",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -239,15 +239,15 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0D1117",
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 12,
     minHeight: 44,
     borderBottomWidth: 1,
-    borderBottomColor: "#1E2530",
+    borderBottomColor: "#E5E7EB",
     position: "relative",
   },
   rowMyTeam: {
-    backgroundColor: "rgba(255, 107, 0, 0.08)",
+    backgroundColor: "rgba(255, 107, 0, 0.05)",
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#FF6B00",
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   cell: {
     fontSize: 12,
-    color: "#C9D1D9",
+    color: "#374151",
     textAlign: "center",
     fontWeight: "500",
   },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#1C2230",
+    backgroundColor: "#F3F4F6",
   },
   teamInfo: {
     flex: 1,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#111827",
     textAlign: "left",
   },
   teamNameMyTeam: {
@@ -313,9 +313,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     padding: 12,
-    backgroundColor: "#141A24",
+    backgroundColor: "#F9FAFB",
     borderTopWidth: 1,
-    borderTopColor: "#2A3440",
+    borderTopColor: "#E5E7EB",
   },
   legendItem: {
     flexDirection: "row",
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: "#C9D1D9",
+    color: "#6B7280",
     fontWeight: "500",
   },
 });

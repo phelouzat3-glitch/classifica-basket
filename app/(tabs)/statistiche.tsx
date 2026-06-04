@@ -105,7 +105,7 @@ export default function StatisticheScreen() {
   if (loading && !refreshing) {
     return (
       <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#E8600A" />
         </View>
@@ -115,7 +115,7 @@ export default function StatisticheScreen() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -140,15 +140,15 @@ export default function StatisticheScreen() {
         </View>
 
         <View style={styles.quickRow}>
-          <View style={[styles.quickCard, { borderColor: "rgba(34,197,94,0.3)" }]}>
+          <View style={[styles.quickCard, { borderColor: "rgba(34,197,94,0.15)" }]}>
             <Text style={[styles.quickValue, { color: "#4ADE80" }]}>{myTeam?.wins ?? 0}</Text>
             <Text style={styles.quickLabel}>Vittorie</Text>
           </View>
-          <View style={[styles.quickCard, { borderColor: "rgba(248,113,113,0.3)" }]}>
+          <View style={[styles.quickCard, { borderColor: "rgba(248,113,113,0.15)" }]}>
             <Text style={[styles.quickValue, { color: "#F87171" }]}>{myTeam?.losses ?? 0}</Text>
             <Text style={styles.quickLabel}>Sconfitte</Text>
           </View>
-          <View style={[styles.quickCard, { borderColor: "rgba(232,96,10,0.3)" }]}>
+          <View style={[styles.quickCard, { borderColor: "rgba(232,96,10,0.15)" }]}>
             <Text style={[styles.quickValue, { color: "#E8600A" }]}>
               {myTeam ? Math.round((myTeam.wins / total) * 100) : 0}%
             </Text>
@@ -325,7 +325,7 @@ export default function StatisticheScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0F172A" },
+  root: { flex: 1, backgroundColor: "#F8F9FA" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
@@ -335,48 +335,48 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
   },
-  headerSub: { fontSize: 12, color: "#64748B", marginBottom: 2 },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#FFFFFF" },
+  headerSub: { fontSize: 12, color: "#9CA3AF", marginBottom: 2 },
+  headerTitle: { fontSize: 22, fontWeight: "800", color: "#111827" },
   posBadge: {
-    backgroundColor: "rgba(232,96,10,0.12)",
+    backgroundColor: "rgba(232,96,10,0.08)",
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.3)",
+    borderColor: "rgba(232,96,10,0.15)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     alignItems: "center",
   },
-  posBadgeLabel: { fontSize: 9, color: "#64748B", fontWeight: "600", textTransform: "uppercase" },
+  posBadgeLabel: { fontSize: 9, color: "#9CA3AF", fontWeight: "600", textTransform: "uppercase" },
   posBadgeValue: { fontSize: 18, fontWeight: "800", color: "#E8600A" },
 
   quickRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   quickCard: {
     flex: 1,
-    backgroundColor: "#1E293B",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 12,
     alignItems: "center",
     borderWidth: 1,
   },
   quickValue: { fontSize: 22, fontWeight: "800", marginBottom: 2 },
-  quickLabel: { fontSize: 10, color: "#64748B", fontWeight: "500" },
+  quickLabel: { fontSize: 10, color: "#9CA3AF", fontWeight: "500" },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#94A3B8",
+    color: "#6B7280",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 10,
   },
 
   card: {
-    backgroundColor: "#1E293B",
+    backgroundColor: "#FFFFFF",
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
     borderWidth: 0.5,
-    borderColor: "rgba(255,255,255,0.06)",
+    borderColor: "#E5E7EB",
   },
 
   recordRow: {
@@ -385,29 +385,29 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    borderBottomColor: "#F3F4F6",
   },
-  recordLabel: { width: 60, fontSize: 13, fontWeight: "600", color: "#CBD5E1" },
+  recordLabel: { width: 60, fontSize: 13, fontWeight: "600", color: "#4B5563" },
   barTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "#F3F4F6",
     borderRadius: 4,
     overflow: "hidden",
   },
   barFill: { height: "100%", borderRadius: 4 },
-  recordNumbers: { width: 60, textAlign: "right", fontSize: 13, fontWeight: "600", color: "#94A3B8" },
+  recordNumbers: { width: 60, textAlign: "right", fontSize: 13, fontWeight: "600", color: "#6B7280" },
 
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8 },
   topLabelWrap: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   topDot: { width: 24, height: 24, borderRadius: 6, alignItems: "center", justifyContent: "center" },
-  topDotText: { fontSize: 11, fontWeight: "800", color: "#FFFFFF" },
-  topName: { fontSize: 14, fontWeight: "600", color: "#E2E8F0" },
-  topStat: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
-  topDivider: { height: 0.5, backgroundColor: "rgba(255,255,255,0.05)" },
+  topDotText: { fontSize: 11, fontWeight: "800", color: "#111827" },
+  topName: { fontSize: 14, fontWeight: "600", color: "#111827" },
+  topStat: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  topDivider: { height: 0.5, backgroundColor: "#F3F4F6" },
 
   last10Row: { flexDirection: "row", gap: 4, marginBottom: 10 },
   last10Group: { flexDirection: "row", gap: 4, alignItems: "center" },
   last10Dot: { width: 12, height: 12, borderRadius: 3 },
-  last10Text: { fontSize: 13, color: "#94A3B8", textAlign: "center", fontWeight: "500" },
+  last10Text: { fontSize: 13, color: "#6B7280", textAlign: "center", fontWeight: "500" },
 });
