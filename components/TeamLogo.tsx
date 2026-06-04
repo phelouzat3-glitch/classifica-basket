@@ -24,19 +24,7 @@ type TeamStyle = {
   accent: string;
 };
 
-const TEAM_STYLES: Record<string, TeamStyle> = {
-  "Robur Basket Massa": { bg: "#DC2626", fg: "#FFFFFF", accent: "#991B1B" },
-  "Virtus Siena": { bg: "#1D4ED8", fg: "#FFFFFF", accent: "#CC0000" },
-  "San Miniato Basket": { bg: "#0F766E", fg: "#FFFFFF", accent: "#CCCCCC" },
-  "GEA Roma": { bg: "#F59E0B", fg: "#1F2937", accent: "#D97706" },
-  "Kleb Ferrara": { bg: "#059669", fg: "#FFFFFF", accent: "#1D4ED8" },
-  "Arezzo Basket": { bg: "#CC0000", fg: "#FFFFFF", accent: "#1F2937" },
-  "Mens Sana 1871": { bg: "#1E3A5F", fg: "#FFFFFF", accent: "#B8860B" },
-  "Pallacanestro Grosseto": { bg: "#DC2626", fg: "#FFFFFF", accent: "#1F2937" },
-  "CUS Pisa": { bg: "#1D4ED8", fg: "#FFFFFF", accent: "#F5A623" },
-  "Valdiceppo Basket": { bg: "#1F2937", fg: "#FFFFFF", accent: "#0EA5E9" },
-  "Basket Empoli": { bg: "#0D9488", fg: "#FFFFFF", accent: "#FFFFFF" },
-};
+const TEAM_STYLES: Record<string, TeamStyle> = {};
 
 function getTeamStyle(name: string): TeamStyle {
   const key = Object.keys(TEAM_STYLES).find(

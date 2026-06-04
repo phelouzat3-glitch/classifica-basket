@@ -16,6 +16,17 @@ export const TEAM_LOGOS: Record<string, any> = {
   "fides-montevarchi": require("@/assets/images/teams/fides-montevarchi.png"),
   "don-bosco-livorno": require("@/assets/images/teams/don-bosco-livorno.png"),
   "basket-san-vincenzo": require("@/assets/images/teams/basket-san-vincenzo.png"),
+  "robur-basket-massa": require("@/assets/images/teams/robur-basket-massa.png"),
+  "virtus-siena": require("@/assets/images/teams/virtus-siena.png"),
+  "san-miniato-basket": require("@/assets/images/teams/san-miniato-basket.png"),
+  "gea-roma": require("@/assets/images/teams/gea-roma.png"),
+  "kleb-ferrara": require("@/assets/images/teams/kleb-ferrara.png"),
+  "arezzo-basket": require("@/assets/images/teams/arezzo-basket.png"),
+  "mens-sana-1871": require("@/assets/images/teams/mens-sana-1871.png"),
+  "pallacanestro-grosseto": require("@/assets/images/teams/pallacanestro-grosseto.png"),
+  "cus-pisa": require("@/assets/images/teams/cus-pisa.png"),
+  "valdiceppo-basket": require("@/assets/images/teams/valdiceppo-basket.png"),
+  "basket-empoli": require("@/assets/images/teams/basket-empoli.png"),
 };
 
 const TEAM_TO_ID: Record<string, string> = {
@@ -40,6 +51,17 @@ const TEAM_TO_ID: Record<string, string> = {
   "basket livorno": "us-livorno-basket",
   "unione sportiva pino firenze": "unione-sportiva-pino-firenze",
   "valdisieve basket": "valdisieve-basket",
+  "robur basket massa": "robur-basket-massa",
+  "virtus siena": "virtus-siena",
+  "san miniato basket": "san-miniato-basket",
+  "gea roma": "gea-roma",
+  "kleb ferrara": "kleb-ferrara",
+  "arezzo basket": "arezzo-basket",
+  "mens sana 1871": "mens-sana-1871",
+  "pallacanestro grosseto": "pallacanestro-grosseto",
+  "cus pisa": "cus-pisa",
+  "valdiceppo basket": "valdiceppo-basket",
+  "basket empoli": "basket-empoli",
 };
 
 export function getTeamLogo(name: string): any {
