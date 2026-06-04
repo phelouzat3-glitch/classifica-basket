@@ -26,7 +26,6 @@ type MatchFromApi = {
   home_score: number | null;
   away_score: number | null;
   is_my_team: boolean;
-  location?: string;
 };
 
 type FilterType = "Tutte" | "Giocate" | "Da giocare";
@@ -281,18 +280,18 @@ export default function PartiteScreen() {
                 </View>
               </View>
 
-              {item.location ? (
+              {homeName.includes("Castelfiorentino") ? (
                 <TouchableOpacity
                   style={styles.locationButton}
                   onPress={() =>
                     Linking.openURL(
-                      `https://maps.google.com/?q=${encodeURIComponent(item.location!)}`,
+                      "https://maps.google.com/?q=PalaGilardetti+Castelfiorentino",
                     )
                   }
                   activeOpacity={0.7}
                 >
                   <Text style={styles.locationButtonText}>
-                    📍 {item.location}
+                    📍 PalaGilardetti - Via Piave, Castelfiorentino
                   </Text>
                 </TouchableOpacity>
               ) : null}
