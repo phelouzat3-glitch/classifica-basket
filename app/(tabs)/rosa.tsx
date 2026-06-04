@@ -1,3 +1,4 @@
+import { useColors } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -83,6 +84,9 @@ const ROLE_COLORS: Record<string, string> = {
   Centro: "#EF4444",
 };
 
+const ACCENT_MUTED = "rgba(232, 96, 10, 0.15)";
+const ACCENT_BORDER = "rgba(232, 96, 10, 0.25)";
+
 export default function RosaScreen() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +115,8 @@ export default function RosaScreen() {
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
+
+  const c = useColors();
 
   const fetchPlayers = useCallback(
     async (isRefresh = false) => {
@@ -145,13 +151,13 @@ export default function RosaScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={styles.loadingLabel}>Caricamento rosa…</Text>
+          <ActivityIndicator size="large" color={c.accent} />
+          <Text style={[styles.loadingLabel, { color: c.textSecondary }]}>Caricamento rosa…</Text>
         </View>
       </View>
     );
@@ -162,22 +168,22 @@ export default function RosaScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <View style={styles.errorCard}>
-            <View style={styles.errorIconWrap}>
-              <Text style={styles.errorIcon}>!</Text>
+          <View style={[styles.errorCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <View style={[styles.errorIconWrap, { backgroundColor: "rgba(240, 83, 58, 0.1)", borderColor: "rgba(240, 83, 58, 0.25)" }]}>
+              <Text style={[styles.errorIcon, { color: "#F0533A" }]}>!</Text>
             </View>
-            <Text style={styles.errorTitle}>Errore di caricamento</Text>
-            <Text style={styles.errorBody}>{error}</Text>
+            <Text style={[styles.errorTitle, { color: c.textPrimary }]}>Errore di caricamento</Text>
+            <Text style={[styles.errorBody, { color: c.textSecondary }]}>{error}</Text>
             <Pressable
               onPress={() => fetchPlayers()}
-              style={styles.retryBtn}
+              style={[styles.retryBtn, { backgroundColor: c.accent }]}
             >
-              <Text style={styles.retryBtnText}>Riprova</Text>
+              <Text style={[styles.retryBtnText, { color: "#1E293B" }]}>Riprova</Text>
             </Pressable>
           </View>
         </View>
@@ -189,7 +195,7 @@ export default function RosaScreen() {
     <View
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
       ]}
     >
       <StatusBar barStyle="light-content" />
@@ -201,15 +207,15 @@ export default function RosaScreen() {
         ]}
       >
         <View style={styles.headerTop}>
-          <Text style={styles.eyebrow}>ABC Castelfiorentino</Text>
+          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>ABC Castelfiorentino</Text>
           <View style={styles.headerTitleRow}>
-            <Text style={styles.pageTitle}>Rosa</Text>
-            <View style={styles.countPill}>
-              <Text style={styles.countText}>{players.length} giocatori</Text>
+            <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Rosa</Text>
+            <View style={[styles.countPill, { backgroundColor: ACCENT_MUTED, borderColor: ACCENT_BORDER }]}>
+              <Text style={[styles.countText, { color: c.accent }]}>{players.length} giocatori</Text>
             </View>
           </View>
         </View>
-        <View style={styles.headerRule} />
+        <View style={[styles.headerRule, { backgroundColor: c.border }]} />
       </Animated.View>
 
       <FlatList
@@ -221,12 +227,12 @@ export default function RosaScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.accent}
-            colors={[COLORS.accent]}
+            tintColor={c.accent}
+            colors={[c.accent]}
           />
         }
         renderItem={({ item, index }) => {
-          const roleColor = ROLE_COLORS[item.role] ?? COLORS.accent;
+          const roleColor = ROLE_COLORS[item.role] ?? c.accent;
           return (
             <Animated.View
               style={{
@@ -237,18 +243,19 @@ export default function RosaScreen() {
               <Pressable
                 style={({ pressed }) => [
                   styles.playerCard,
-                  pressed && styles.playerCardPressed,
+                  { backgroundColor: c.bgCard, borderColor: c.border },
+                  pressed && { backgroundColor: "#2a3a4c", opacity: 0.7 },
                 ]}
                 onPress={() => router.push(`/player-detail?id=${item.id}` as any)}
               >
-                <View style={styles.jerseyBadge}>
-                  <Text style={styles.jerseyNumber}>
+                <View style={[styles.jerseyBadge, { backgroundColor: ACCENT_MUTED, borderColor: ACCENT_BORDER }]}>
+                  <Text style={[styles.jerseyNumber, { color: c.accent }]}>
                     {item.jerseyNumber}
                   </Text>
                 </View>
 
                 <View style={styles.playerInfo}>
-                  <Text style={styles.playerName}>{item.name}</Text>
+                  <Text style={[styles.playerName, { color: c.textPrimary }]}>{item.name}</Text>
                   <View style={styles.playerMeta}>
                     <View
                       style={[
@@ -261,28 +268,28 @@ export default function RosaScreen() {
                       </Text>
                     </View>
                     {item.height ? (
-                      <Text style={styles.metaText}>{item.height}</Text>
+                      <Text style={[styles.metaText, { color: c.textSecondary }]}>{item.height}</Text>
                     ) : null}
                   </View>
                 </View>
 
                 <View style={styles.statsPreview}>
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                    <Text style={[styles.statValue, { color: c.textPrimary }]}>
                       {item.pointsPerGame?.toFixed(1) ?? "0.0"}
                     </Text>
-                    <Text style={styles.statLabel}>PPG</Text>
+                    <Text style={[styles.statLabel, { color: c.textMuted }]}>PPG</Text>
                   </View>
-                  <View style={styles.statDivider} />
+                  <View style={[styles.statDivider, { backgroundColor: c.border }]} />
                   <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                    <Text style={[styles.statValue, { color: c.textPrimary }]}>
                       {item.reboundsPerGame?.toFixed(1) ?? "0.0"}
                     </Text>
-                    <Text style={styles.statLabel}>RPG</Text>
+                    <Text style={[styles.statLabel, { color: c.textMuted }]}>RPG</Text>
                   </View>
                 </View>
 
-                <Text style={styles.chevron}>›</Text>
+                <Text style={[styles.chevron, { color: c.textMuted }]}>›</Text>
               </Pressable>
             </Animated.View>
           );
@@ -292,23 +299,9 @@ export default function RosaScreen() {
   );
 }
 
-const COLORS = {
-  bg: "#1E293B",
-  surface: "#334155",
-  border: "#475569",
-  borderLight: "#334155",
-  accent: "#E8600A",
-  accentMuted: "rgba(232, 96, 10, 0.15)",
-  accentBorder: "rgba(232, 96, 10, 0.25)",
-  textPrimary: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-};
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.bg,
   },
 
   header: {
@@ -327,7 +320,6 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11,
     fontWeight: "600",
-    color: COLORS.textSecondary,
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 6,
@@ -335,25 +327,20 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 30,
     fontWeight: "800",
-    color: COLORS.textPrimary,
     letterSpacing: -0.5,
     lineHeight: 38,
   },
   headerRule: {
     height: 1,
-    backgroundColor: COLORS.border,
   },
 
   countPill: {
-    backgroundColor: COLORS.accentMuted,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.accentBorder,
   },
   countText: {
-    color: COLORS.accent,
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -368,32 +355,26 @@ const styles = StyleSheet.create({
   playerCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.border,
     gap: 14,
   },
   playerCardPressed: {
     opacity: 0.7,
-    backgroundColor: "#2a3a4c",
   },
 
   jerseyBadge: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: COLORS.accentMuted,
-    borderWidth: 1,
-    borderColor: COLORS.accentBorder,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
   jerseyNumber: {
     fontSize: 18,
     fontWeight: "900",
-    color: COLORS.accent,
   },
 
   playerInfo: {
@@ -403,7 +384,6 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.textPrimary,
     letterSpacing: -0.2,
   },
   playerMeta: {
@@ -423,7 +403,6 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
     fontWeight: "500",
   },
 
@@ -439,24 +418,20 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 15,
     fontWeight: "800",
-    color: COLORS.textPrimary,
   },
   statLabel: {
     fontSize: 9,
     fontWeight: "600",
-    color: COLORS.textMuted,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: COLORS.border,
   },
 
   chevron: {
     fontSize: 22,
-    color: COLORS.textMuted,
     fontWeight: "300",
     marginLeft: 4,
   },
@@ -469,60 +444,49 @@ const styles = StyleSheet.create({
   },
   loadingLabel: {
     marginTop: 14,
-    color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: "500",
   },
 
   errorCard: {
-    backgroundColor: COLORS.surface,
     borderRadius: 16,
     paddingVertical: 32,
     paddingHorizontal: 28,
     alignItems: "center",
     width: "100%",
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   errorIconWrap: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(240, 83, 58, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(240, 83, 58, 0.25)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
   errorIcon: {
-    color: "#F0533A",
     fontSize: 20,
     fontWeight: "800",
     lineHeight: 22,
   },
   errorTitle: {
-    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 8,
     letterSpacing: -0.2,
   },
   errorBody: {
-    color: COLORS.textSecondary,
     fontSize: 13,
     textAlign: "center",
     lineHeight: 19,
     marginBottom: 24,
   },
   retryBtn: {
-    backgroundColor: COLORS.accent,
     paddingVertical: 11,
     paddingHorizontal: 32,
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#1E293B",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,

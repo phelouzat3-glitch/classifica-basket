@@ -41,7 +41,7 @@ function LayoutContent() {
         const { default: Constants } = await import("expo-constants");
 
         const { granted, status } = await getPermissionsAsync();
-        const canRequest = status === "undetermined" || status === "notDetermined";
+        const canRequest = status === "undetermined";
         if (!granted && !canRequest) return; // già negato, non insistere
         if (!granted && canRequest) {
           const result = await requestPermissionsAsync();
@@ -51,6 +51,9 @@ function LayoutContent() {
 
         const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "";
         if (!projectId || cancelled) return;
+
+        const { granted: finalGranted } = await getPermissionsAsync();
+        if (!finalGranted || cancelled) return;
 
         const tokenData = await getExpoPushTokenAsync({ projectId });
         if (cancelled) return;

@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,8 @@ export default function ClassificaScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
+  const c = useColors();
+
   const fetchStandings = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) setRefreshing(true);
@@ -133,13 +136,13 @@ export default function ClassificaScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={styles.loadingLabel}>Caricamento in corso…</Text>
+          <ActivityIndicator size="large" color={c.accent} />
+          <Text style={[styles.loadingLabel, { color: c.textSecondary }]}>Caricamento in corso…</Text>
         </View>
       </View>
     );
@@ -152,23 +155,23 @@ export default function ClassificaScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <View style={styles.errorCard}>
-            <View style={styles.errorIconWrap}>
-              <Text style={styles.errorIcon}>!</Text>
+          <View style={[styles.errorCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <View style={[styles.errorIconWrap, { borderColor: "rgba(240, 83, 58, 0.25)" }]}>
+              <Text style={[styles.errorIcon, { color: "#F0533A" }]}>!</Text>
             </View>
-            <Text style={styles.errorTitle}>Errore di caricamento</Text>
-            <Text style={styles.errorBody}>{error}</Text>
+            <Text style={[styles.errorTitle, { color: c.textPrimary }]}>Errore di caricamento</Text>
+            <Text style={[styles.errorBody, { color: c.textSecondary }]}>{error}</Text>
             <TouchableOpacity
               onPress={() => fetchStandings()}
-              style={styles.retryBtn}
+              style={[styles.retryBtn, { backgroundColor: c.accent }]}
               activeOpacity={0.75}
             >
-              <Text style={styles.retryBtnText}>Riprova</Text>
+              <Text style={[styles.retryBtnText, { color: "#1E293B" }]}>Riprova</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -182,7 +185,7 @@ export default function ClassificaScreen() {
     <View
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
       <StatusBar barStyle="light-content" />
@@ -195,25 +198,25 @@ export default function ClassificaScreen() {
         ]}
       >
         <View style={styles.headerTop}>
-          <Text style={styles.eyebrow}>Stagione Regolare 2025 · 26</Text>
+          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Stagione Regolare 2025 · 26</Text>
           <View style={styles.headerTitleRow}>
-            <Text style={styles.pageTitle}>Classifica</Text>
-            <View style={styles.livePill}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LIVE</Text>
+            <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Classifica</Text>
+            <View style={[styles.livePill, { backgroundColor: "rgba(240, 83, 58, 0.15)", borderColor: "rgba(240, 83, 58, 0.25)" }]}>
+              <View style={[styles.liveDot, { backgroundColor: "#F0533A" }]} />
+              <Text style={[styles.liveText, { color: "#F0533A" }]}>LIVE</Text>
             </View>
           </View>
         </View>
 
         {/* Thin accent rule */}
-        <View style={styles.headerRule} />
+        <View style={[styles.headerRule, { backgroundColor: c.border }]} />
       </Animated.View>
 
       {/* Table */}
       <Animated.View
         style={[
           styles.tableWrapper,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          { backgroundColor: c.bgCard, borderColor: c.border, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
         <StandingsTable
@@ -226,30 +229,11 @@ export default function ClassificaScreen() {
   );
 }
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-
-const COLORS = {
-  bg: "#1E293B",
-  surface: "#334155",
-  border: "#475569",
-  borderLight: "#334155",
-  accent: "#E8A838",
-  accentMuted: "rgba(232, 168, 56, 0.15)",
-  accentBorder: "rgba(232, 168, 56, 0.25)",
-  live: "#F0533A",
-  liveMuted: "rgba(240, 83, 58, 0.15)",
-  liveBorder: "rgba(240, 83, 58, 0.25)",
-  textPrimary: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-} as const;
-
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.bg,
   },
 
   // ── Header ────────────────────────────────────────────────────────────────
@@ -271,7 +255,6 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11,
     fontWeight: "600",
-    color: COLORS.textSecondary,
     letterSpacing: 1.4,
     textTransform: "uppercase",
     marginBottom: 6,
@@ -279,14 +262,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 30,
     fontWeight: "800",
-    color: COLORS.textPrimary,
     letterSpacing: -0.5,
     lineHeight: 38,
     flexShrink: 1,
   },
   headerRule: {
     height: 1,
-    backgroundColor: COLORS.border,
   },
 
   // ── Live pill ─────────────────────────────────────────────────────────────
@@ -294,22 +275,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "center",
-    backgroundColor: COLORS.liveMuted,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.liveBorder,
   },
   liveDot: {
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: COLORS.live,
     marginRight: 5,
   },
   liveText: {
-    color: COLORS.live,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1,
@@ -324,8 +301,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#475569",
-    backgroundColor: "#334155",
   },
 
   // ── Centered states ───────────────────────────────────────────────────────
@@ -337,7 +312,6 @@ const styles = StyleSheet.create({
   },
   loadingLabel: {
     marginTop: 14,
-    color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: "500",
     letterSpacing: 0.2,
@@ -345,14 +319,12 @@ const styles = StyleSheet.create({
 
   // ── Error card ────────────────────────────────────────────────────────────
   errorCard: {
-    backgroundColor: COLORS.surface,
     borderRadius: 16,
     paddingVertical: 32,
     paddingHorizontal: 28,
     alignItems: "center",
     width: "100%",
     borderWidth: 1,
-    borderColor: COLORS.border,
   },
   errorIconWrap: {
     width: 44,
@@ -360,39 +332,33 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: "rgba(240, 83, 58, 0.1)",
     borderWidth: 1,
-    borderColor: COLORS.liveBorder,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
   errorIcon: {
-    color: COLORS.live,
     fontSize: 20,
     fontWeight: "800",
     lineHeight: 22,
   },
   errorTitle: {
-    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 8,
     letterSpacing: -0.2,
   },
   errorBody: {
-    color: COLORS.textSecondary,
     fontSize: 13,
     textAlign: "center",
     lineHeight: 19,
     marginBottom: 24,
   },
   retryBtn: {
-    backgroundColor: COLORS.accent,
     paddingVertical: 11,
     paddingHorizontal: 32,
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#1E293B",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,

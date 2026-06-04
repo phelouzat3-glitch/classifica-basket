@@ -1,18 +1,19 @@
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Pressable,
   RefreshControl,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 type Player = {
   id: number;
@@ -36,8 +37,30 @@ export default function MarcatoriScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const c = useColors();
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
+
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   const load = (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -55,6 +78,7 @@ export default function MarcatoriScreen() {
           assistsPerGame: Number(p.assistsPerGame ?? p.assists_per_game ?? 0),
         }));
         setPlayers(mapped);
+        if (!isRefresh) animateIn();
       })
       .catch(() => {})
       .finally(() => {
@@ -80,26 +104,30 @@ export default function MarcatoriScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
         ]}
       >
-        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#E8600A" />
+          <ActivityIndicator size="large" color={c.accent} />
         </View>
       </View>
     );
   }
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+          backgroundColor: c.bg,
+        },
       ]}
     >
-      <StatusBar barStyle="light-content" />
-      <Text style={styles.title}>Classifica Marcatori</Text>
+      <Text style={[styles.title, { color: c.textPrimary }]}>Classifica Marcatori</Text>
 
       <View style={styles.filterRow}>
         {FILTERS.map((f) => (
@@ -107,7 +135,8 @@ export default function MarcatoriScreen() {
             key={f.key}
             style={[
               styles.filterBtn,
-              activeKey === f.key && styles.filterBtnActive,
+              { backgroundColor: c.bgCard, borderColor: c.border },
+              activeKey === f.key && { backgroundColor: c.accent, borderColor: c.accent },
             ]}
             onPress={() => setActiveKey(f.key)}
             activeOpacity={0.8}
@@ -115,7 +144,8 @@ export default function MarcatoriScreen() {
             <Text
               style={[
                 styles.filterBtnText,
-                activeKey === f.key && styles.filterBtnTextActive,
+                { color: c.textSecondary },
+                activeKey === f.key && { color: "#FFFFFF" },
               ]}
             >
               {f.label}
@@ -133,8 +163,8 @@ export default function MarcatoriScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => load(true)}
-            tintColor="#E8600A"
-            colors={["#E8600A"]}
+            tintColor={c.accent}
+            colors={[c.accent]}
           />
         }
         renderItem={({ item, index }) => {
@@ -144,7 +174,11 @@ export default function MarcatoriScreen() {
           const colors = ["#FFD700", "#C0C0C0", "#CD7F32"];
           return (
             <Pressable
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              style={({ pressed }) => [
+                styles.row,
+                { backgroundColor: c.bgCard, borderColor: c.border },
+                pressed && styles.rowPressed,
+              ]}
               onPress={() =>
                 router.push(`/player-detail?id=${item.id}` as any)
               }
@@ -152,12 +186,14 @@ export default function MarcatoriScreen() {
               <View
                 style={[
                   styles.posBadge,
+                  { backgroundColor: c.bg },
                   isTop3 && { backgroundColor: colors[index] + "20" },
                 ]}
               >
                 <Text
                   style={[
                     styles.posText,
+                    { color: c.textMuted },
                     isTop3 && { color: colors[index] },
                   ]}
                 >
@@ -165,41 +201,45 @@ export default function MarcatoriScreen() {
                 </Text>
               </View>
               <View style={styles.playerInfo}>
-                <Text style={styles.playerName}>{item.name}</Text>
-                <Text style={styles.playerMeta}>
+                <Text style={[styles.playerName, { color: c.textPrimary }]}>
+                  {item.name}
+                </Text>
+                <Text style={[styles.playerMeta, { color: c.textSecondary }]}>
                   #{item.jerseyNumber} · {item.role}
                 </Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statValue}>{val.toFixed(1)}</Text>
-                <Text style={styles.statSuffix}>{currentFilter.suffix}</Text>
+                <Text style={[styles.statValue, { color: c.accent }]}>
+                  {val.toFixed(1)}
+                </Text>
+                <Text style={[styles.statSuffix, { color: c.textMuted }]}>
+                  {currentFilter.suffix}
+                </Text>
               </View>
             </Pressable>
           );
         }}
       />
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1E293B" },
+  root: { flex: 1 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 24, fontWeight: "800", color: "#F1F5F9", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  title: { fontSize: 24, fontWeight: "800", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   filterRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 12 },
-  filterBtn: { flex: 1, backgroundColor: "#334155", paddingVertical: 8, borderRadius: 20, alignItems: "center", borderWidth: 1, borderColor: "#475569" },
-  filterBtnActive: { backgroundColor: "#E8600A", borderColor: "#E8600A" },
-  filterBtnText: { color: "#94A3B8", fontSize: 14, fontWeight: "700" },
-  filterBtnTextActive: { color: "#FFFFFF" },
+  filterBtn: { flex: 1, paddingVertical: 8, borderRadius: 20, alignItems: "center", borderWidth: 1 },
+  filterBtnText: { fontSize: 14, fontWeight: "700" },
   list: { paddingHorizontal: 16, paddingBottom: 30 },
-  row: { flexDirection: "row", alignItems: "center", backgroundColor: "#334155", borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "#475569" },
+  row: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1 },
   rowPressed: { opacity: 0.7 },
-  posBadge: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center", marginRight: 12 },
-  posText: { fontSize: 15, fontWeight: "700", color: "#64748B" },
+  posBadge: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  posText: { fontSize: 15, fontWeight: "700" },
   playerInfo: { flex: 1 },
-  playerName: { fontSize: 15, fontWeight: "700", color: "#F1F5F9" },
-  playerMeta: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
+  playerName: { fontSize: 15, fontWeight: "700" },
+  playerMeta: { fontSize: 12, marginTop: 2 },
   statBox: { alignItems: "center", minWidth: 60 },
-  statValue: { fontSize: 20, fontWeight: "900", color: "#E8600A" },
-  statSuffix: { fontSize: 10, color: "#64748B", fontWeight: "600", marginTop: 1 },
+  statValue: { fontSize: 20, fontWeight: "900" },
+  statSuffix: { fontSize: 10, fontWeight: "600", marginTop: 1 },
 });

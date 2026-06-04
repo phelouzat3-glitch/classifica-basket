@@ -1,17 +1,18 @@
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   RefreshControl,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 type Standing = {
   position: number;
@@ -64,8 +65,30 @@ export default function StatisticheScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const c = useColors();
+
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
+
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -79,12 +102,13 @@ export default function StatisticheScreen() {
       if (sRes.ok) setStandings(await sRes.json());
       if (aRes.ok) setAnalytics(await aRes.json());
       if (pRes.ok) setPlayers(await pRes.json());
+      if (!isRefresh) animateIn();
     } catch {
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [animateIn]);
 
   useEffect(() => {
     load();
@@ -104,8 +128,7 @@ export default function StatisticheScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" />
+      <View style={[styles.root, { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#E8600A" />
         </View>
@@ -114,8 +137,7 @@ export default function StatisticheScreen() {
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" />
+    <Animated.View style={[styles.root, { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -130,38 +152,38 @@ export default function StatisticheScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerSub}>ABC Castelfiorentino</Text>
-            <Text style={styles.headerTitle}>Statistiche</Text>
+            <Text style={[styles.headerSub, { color: c.textMuted }]}>ABC Castelfiorentino</Text>
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Statistiche</Text>
           </View>
-          <View style={styles.posBadge}>
-            <Text style={styles.posBadgeLabel}>{myTeam?.season ?? "2025/26"}</Text>
-            <Text style={styles.posBadgeValue}>{myTeam?.position ?? "-"}°</Text>
+          <View style={[styles.posBadge, { backgroundColor: c.accent + "1F", borderColor: c.border }]}>
+            <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>{myTeam?.season ?? "2025/26"}</Text>
+            <Text style={[styles.posBadgeValue, { color: c.accent }]}>{myTeam?.position ?? "-"}°</Text>
           </View>
         </View>
 
         <View style={styles.quickRow}>
-          <View style={[styles.quickCard, { borderColor: "rgba(34,197,94,0.3)" }]}>
+          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: "rgba(34,197,94,0.3)" }]}>
             <Text style={[styles.quickValue, { color: "#4ADE80" }]}>{myTeam?.wins ?? 0}</Text>
-            <Text style={styles.quickLabel}>Vittorie</Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Vittorie</Text>
           </View>
-          <View style={[styles.quickCard, { borderColor: "rgba(248,113,113,0.3)" }]}>
+          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: "rgba(248,113,113,0.3)" }]}>
             <Text style={[styles.quickValue, { color: "#F87171" }]}>{myTeam?.losses ?? 0}</Text>
-            <Text style={styles.quickLabel}>Sconfitte</Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Sconfitte</Text>
           </View>
-          <View style={[styles.quickCard, { borderColor: "rgba(232,96,10,0.3)" }]}>
-            <Text style={[styles.quickValue, { color: "#E8600A" }]}>
+          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: c.accent }]}>
+            <Text style={[styles.quickValue, { color: c.accent }]}>
               {myTeam ? Math.round((myTeam.wins / total) * 100) : 0}%
             </Text>
-            <Text style={styles.quickLabel}>Vittorie</Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Vittorie</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Record Casa / Trasferta</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Record Casa / Trasferta</Text>
+        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           {homeRec && (
-            <View style={styles.recordRow}>
-              <Text style={styles.recordLabel}>Casa</Text>
-              <View style={styles.barTrack}>
+            <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Casa</Text>
+              <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
                 <View
                   style={[
                     styles.barFill,
@@ -172,15 +194,15 @@ export default function StatisticheScreen() {
                   ]}
                 />
               </View>
-              <Text style={styles.recordNumbers}>
+              <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
                 {homeRec.wins}V / {homeRec.losses}S
               </Text>
             </View>
           )}
           {awayRec && (
-            <View style={styles.recordRow}>
-              <Text style={styles.recordLabel}>Trasferta</Text>
-              <View style={styles.barTrack}>
+            <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Trasferta</Text>
+              <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
                 <View
                   style={[
                     styles.barFill,
@@ -191,18 +213,18 @@ export default function StatisticheScreen() {
                   ]}
                 />
               </View>
-              <Text style={styles.recordNumbers}>
+              <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
                 {awayRec.wins}V / {awayRec.losses}S
               </Text>
             </View>
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Punti</Text>
-        <View style={styles.card}>
-          <View style={styles.recordRow}>
-            <Text style={styles.recordLabel}>Fatti</Text>
-            <View style={styles.barTrack}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Punti</Text>
+        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+          <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
+            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Fatti</Text>
+            <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
               <View
                 style={[
                   styles.barFill,
@@ -213,11 +235,11 @@ export default function StatisticheScreen() {
                 ]}
               />
             </View>
-            <Text style={styles.recordNumbers}>{analytics?.puntiFattiMedie ?? "-"}</Text>
+            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>{analytics?.puntiFattiMedie ?? "-"}</Text>
           </View>
-          <View style={styles.recordRow}>
-            <Text style={styles.recordLabel}>Subiti</Text>
-            <View style={styles.barTrack}>
+          <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
+            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Subiti</Text>
+            <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
               <View
                 style={[
                   styles.barFill,
@@ -228,11 +250,11 @@ export default function StatisticheScreen() {
                 ]}
               />
             </View>
-            <Text style={styles.recordNumbers}>{analytics?.puntiSubitiMedie ?? "-"}</Text>
+            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>{analytics?.puntiSubitiMedie ?? "-"}</Text>
           </View>
           {myTeam && (
             <View style={[styles.recordRow, { borderBottomWidth: 0 }]}>
-              <Text style={styles.recordLabel}>Diff.</Text>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Diff.</Text>
               <View style={{ flex: 1 }} />
               <Text
                 style={[
@@ -246,23 +268,23 @@ export default function StatisticheScreen() {
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Top Giocatori</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Top Giocatori</Text>
+        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           {topScorer && (
             <Pressable
               style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
               onPress={() => router.push(`/player-detail?id=${topScorer.id}` as any)}
             >
               <View style={styles.topLabelWrap}>
-                <View style={[styles.topDot, { backgroundColor: "#E8600A" }]}>
-                  <Text style={styles.topDotText}>P</Text>
+                <View style={[styles.topDot, { backgroundColor: c.accent }]}>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>P</Text>
                 </View>
-                <Text style={styles.topName}>{topScorer.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>{topScorer.name}</Text>
               </View>
-              <Text style={styles.topStat}>{topScorer.pointsPerGame.toFixed(1)} PPG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topScorer.pointsPerGame.toFixed(1)} PPG</Text>
             </Pressable>
           )}
-          <View style={styles.topDivider} />
+          <View style={[styles.topDivider, { backgroundColor: c.border }]} />
           {topRebounder && (
             <Pressable
               style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
@@ -270,14 +292,14 @@ export default function StatisticheScreen() {
             >
               <View style={styles.topLabelWrap}>
                 <View style={[styles.topDot, { backgroundColor: "#22C55E" }]}>
-                  <Text style={styles.topDotText}>R</Text>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>R</Text>
                 </View>
-                <Text style={styles.topName}>{topRebounder.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>{topRebounder.name}</Text>
               </View>
-              <Text style={styles.topStat}>{topRebounder.reboundsPerGame.toFixed(1)} RPG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topRebounder.reboundsPerGame.toFixed(1)} RPG</Text>
             </Pressable>
           )}
-          <View style={styles.topDivider} />
+          <View style={[styles.topDivider, { backgroundColor: c.border }]} />
           {topAssist && (
             <Pressable
               style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
@@ -285,17 +307,17 @@ export default function StatisticheScreen() {
             >
               <View style={styles.topLabelWrap}>
                 <View style={[styles.topDot, { backgroundColor: "#3B82F6" }]}>
-                  <Text style={styles.topDotText}>A</Text>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>A</Text>
                 </View>
-                <Text style={styles.topName}>{topAssist.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>{topAssist.name}</Text>
               </View>
-              <Text style={styles.topStat}>{topAssist.assistsPerGame.toFixed(1)} APG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topAssist.assistsPerGame.toFixed(1)} APG</Text>
             </Pressable>
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Ultimi 10</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Ultimi 10</Text>
+        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <View style={styles.last10Row}>
             {myTeam?.last10?.split("-").map((part, i) => {
               const dots = Number(part);
@@ -315,17 +337,17 @@ export default function StatisticheScreen() {
               );
             })}
           </View>
-          <Text style={styles.last10Text}>
+          <Text style={[styles.last10Text, { color: c.textMuted }]}>
             {myTeam?.last10 ?? "-"} · Streak: {myTeam?.streak ?? "-"}
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1E293B" },
+  root: { flex: 1 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
@@ -335,48 +357,42 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
   },
-  headerSub: { fontSize: 12, color: "#64748B", marginBottom: 2 },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#F1F5F9" },
+  headerSub: { fontSize: 12, marginBottom: 2 },
+  headerTitle: { fontSize: 22, fontWeight: "800" },
   posBadge: {
-    backgroundColor: "rgba(232,96,10,0.12)",
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.3)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     alignItems: "center",
   },
-  posBadgeLabel: { fontSize: 9, color: "#64748B", fontWeight: "600", textTransform: "uppercase" },
-  posBadgeValue: { fontSize: 18, fontWeight: "800", color: "#E8600A" },
+  posBadgeLabel: { fontSize: 9, fontWeight: "600", textTransform: "uppercase" },
+  posBadgeValue: { fontSize: 18, fontWeight: "800" },
 
   quickRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   quickCard: {
     flex: 1,
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 12,
     alignItems: "center",
     borderWidth: 1,
   },
   quickValue: { fontSize: 22, fontWeight: "800", marginBottom: 2 },
-  quickLabel: { fontSize: 10, color: "#64748B", fontWeight: "500" },
+  quickLabel: { fontSize: 10, fontWeight: "500" },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#94A3B8",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 10,
   },
 
   card: {
-    backgroundColor: "#334155",
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
     borderWidth: 0.5,
-    borderColor: "#475569",
   },
 
   recordRow: {
@@ -385,29 +401,27 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: "rgba(255,255,255,0.05)",
   },
-  recordLabel: { width: 60, fontSize: 13, fontWeight: "600", color: "#E2E8F0" },
+  recordLabel: { width: 60, fontSize: 13, fontWeight: "600" },
   barTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 4,
     overflow: "hidden",
   },
   barFill: { height: "100%", borderRadius: 4 },
-  recordNumbers: { width: 60, textAlign: "right", fontSize: 13, fontWeight: "600", color: "#94A3B8" },
+  recordNumbers: { width: 60, textAlign: "right", fontSize: 13, fontWeight: "600" },
 
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8 },
   topLabelWrap: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   topDot: { width: 24, height: 24, borderRadius: 6, alignItems: "center", justifyContent: "center" },
-  topDotText: { fontSize: 11, fontWeight: "800", color: "#F1F5F9" },
-  topName: { fontSize: 14, fontWeight: "600", color: "#F1F5F9" },
-  topStat: { fontSize: 14, fontWeight: "700", color: "#F1F5F9" },
-  topDivider: { height: 0.5, backgroundColor: "rgba(255,255,255,0.05)" },
+  topDotText: { fontSize: 11, fontWeight: "800" },
+  topName: { fontSize: 14, fontWeight: "600" },
+  topStat: { fontSize: 14, fontWeight: "700" },
+  topDivider: { height: 0.5 },
 
   last10Row: { flexDirection: "row", gap: 4, marginBottom: 10 },
   last10Group: { flexDirection: "row", gap: 4, alignItems: "center" },
   last10Dot: { width: 12, height: 12, borderRadius: 3 },
-  last10Text: { fontSize: 13, color: "#94A3B8", textAlign: "center", fontWeight: "500" },
+  last10Text: { fontSize: 13, textAlign: "center", fontWeight: "500" },
 });

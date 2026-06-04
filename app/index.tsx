@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 const ORANGE = "#E8600A";
 
@@ -10,6 +11,7 @@ export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const c = useColors();
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -31,7 +33,7 @@ export default function LandingScreen() {
   });
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
@@ -39,35 +41,35 @@ export default function LandingScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.topSection}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Serie C · Girone B</Text>
+          <View style={[styles.badge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
+            <Text style={[styles.badgeText, { color: c.accent }]}>Serie C · Girone B</Text>
           </View>
-          <Text style={styles.teamName}>ABC Castelfiorentino</Text>
-          <Text style={styles.division}>Stagione 2025/26</Text>
+          <Text style={[styles.teamName, { color: c.textPrimary }]}>ABC Castelfiorentino</Text>
+          <Text style={[styles.division, { color: c.textSecondary }]}>Stagione 2025/26</Text>
         </View>
 
         <View style={styles.centerSection}>
           <Animated.Text style={[styles.ballEmoji, { transform: [{ rotate: spin }] }]}>🏀</Animated.Text>
-          <Text style={styles.welcome}>Benvenuto</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.welcome, { color: c.textPrimary }]}>Benvenuto</Text>
+          <Text style={[styles.subtitle, { color: c.textMuted }]}>
             Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
           </Text>
           <View style={styles.features}>
             <View style={styles.featureRow}>
-              <Text style={styles.featureDot}>●</Text>
-              <Text style={styles.featureText}>Classifica aggiornata</Text>
+              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
+              <Text style={[styles.featureText, { color: c.textSecondary }]}>Classifica aggiornata</Text>
             </View>
             <View style={styles.featureRow}>
-              <Text style={styles.featureDot}>●</Text>
-              <Text style={styles.featureText}>Calendario partite</Text>
+              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
+              <Text style={[styles.featureText, { color: c.textSecondary }]}>Calendario partite</Text>
             </View>
             <View style={styles.featureRow}>
-              <Text style={styles.featureDot}>●</Text>
-              <Text style={styles.featureText}>Statistiche e marcatori</Text>
+              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
+              <Text style={[styles.featureText, { color: c.textSecondary }]}>Statistiche e marcatori</Text>
             </View>
             <View style={styles.featureRow}>
-              <Text style={styles.featureDot}>●</Text>
-              <Text style={styles.featureText}>Rosa e dettagli giocatori</Text>
+              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
+              <Text style={[styles.featureText, { color: c.textSecondary }]}>Rosa e dettagli giocatori</Text>
             </View>
           </View>
         </View>
@@ -86,7 +88,9 @@ export default function LandingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1E293B",
+    maxWidth: 900,
+    width: "100%",
+    alignSelf: "center",
   },
   scrollContent: {
     flexGrow: 1,
@@ -98,16 +102,13 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   badge: {
-    backgroundColor: `${ORANGE}18`,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: `${ORANGE}30`,
     marginBottom: 16,
   },
   badgeText: {
-    color: ORANGE,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.5,
@@ -115,13 +116,11 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#F1F5F9",
     textAlign: "center",
     letterSpacing: -0.5,
   },
   division: {
     fontSize: 14,
-    color: "#94A3B8",
     fontWeight: "500",
     marginTop: 4,
   },
@@ -136,12 +135,10 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#F1F5F9",
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
-    color: "#94A3B8",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 28,
@@ -158,11 +155,9 @@ const styles = StyleSheet.create({
   },
   featureDot: {
     fontSize: 10,
-    color: ORANGE,
   },
   featureText: {
     fontSize: 15,
-    color: "#CBD5E1",
     fontWeight: "500",
   },
   button: {

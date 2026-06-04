@@ -1,7 +1,7 @@
 import { API_URL } from "@/src/config/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 // Struttura dati identica a quella restituita dall'interfaccia NestJS
 type AnalyticsData = {
@@ -24,6 +25,7 @@ type AnalyticsData = {
 export default function AnalyticsSquadraScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const c = useColors();
 
   // Recupera il parametro opzionale (se presente), altrimenti imposta Castelfiorentino
   const { teamName } = useLocalSearchParams<{ teamName: string }>();
@@ -70,8 +72,8 @@ export default function AnalyticsSquadraScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.mainContainer, styles.centerContainer]}>
-        <ActivityIndicator size="large" color="#E8600A" />
+      <View style={[styles.mainContainer, styles.centerContainer, { backgroundColor: c.bg }]}>
+        <ActivityIndicator size="large" color={c.accent} />
       </View>
     );
   }
@@ -80,7 +82,7 @@ export default function AnalyticsSquadraScreen() {
     <View
       style={[
         styles.mainContainer,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
       ]}
     >
       <StatusBar style="light" />
@@ -92,7 +94,7 @@ export default function AnalyticsSquadraScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>← Torna a Statistiche</Text>
+          <Text style={[styles.backButtonText, { color: c.accent }]}>← Torna a Statistiche</Text>
         </TouchableOpacity>
       </View>
 
@@ -103,13 +105,13 @@ export default function AnalyticsSquadraScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#E8600A"
-            colors={["#E8600A"]}
+            tintColor={c.accent}
+            colors={[c.accent]}
           />
         }
       >
-        <Text style={styles.pageTitle}>Analisi {displayTeam}</Text>
-        <Text style={styles.pageSubtitle}>
+        <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Analisi {displayTeam}</Text>
+        <Text style={[styles.pageSubtitle, { color: c.textSecondary }]}>
           Statistiche avanzate calcolate in tempo reale dal database.
         </Text>
 
@@ -122,35 +124,35 @@ export default function AnalyticsSquadraScreen() {
         )}
 
         {/* 1. ATTACCO E DIFESA (DATI REALI) */}
-        <Text style={styles.sectionLabel}>Media Punti a Partita</Text>
+        <Text style={[styles.sectionLabel, { color: c.textMuted }]}>Media Punti a Partita</Text>
         <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, styles.orangeColor]}>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: c.accent }]}>
               {data?.puntiFattiMedie ?? "0.0"}
             </Text>
-            <Text style={styles.statTitle}>Punti Fatti</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>Punti Fatti</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: c.textPrimary }]}>
               {data?.puntiSubitiMedie ?? "0.0"}
             </Text>
-            <Text style={styles.statTitle}>Punti Subiti</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>Punti Subiti</Text>
           </View>
         </View>
 
         {/* 2. RENDIMENTO CAMPO (DATI REALI) */}
-        <Text style={styles.sectionLabel}>Fattore Campo</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionLabel, { color: c.textMuted }]}>Fattore Campo</Text>
+        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>🏠 In Casa:</Text>
-            <Text style={styles.infoValue}>
+            <Text style={[styles.infoLabel, { color: c.textSecondary }]}>🏠 In Casa:</Text>
+            <Text style={[styles.infoValue, { color: c.textPrimary }]}>
               {data?.recordCasa ?? "0 Vittorie / 0 Sconfitte"}
             </Text>
           </View>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: c.border }]} />
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>✈️ In Trasferta:</Text>
-            <Text style={styles.infoValue}>
+            <Text style={[styles.infoLabel, { color: c.textSecondary }]}>✈️ In Trasferta:</Text>
+            <Text style={[styles.infoValue, { color: c.textPrimary }]}>
               {data?.recordTrasferta ?? "0 Vittorie / 0 Sconfitte"}
             </Text>
           </View>
@@ -161,12 +163,11 @@ export default function AnalyticsSquadraScreen() {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, backgroundColor: "#0F172A" },
+  mainContainer: { flex: 1 },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0F172A",
   },
   headerRow: {
     flexDirection: "row",
@@ -175,19 +176,17 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   backButton: { paddingVertical: 8, paddingHorizontal: 8 },
-  backButtonText: { color: "#E8600A", fontSize: 15, fontWeight: "600" },
+  backButtonText: { fontSize: 15, fontWeight: "600" },
   scrollContent: { padding: 24, paddingBottom: 40 },
   pageTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#FFFFFF",
     marginBottom: 4,
   },
-  pageSubtitle: { fontSize: 14, color: "#94A3B8", marginBottom: 24 },
+  pageSubtitle: { fontSize: 14, marginBottom: 24 },
   sectionLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#64748B",
     marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 1,
@@ -195,21 +194,17 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
   statBox: {
     flex: 1,
-    backgroundColor: "#1E293B",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#334155",
   },
-  statValue: { fontSize: 24, fontWeight: "800", color: "#FFFFFF" },
-  statTitle: { fontSize: 12, color: "#94A3B8", marginTop: 4 },
+  statValue: { fontSize: 24, fontWeight: "800" },
+  statTitle: { fontSize: 12, marginTop: 4 },
   card: {
-    backgroundColor: "#1E293B",
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#334155",
     marginBottom: 20,
   },
   infoRow: {
@@ -217,9 +212,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 4,
   },
-  infoLabel: { color: "#94A3B8", fontSize: 14 },
-  infoValue: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
-  divider: { height: 1, backgroundColor: "#334155", marginVertical: 8 },
+  infoLabel: { fontSize: 14 },
+  infoValue: { fontWeight: "600", fontSize: 14 },
+  divider: { height: 1, marginVertical: 8 },
   errorCard: {
     backgroundColor: "rgba(239, 68, 68, 0.1)",
     padding: 12,
@@ -229,5 +224,4 @@ const styles = StyleSheet.create({
     borderColor: "#EF4444",
   },
   errorText: { color: "#EF4444", fontSize: 13, textAlign: "center" },
-  orangeColor: { color: "#E8600A" },
 });

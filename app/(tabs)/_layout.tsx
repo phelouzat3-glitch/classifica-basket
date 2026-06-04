@@ -1,15 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { useColors } from "@/src/theme/ThemeContext";
 
 export default function TabsLayout() {
+  const c = useColors();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#E8600A",
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: c.accent,
+        tabBarInactiveTintColor: c.textMuted,
         tabBarStyle: {
-          backgroundColor: "#1E293B",
+          backgroundColor: c.bg,
           borderTopWidth: 0,
         },
       }}
@@ -38,7 +40,7 @@ export default function TabsLayout() {
 
       {/* 3. Terza Scheda: Classifica */}
       <Tabs.Screen
-        name="classifica" // Punta al tuo file classifica.tsx / classificazione.tsx
+        name="classifica"
         options={{
           title: "Classifica",
           tabBarIcon: ({ color, size }) => (

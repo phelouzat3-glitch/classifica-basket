@@ -1,7 +1,7 @@
 import { API_URL } from "@/src/config/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 // Definizione del tipo dati della squadra proveniente dall'API
 type TeamStats = {
@@ -40,6 +41,7 @@ type TeamFromApi = {
 export default function TeamDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const c = useColors();
 
   // Recupera il nome della squadra cliccata dalla classifica
   const { teamName } = useLocalSearchParams<{ teamName: string }>();
@@ -97,8 +99,8 @@ export default function TeamDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.mainContainer, styles.centerContainer]}>
-        <ActivityIndicator size="large" color="#E8600A" />
+      <View style={[styles.mainContainer, styles.centerContainer, { backgroundColor: c.bg }]}>
+        <ActivityIndicator size="large" color={c.accent} />
       </View>
     );
   }
@@ -107,7 +109,7 @@ export default function TeamDetailScreen() {
     <View
       style={[
         styles.mainContainer,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
       <StatusBar style="light" />
@@ -119,7 +121,7 @@ export default function TeamDetailScreen() {
           style={styles.backButton}
           activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>← Torna indietro</Text>
+          <Text style={[styles.backButtonText, { color: c.accent }]}>← Torna indietro</Text>
         </TouchableOpacity>
       </View>
 
@@ -128,68 +130,68 @@ export default function TeamDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* 1. SCHEDA IDENTITÀ SQUADRA */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
           <Text style={styles.avatarEmoji}>{isMyTeam ? "🏀" : "🛡️"}</Text>
-          <Text style={styles.teamTitle}>{displayTeam}</Text>
-          <Text style={styles.teamLocation}>
+          <Text style={[styles.teamTitle, { color: c.textPrimary }]}>{displayTeam}</Text>
+          <Text style={[styles.teamLocation, { color: c.textSecondary }]}>
             {isMyTeam
               ? "📍 Castelfiorentino, Toscana"
               : "📍 Campionato Toscana"}
           </Text>
           {isMyTeam && (
-            <View style={styles.badgeMyTeam}>
-              <Text style={styles.badgeText}>LA NOSTRA SQUADRA</Text>
+            <View style={[styles.badgeMyTeam, { backgroundColor: c.accentBg, borderColor: c.accentBorder }]}>
+              <Text style={[styles.badgeText, { color: c.accent }]}>LA NOSTRA SQUADRA</Text>
             </View>
           )}
         </View>
 
         {/* 2. STATISTICHE REALI DELLA STAGIONE DAL DATABASE */}
-        <Text style={styles.sectionLabel}>Andamento Reale Campionato</Text>
+        <Text style={[styles.sectionLabel, { color: c.textSecondary }]}>Andamento Reale Campionato</Text>
         <View style={styles.statsGrid}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>#{teamData?.position || "-"}</Text>
-            <Text style={styles.statTitle}>Posizione</Text>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: c.textPrimary }]}>#{teamData?.position || "-"}</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>Posizione</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, styles.winColor]}>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: "#4CD137" }]}>
               {teamData?.wins ?? 0}
             </Text>
-            <Text style={styles.statTitle}>Vittorie</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>Vittorie</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, styles.lossColor]}>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: "#E74C3C" }]}>
               {teamData?.losses ?? 0}
             </Text>
-            <Text style={styles.statTitle}>Sconfitte</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>Sconfitte</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>
+          <View style={[styles.statBox, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+            <Text style={[styles.statValue, { color: c.textPrimary }]}>
               {typeof teamData?.pct === "number"
                 ? teamData.pct.toFixed(3).replace("0.", ".")
                 : ".000"}
             </Text>
-            <Text style={styles.statTitle}>PCT</Text>
+            <Text style={[styles.statTitle, { color: c.textSecondary }]}>PCT</Text>
           </View>
         </View>
 
         {/* 3. CAMPO DI GIOCO (Mostrato solo per la nostra squadra) */}
         {isMyTeam && (
           <>
-            <Text style={styles.sectionLabel}>Campo di Gioco</Text>
-            <View style={styles.stadiumCard}>
+            <Text style={[styles.sectionLabel, { color: c.textSecondary }]}>Campo di Gioco</Text>
+            <View style={[styles.stadiumCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
               <Text style={styles.stadiumIcon}>🏟️</Text>
               <View style={styles.stadiumInfo}>
-                <Text style={styles.stadiumName}>PalaGilardetti</Text>
-                <Text style={styles.stadiumDetail}>
+                <Text style={[styles.stadiumName, { color: c.textPrimary }]}>PalaGilardetti</Text>
+                <Text style={[styles.stadiumDetail, { color: c.textSecondary }]}>
                   Complesso Sportivo Nedo Betti
                 </Text>
-                <Text style={styles.stadiumCap}>
+                <Text style={[styles.stadiumCap, { color: c.textMuted }]}>
                   Capienza: 500 posti • Parquet in legno
                 </Text>
               </View>
             </View>
             <TouchableOpacity
-              style={styles.mapButton}
+              style={[styles.mapButton, { backgroundColor: c.bgCard, borderColor: c.border }]}
               onPress={() =>
                 Linking.openURL(
                   "https://maps.google.com/?q=PalaGilardetti+Castelfiorentino",
@@ -197,7 +199,7 @@ export default function TeamDetailScreen() {
               }
               activeOpacity={0.8}
             >
-              <Text style={styles.mapButtonText}>📍 Apri su Google Maps</Text>
+              <Text style={[styles.mapButtonText, { color: c.accent }]}>📍 Apri su Google Maps</Text>
             </TouchableOpacity>
           </>
         )}
@@ -209,7 +211,6 @@ export default function TeamDetailScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#1E293B",
   },
   centerContainer: {
     justifyContent: "center",
@@ -226,7 +227,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   backButtonText: {
-    color: "#E8600A",
     fontSize: 15,
     fontWeight: "600",
   },
@@ -235,12 +235,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileCard: {
-    backgroundColor: "#334155",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#475569",
     marginBottom: 24,
   },
   avatarEmoji: {
@@ -250,25 +248,20 @@ const styles = StyleSheet.create({
   teamTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#F1F5F9",
     textAlign: "center",
     marginBottom: 6,
   },
   teamLocation: {
     fontSize: 14,
-    color: "#94A3B8",
     marginBottom: 14,
   },
   badgeMyTeam: {
-    backgroundColor: "rgba(232, 96, 10, 0.2)",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E8600A",
   },
   badgeText: {
-    color: "#E8600A",
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 1,
@@ -276,7 +269,6 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#94A3B8",
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -290,33 +282,25 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     minWidth: "45%",
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#475569",
   },
   statTitle: {
     fontSize: 12,
-    color: "#94A3B8",
     marginTop: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#F1F5F9",
   },
-  winColor: { color: "#4CD137" },
-  lossColor: { color: "#E74C3C" },
   stadiumCard: {
     flexDirection: "row",
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#475569",
     gap: 16,
   },
   stadiumIcon: {
@@ -328,29 +312,23 @@ const styles = StyleSheet.create({
   stadiumName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#F1F5F9",
     marginBottom: 2,
   },
   stadiumDetail: {
     fontSize: 13,
-    color: "#94A3B8",
     marginBottom: 4,
   },
   stadiumCap: {
     fontSize: 11,
-    color: "#64748B",
   },
   mapButton: {
     marginTop: 12,
-    backgroundColor: "#334155",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#475569",
   },
   mapButtonText: {
-    color: "#E8600A",
     fontSize: 14,
     fontWeight: "700",
   },

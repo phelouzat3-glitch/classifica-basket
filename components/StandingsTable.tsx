@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { PositionBadge } from "./PositionBadge";
+import { useColors } from "@/src/theme/ThemeContext";
 
 const LOGOS: Record<string, any> = {
   'union-basket-prato': require('@/assets/images/teams/union-basket-prato.png'),
@@ -59,6 +60,7 @@ const MIN_TABLE_WIDTH = 520;
 
 export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
   const { width: screenWidth } = useWindowDimensions();
+  const c = useColors();
   const containerWidth = Math.min(screenWidth, 900);
   const availableWidth = containerWidth - 18;
   const tableWidth = Math.max(availableWidth, MIN_TABLE_WIDTH);
@@ -91,47 +93,50 @@ export function StandingsTable({ teams, refreshing, onRefresh }: Props) {
 }
 
 function Legend() {
+  const c = useColors();
   return (
-    <View style={styles.legend}>
+    <View style={[styles.legend, { backgroundColor: c.bg, borderTopColor: c.border }]}>
       <View style={styles.legendItem}>
         <View style={[styles.legendDot, { backgroundColor: "rgba(59, 130, 246, 0.4)", borderColor: "#60A5FA" }]} />
-        <Text style={styles.legendText}>Playoff (1°–8°)</Text>
+        <Text style={[styles.legendText, { color: c.textMuted }]}>Playoff (1°–8°)</Text>
       </View>
       <View style={styles.legendItem}>
         <View style={[styles.legendDot, { backgroundColor: "rgba(245, 158, 11, 0.4)", borderColor: "#FBBF24" }]} />
-        <Text style={styles.legendText}>Playout (9°–13°)</Text>
+        <Text style={[styles.legendText, { color: c.textMuted }]}>Playout (9°–13°)</Text>
       </View>
       <View style={styles.legendItem}>
         <View style={[styles.legendDot, { backgroundColor: "rgba(239, 68, 68, 0.4)", borderColor: "#F87171" }]} />
-        <Text style={styles.legendText}>Retrocessione (14°–)</Text>
+        <Text style={[styles.legendText, { color: c.textMuted }]}>Retrocessione (14°–)</Text>
       </View>
       <View style={styles.legendItem}>
         <View style={[styles.legendDot, { borderColor: "#FF8C42", borderWidth: 1.5, backgroundColor: "rgba(255, 107, 0, 0.25)" }]} />
-        <Text style={styles.legendText}>★ La nostra squadra</Text>
+        <Text style={[styles.legendText, { color: c.textMuted }]}>★ La nostra squadra</Text>
       </View>
     </View>
   );
 }
 
 function TableHeader() {
+  const c = useColors();
   return (
-    <View style={styles.header}>
-      <Text style={[styles.headerCell, styles.colPos]}>POS</Text>
-      <Text style={[styles.headerCell, styles.colTeam, styles.headerTeam]}>Squadra</Text>
-      <Text style={[styles.headerCell, styles.colNum]}>V</Text>
-      <Text style={[styles.headerCell, styles.colNum]}>P</Text>
-      <Text style={[styles.headerCell, styles.colPct]}>PCT</Text>
-      <Text style={[styles.headerCell, styles.colGb]}>GB</Text>
-      <Text style={[styles.headerCell, styles.colPf]}>PF</Text>
-      <Text style={[styles.headerCell, styles.colPa]}>PA</Text>
-      <Text style={[styles.headerCell, styles.colDiff]}>Diff</Text>
-      <Text style={[styles.headerCell, styles.colLast10]}>Ultime 10</Text>
-      <Text style={[styles.headerCell, styles.colStreak]}>Serie</Text>
+    <View style={[styles.header, { backgroundColor: c.bgCard, borderBottomColor: c.border }]}>
+      <Text style={[styles.headerCell, styles.colPos, { color: c.textMuted }]}>POS</Text>
+      <Text style={[styles.headerCell, styles.colTeam, styles.headerTeam, { color: c.textMuted }]}>Squadra</Text>
+      <Text style={[styles.headerCell, styles.colNum, { color: c.textMuted }]}>V</Text>
+      <Text style={[styles.headerCell, styles.colNum, { color: c.textMuted }]}>P</Text>
+      <Text style={[styles.headerCell, styles.colPct, { color: c.textMuted }]}>PCT</Text>
+      <Text style={[styles.headerCell, styles.colGb, { color: c.textMuted }]}>GB</Text>
+      <Text style={[styles.headerCell, styles.colPf, { color: c.textMuted }]}>PF</Text>
+      <Text style={[styles.headerCell, styles.colPa, { color: c.textMuted }]}>PA</Text>
+      <Text style={[styles.headerCell, styles.colDiff, { color: c.textMuted }]}>Diff</Text>
+      <Text style={[styles.headerCell, styles.colLast10, { color: c.textMuted }]}>Ultime 10</Text>
+      <Text style={[styles.headerCell, styles.colStreak, { color: c.textMuted }]}>Serie</Text>
     </View>
   );
 }
 
 function TeamRow({ team }: { team: Team }) {
+  const c = useColors();
   const isMyTeam = team.isMyTeam;
   const pos = team.position;
   const router = useRouter();
@@ -149,7 +154,7 @@ function TeamRow({ team }: { team: Team }) {
 
   return (
     <TouchableOpacity
-      style={[styles.row, positionStyle, isMyTeam && styles.rowMyTeam]}
+      style={[styles.row, { backgroundColor: c.bg, borderBottomColor: c.border }, positionStyle, isMyTeam && styles.rowMyTeam]}
       activeOpacity={0.7}
       onPress={() => {
         router.push({
@@ -166,11 +171,11 @@ function TeamRow({ team }: { team: Team }) {
 
       <View style={styles.colTeam}>
         {LOGOS[team.teamId] && (
-          <Image source={LOGOS[team.teamId]} style={styles.teamLogo} />
+          <Image source={LOGOS[team.teamId]} style={[styles.teamLogo, { backgroundColor: c.bgCard }]} />
         )}
         <View style={styles.teamInfo}>
           <Text
-            style={[styles.teamName, isMyTeam && styles.teamNameMyTeam]}
+            style={[styles.teamName, { color: c.textPrimary }, isMyTeam && styles.teamNameMyTeam]}
             numberOfLines={1}
           >
             {isMyTeam ? `★ ${team.name}` : team.name}
@@ -179,19 +184,20 @@ function TeamRow({ team }: { team: Team }) {
         </View>
       </View>
 
-      <Text style={[styles.cell, styles.colNum, styles.cellNum, styles.cellWin]}>{team.wins}</Text>
-      <Text style={[styles.cell, styles.colNum, styles.cellNum, styles.cellLoss]}>{team.losses}</Text>
-      <Text style={[styles.cell, styles.colPct, styles.cellNum]}>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colNum, styles.cellNum, styles.cellWin]}>{team.wins}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colNum, styles.cellNum, styles.cellLoss]}>{team.losses}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colPct, styles.cellNum]}>
         {typeof team.pct === "number"
           ? team.pct.toFixed(3).replace("0.", ".")
           : ".000"}
       </Text>
-      <Text style={[styles.cell, styles.colGb, styles.cellNum]}>{team.gb === "-" ? "-" : team.gb}</Text>
-      <Text style={[styles.cell, styles.colPf, styles.cellNum]}>{team.pf ?? "-"}</Text>
-      <Text style={[styles.cell, styles.colPa, styles.cellNum]}>{team.pa ?? "-"}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colGb, styles.cellNum]}>{team.gb === "-" ? "-" : team.gb}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colPf, styles.cellNum]}>{team.pf ?? "-"}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colPa, styles.cellNum]}>{team.pa ?? "-"}</Text>
       <Text
         style={[
           styles.cell,
+          { color: c.textSecondary },
           styles.colDiff,
           styles.cellNum,
           diff != null && diff > 0 ? styles.cellWin : diff != null && diff < 0 ? styles.cellLoss : null,
@@ -199,10 +205,11 @@ function TeamRow({ team }: { team: Team }) {
       >
         {diff != null ? (diff > 0 ? `+${diff}` : `${diff}`) : "-"}
       </Text>
-      <Text style={[styles.cell, styles.colLast10, styles.cellNum]}>{team.last10}</Text>
+      <Text style={[styles.cell, { color: c.textSecondary }, styles.colLast10, styles.cellNum]}>{team.last10}</Text>
       <Text
         style={[
           styles.cell,
+          { color: c.textSecondary },
           styles.colStreak,
           styles.cellNum,
           team.streak.startsWith("W") ? styles.cellWin : styles.cellLoss,
@@ -218,14 +225,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#334155",
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#475569",
   },
   headerCell: {
-    color: "#94A3B8",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -239,11 +243,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1E293B",
     paddingHorizontal: 12,
     minHeight: 44,
     borderBottomWidth: 1,
-    borderBottomColor: "#475569",
     position: "relative",
   },
   rowMyTeam: {
@@ -263,7 +265,6 @@ const styles = StyleSheet.create({
   },
   cell: {
     fontSize: 12,
-    color: "#CBD5E1",
     textAlign: "center",
     fontWeight: "500",
   },
@@ -277,7 +278,6 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#334155",
   },
   teamInfo: {
     flex: 1,
@@ -285,7 +285,6 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#FFFFFF",
     textAlign: "left",
   },
   teamNameMyTeam: {
@@ -313,9 +312,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 10,
     padding: 12,
-    backgroundColor: "#1E293B",
     borderTopWidth: 1,
-    borderTopColor: "#475569",
   },
   legendItem: {
     flexDirection: "row",
@@ -330,7 +327,6 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: "#94A3B8",
     fontWeight: "500",
   },
 });

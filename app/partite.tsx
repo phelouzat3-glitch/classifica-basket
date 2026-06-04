@@ -1,9 +1,11 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useColors } from "@/src/theme/ThemeContext";
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Pressable,
   RefreshControl,
@@ -41,6 +43,28 @@ export default function PartiteScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
+
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  const c = useColors();
+
   const filtered = useMemo(() => {
     if (activeFilter === "Giocate") {
       return matches.filter(
@@ -63,13 +87,14 @@ export default function PartiteScreen() {
       const res = await fetch(`${API_URL}/matches`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setMatches((await res.json()) as MatchFromApi[]);
+      if (!isRefresh) animateIn();
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [animateIn]);
 
   useEffect(() => {
     fetchMatches();
@@ -93,9 +118,9 @@ export default function PartiteScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top }]}>
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#E8600A" />
+          <ActivityIndicator size="large" color={c.accent} />
         </View>
       </View>
     );
@@ -103,14 +128,14 @@ export default function PartiteScreen() {
 
   if (error && matches.length === 0) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top }]}>
         <View style={styles.centerBox}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={[styles.errorText, { color: "#EF4444" }]}>{error}</Text>
           <TouchableOpacity
             onPress={() => fetchMatches()}
-            style={styles.retryBtn}
+            style={[styles.retryBtn, { backgroundColor: c.accent }]}
           >
-            <Text style={styles.retryBtnText}>Riprova</Text>
+            <Text style={[styles.retryBtnText, { color: "#FFF" }]}>Riprova</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -118,15 +143,15 @@ export default function PartiteScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.replace("/(tabs)/home" as any)}
           style={styles.backBtn}
         >
-          <Text style={styles.backBtnText}>← Home</Text>
+          <Text style={[styles.backBtnText, { color: c.accent }]}>← Home</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Tutte le partite</Text>
+        <Text style={[styles.title, { color: c.textPrimary }]}>Tutte le partite</Text>
       </View>
 
       <View style={styles.filterRow}>
@@ -135,6 +160,7 @@ export default function PartiteScreen() {
             key={f}
             style={[
               styles.filterBtn,
+              { backgroundColor: c.bgCard, borderColor: c.border },
               activeFilter === f && styles.filterBtnActive,
             ]}
             onPress={() => setActiveFilter(f)}
@@ -142,6 +168,7 @@ export default function PartiteScreen() {
             <Text
               style={[
                 styles.filterBtnText,
+                { color: c.textSecondary },
                 activeFilter === f && styles.filterBtnTextActive,
               ]}
             >
@@ -165,7 +192,7 @@ export default function PartiteScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Nessuna partita.</Text>
+            <Text style={[styles.emptyText, { color: c.textSecondary }]}>Nessuna partita.</Text>
           </View>
         }
         renderItem={({ item }) => {
@@ -179,13 +206,14 @@ export default function PartiteScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.card,
+                { backgroundColor: c.bgCard, borderColor: c.border },
                 pressed && { opacity: 0.7 },
               ]}
               onPress={() => shareMatch(item)}
             >
               <View style={styles.cardHeader}>
-                <Text style={styles.roundText}>Giornata {item.round}</Text>
-                <Text style={styles.dateText}>
+                <Text style={[styles.roundText, { color: c.accent }]}>Giornata {item.round}</Text>
+                <Text style={[styles.dateText, { color: c.textMuted }]}>
                   {new Date(item.date).toLocaleDateString("it-IT", {
                     day: "numeric",
                     month: "short",
@@ -198,7 +226,7 @@ export default function PartiteScreen() {
                 <View style={[styles.teamCol, isAbcHome && styles.abcCol]}>
                   <TeamLogo teamName={homeName} size={20} />
                   <Text
-                    style={[styles.teamName, isAbcHome && styles.abcName]}
+                    style={[styles.teamName, { color: c.textPrimary }, isAbcHome && styles.abcName, isAbcHome && { color: c.accent }]}
                     numberOfLines={1}
                   >
                     {homeName}
@@ -210,29 +238,31 @@ export default function PartiteScreen() {
                     <Text
                       style={[
                         styles.score,
-                        item.home_score! > item.away_score! && styles.scoreWon,
+                        { color: c.textPrimary },
+                        item.home_score! > item.away_score! && { color: c.win },
                       ]}
                     >
                       {item.home_score}
                     </Text>
-                    <Text style={styles.scoreDash}>-</Text>
+                    <Text style={[styles.scoreDash, { color: c.border }]}>-</Text>
                     <Text
                       style={[
                         styles.score,
-                        item.away_score! > item.home_score! && styles.scoreWon,
+                        { color: c.textPrimary },
+                        item.away_score! > item.home_score! && { color: c.win },
                       ]}
                     >
                       {item.away_score}
                     </Text>
                   </View>
                 ) : (
-                  <Text style={styles.vsCol}>VS</Text>
+                  <Text style={[styles.vsCol, { color: c.textMuted }]}>VS</Text>
                 )}
 
                 <View style={[styles.teamCol, isAbcAway && styles.abcCol]}>
                   <TeamLogo teamName={awayName} size={20} />
                   <Text
-                    style={[styles.teamName, isAbcAway && styles.abcName]}
+                    style={[styles.teamName, { color: c.textPrimary }, isAbcAway && styles.abcName, isAbcAway && { color: c.accent }]}
                     numberOfLines={1}
                   >
                     {awayName}
@@ -243,26 +273,24 @@ export default function PartiteScreen() {
           );
         }}
       />
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1E293B" },
+  container: { flex: 1 },
   centerBox: { flex: 1, justifyContent: "center", alignItems: "center" },
-  errorText: { color: "#EF4444", textAlign: "center", marginBottom: 16 },
+  errorText: { textAlign: "center", marginBottom: 16 },
   retryBtn: {
-    backgroundColor: "#E8600A",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
-  retryBtnText: { color: "#FFF", fontWeight: "bold" },
+  retryBtnText: { fontWeight: "bold" },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8 },
   backBtn: { padding: 8 },
-  backBtnText: { color: "#E8600A", fontSize: 15, fontWeight: "600" },
+  backBtnText: { fontSize: 15, fontWeight: "600" },
   title: {
-    color: "#F1F5F9",
     fontSize: 22,
     fontWeight: "bold",
     paddingLeft: 8,
@@ -276,48 +304,43 @@ const styles = StyleSheet.create({
   },
   filterBtn: {
     flex: 1,
-    backgroundColor: "#334155",
     paddingVertical: 8,
     borderRadius: 20,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#475569",
   },
   filterBtnActive: { backgroundColor: "#E8600A", borderColor: "#E8600A" },
-  filterBtnText: { color: "#94A3B8", fontSize: 13, fontWeight: "600" },
+  filterBtnText: { fontSize: 13, fontWeight: "600" },
   filterBtnTextActive: { color: "#FFF", fontWeight: "700" },
   list: { padding: 16, paddingBottom: 40 },
   emptyBox: { alignItems: "center", padding: 30 },
-  emptyText: { color: "#94A3B8", fontSize: 14 },
+  emptyText: { fontSize: 14 },
   card: {
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#475569",
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
   },
-  roundText: { fontSize: 12, fontWeight: "800", color: "#E8600A" },
-  dateText: { fontSize: 11, color: "#64748B" },
+  roundText: { fontSize: 12, fontWeight: "800" },
+  dateText: { fontSize: 11 },
   teamsRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   teamCol: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },
   abcCol: {},
-  teamName: { color: "#F1F5F9", fontSize: 13, fontWeight: "600", flex: 1 },
-  abcName: { color: "#E8600A", fontWeight: "800" },
+  teamName: { fontSize: 13, fontWeight: "600", flex: 1 },
+  abcName: { fontWeight: "800" },
   scoreCol: { flexDirection: "row", alignItems: "center", gap: 3 },
   score: {
-    color: "#F1F5F9",
     fontSize: 18,
     fontWeight: "800",
     minWidth: 22,
     textAlign: "center",
   },
-  scoreWon: { color: "#4ADE80" },
-  scoreDash: { color: "#475569", fontSize: 16, fontWeight: "600" },
-  vsCol: { color: "#475569", fontSize: 14, fontWeight: "800" },
+  scoreWon: {},
+  scoreDash: { fontSize: 16, fontWeight: "600" },
+  vsCol: { fontSize: 14, fontWeight: "800" },
 });

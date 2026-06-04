@@ -34,7 +34,7 @@ export default function NotificheScreen() {
       const { getPermissionsAsync, requestPermissionsAsync, getExpoPushTokenAsync } = await import("expo-notifications");
 
       const { status: existing, granted } = await getPermissionsAsync();
-      if (!granted && existing !== "undetermined" && existing !== "notDetermined") {
+      if (!granted && existing !== "undetermined") {
         throw new Error("Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.");
       }
       if (!granted) {
@@ -48,7 +48,19 @@ export default function NotificheScreen() {
       if (!projectId) {
         throw new Error("Project ID non trovato");
       }
-      const tokenData = await getExpoPushTokenAsync({ projectId });
+
+      const { granted: finalGranted } = await getPermissionsAsync();
+      if (!finalGranted) {
+        throw new Error("Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.");
+      }
+
+      let tokenData;
+      try {
+        tokenData = await getExpoPushTokenAsync({ projectId });
+      } catch {
+        setStatus("unavailable");
+        return;
+      }
       const pushToken = tokenData.data;
       setToken(pushToken);
 
@@ -104,6 +116,18 @@ export default function NotificheScreen() {
                 Riceverai aggiornamenti su risultati e partite dell'ABC Castelfiorentino.
               </Text>
               {token && <Text style={[styles.tokenText, { color: c.textMuted }]}>Token: {token.slice(0, 20)}...</Text>}
+            </>
+          ) : status === "unavailable" ? (
+            <>
+              <Text style={styles.icon}>⚠️</Text>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Registrazione fallita</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
+                Il dispositivo non ha potuto ottenere il token push. Questo può succedere su
+                iOS in Expo Go. Prova a riavviare l'app o usa una development build.
+              </Text>
+              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Riprova</Text>
+              </Pressable>
             </>
           ) : status === "error" ? (
             <>

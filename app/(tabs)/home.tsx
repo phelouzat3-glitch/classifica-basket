@@ -1,10 +1,11 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
+import { useColors } from "@/src/theme/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Dimensions,
   Pressable,
   RefreshControl,
@@ -73,22 +74,48 @@ export default function HomeTabScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [sRes, mRes] = await Promise.all([
-        fetch(`${API_URL}/standings`),
-        fetch(`${API_URL}/matches?limit=50`),
-      ]);
-      if (sRes.ok) setStandings(await sRes.json());
-      if (mRes.ok) setMatches(await mRes.json());
-    } catch {
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
+
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  const c = useColors();
+
+  const load = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      try {
+        const [sRes, mRes] = await Promise.all([
+          fetch(`${API_URL}/standings`),
+          fetch(`${API_URL}/matches?limit=50`),
+        ]);
+        if (sRes.ok) setStandings(await sRes.json());
+        if (mRes.ok) setMatches(await mRes.json());
+        if (!isRefresh) animateIn();
+      } catch {
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [animateIn],
+  );
 
   useEffect(() => {
     load();
@@ -111,8 +138,16 @@ export default function HomeTabScreen() {
   const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="light" />
+    <Animated.View
+      style={[
+        { flex: 1, backgroundColor: c.bg },
+        {
+          paddingTop: insets.top,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -123,28 +158,45 @@ export default function HomeTabScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => load(true)}
-            tintColor="#E8600A"
-            colors={["#E8600A"]}
+            tintColor={c.accent}
+            colors={[c.accent]}
           />
         }
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerSub}>ABC Castelfiorentino</Text>
-            <Text style={styles.headerTitle}>
+            <Text style={[styles.headerSub, { color: c.textMuted }]}>
+              ABC Castelfiorentino
+            </Text>
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
               Stagione {myTeam?.season ?? "2025/26"}
             </Text>
           </View>
           <View style={styles.headerRight}>
             <Pressable
-              style={({ pressed }) => [styles.notifBtn, pressed && { opacity: 0.6 }]}
+              style={({ pressed }) => [
+                styles.notifBtn,
+                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+                pressed && { opacity: 0.6 },
+              ]}
               onPress={() => router.push("/notifiche" as any)}
             >
-              <Ionicons name="notifications-outline" size={22} color="#E8600A" />
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={c.accent}
+              />
             </Pressable>
-            <View style={styles.posBadge}>
-              <Text style={styles.posBadgeLabel}>Classifica</Text>
-              <Text style={styles.posBadgeValue}>
+            <View
+              style={[
+                styles.posBadge,
+                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+              ]}
+            >
+              <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>
+                Classifica
+              </Text>
+              <Text style={[styles.posBadgeValue, { color: c.accent }]}>
                 {myTeam?.position ?? "-"}°
               </Text>
             </View>
@@ -152,77 +204,215 @@ export default function HomeTabScreen() {
         </View>
 
         <View style={styles.summaryRow}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{wins}</Text>
-            <Text style={styles.summaryLabel}>Vittorie</Text>
+          <View
+            style={[
+              styles.summaryCard,
+              { backgroundColor: c.bgCard, borderColor: c.border },
+            ]}
+          >
+            <Text style={[styles.summaryValue, { color: c.textPrimary }]}>
+              {wins}
+            </Text>
+            <Text style={[styles.summaryLabel, { color: c.textMuted }]}>
+              Vittorie
+            </Text>
           </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{losses}</Text>
-            <Text style={styles.summaryLabel}>Sconfitte</Text>
+          <View
+            style={[
+              styles.summaryCard,
+              { backgroundColor: c.bgCard, borderColor: c.border },
+            ]}
+          >
+            <Text style={[styles.summaryValue, { color: c.textPrimary }]}>
+              {losses}
+            </Text>
+            <Text style={[styles.summaryLabel, { color: c.textMuted }]}>
+              Sconfitte
+            </Text>
           </View>
-          <View style={[styles.summaryCard, styles.summaryCardAccent]}>
-            <Text style={[styles.summaryValue, { color: "#E8600A" }]}>
+          <View
+            style={[
+              styles.summaryCard,
+              styles.summaryCardAccent,
+              { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+            ]}
+          >
+            <Text style={[styles.summaryValue, { color: c.accent }]}>
               {winPct}%
             </Text>
-            <Text style={styles.summaryLabel}>Vittorie</Text>
+            <Text style={[styles.summaryLabel, { color: c.textMuted }]}>
+              Vittorie
+            </Text>
           </View>
-          <View style={[styles.summaryCard, styles.summaryCardAccent]}>
-            <Text style={[styles.summaryValue, { color: "#22C55E" }]}>
+          <View
+            style={[
+              styles.summaryCard,
+              styles.summaryCardAccent,
+              { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+            ]}
+          >
+            <Text style={[styles.summaryValue, { color: c.win }]}>
               {myTeam?.streak ?? "-"}
             </Text>
-            <Text style={styles.summaryLabel}>Streak</Text>
+            <Text style={[styles.summaryLabel, { color: c.textMuted }]}>
+              Streak
+            </Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Classifica</Text>
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
+          Classifica
+        </Text>
 
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableCell, styles.colPos]}>#</Text>
-          <Text style={[styles.tableCell, styles.colName]}>Squadra</Text>
-          <Text style={[styles.tableCell, styles.colW]}>V</Text>
-          <Text style={[styles.tableCell, styles.colL]}>S</Text>
-          <Text style={[styles.tableCell, styles.colPct]}>%</Text>
+        <View
+          style={[
+            styles.tableHeader,
+            { backgroundColor: c.bgCard, borderColor: c.border },
+          ]}
+        >
+          <Text
+            style={[styles.tableCell, styles.colPos, { color: c.textMuted }]}
+          >
+            #
+          </Text>
+          <Text
+            style={[styles.tableCell, styles.colName, { color: c.textMuted }]}
+          >
+            Squadra
+          </Text>
+          <Text style={[styles.tableCell, styles.colW, { color: c.textMuted }]}>
+            V
+          </Text>
+          <Text style={[styles.tableCell, styles.colL, { color: c.textMuted }]}>
+            S
+          </Text>
+          <Text
+            style={[styles.tableCell, styles.colPct, { color: c.textMuted }]}
+          >
+            %
+          </Text>
         </View>
 
-        <View style={styles.myTeamRow}>
-          <Text style={[styles.tableCell, styles.colPos, styles.myTeamText]}>
+        <View
+          style={[
+            styles.myTeamRow,
+            { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+          ]}
+        >
+          <Text
+            style={[
+              styles.tableCell,
+              styles.colPos,
+              styles.myTeamText,
+              { color: c.accent },
+            ]}
+          >
             {myTeam?.position ?? "-"}
           </Text>
           <View style={styles.standNameRow}>
             <TeamLogo teamName="ABC Castelfiorentino" size={18} />
-            <Text style={[styles.tableCell, styles.colName, styles.myTeamText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.colName,
+                styles.myTeamText,
+                { color: c.accent },
+              ]}
+            >
               ABC Castelfiorentino
             </Text>
           </View>
-          <Text style={[styles.tableCell, styles.colW, styles.myTeamText]}>
+          <Text
+            style={[
+              styles.tableCell,
+              styles.colW,
+              styles.myTeamText,
+              { color: c.accent },
+            ]}
+          >
             {myTeam?.wins ?? 0}
           </Text>
-          <Text style={[styles.tableCell, styles.colL, styles.myTeamText]}>
+          <Text
+            style={[
+              styles.tableCell,
+              styles.colL,
+              styles.myTeamText,
+              { color: c.accent },
+            ]}
+          >
             {myTeam?.losses ?? 0}
           </Text>
-          <Text style={[styles.tableCell, styles.colPct, styles.myTeamText]}>
+          <Text
+            style={[
+              styles.tableCell,
+              styles.colPct,
+              styles.myTeamText,
+              { color: c.accent },
+            ]}
+          >
             {(myTeam?.pct ?? 0 * 100).toString().replace(".", ",").slice(0, 4)}
           </Text>
         </View>
 
         {top5.map((t) => (
-          <View key={t.team_id} style={styles.standRow}>
-            <Text style={[styles.tableCell, styles.colPos, styles.standText]}>
+          <View
+            key={t.team_id}
+            style={[
+              styles.standRow,
+              { backgroundColor: c.bg, borderBottomColor: c.bgOverlay },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableCell,
+                styles.colPos,
+                styles.standText,
+                { color: c.textSecondary },
+              ]}
+            >
               {t.position}
             </Text>
             <View style={styles.standNameRow}>
               <TeamLogo teamName={t.name} size={18} />
-              <Text style={[styles.tableCell, styles.colName, styles.standText]}>
+              <Text
+                style={[
+                  styles.tableCell,
+                  styles.colName,
+                  styles.standText,
+                  { color: c.textSecondary },
+                ]}
+              >
                 {t.name}
               </Text>
             </View>
-            <Text style={[styles.tableCell, styles.colW, styles.standText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.colW,
+                styles.standText,
+                { color: c.textSecondary },
+              ]}
+            >
               {t.wins}
             </Text>
-            <Text style={[styles.tableCell, styles.colL, styles.standText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.colL,
+                styles.standText,
+                { color: c.textSecondary },
+              ]}
+            >
               {t.losses}
             </Text>
-            <Text style={[styles.tableCell, styles.colPct, styles.standText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.colPct,
+                styles.standText,
+                { color: c.textSecondary },
+              ]}
+            >
               {(t.pct * 100).toFixed(1).replace(".", ",")}
             </Text>
           </View>
@@ -231,14 +421,19 @@ export default function HomeTabScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.viewAllBtn,
+            { backgroundColor: c.bgCard, borderColor: c.accentBorder },
             pressed && { opacity: 0.7 },
           ]}
           onPress={() => router.push("/classifica" as any)}
         >
-          <Text style={styles.viewAllBtnText}>Vedi classifica completa</Text>
+          <Text style={[styles.viewAllBtnText, { color: c.accent }]}>
+            Vedi classifica completa
+          </Text>
         </Pressable>
 
-        <Text style={styles.sectionTitle}>Ultimi risultati</Text>
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
+          Ultimi risultati
+        </Text>
 
         {myMatches.map((m) => {
           const isHome = m.home_team.startsWith("Abc");
@@ -253,6 +448,7 @@ export default function HomeTabScreen() {
               key={m.id}
               style={({ pressed }) => [
                 styles.matchRow,
+                { backgroundColor: c.bgCard, borderColor: c.border },
                 pressed && { opacity: 0.7 },
               ]}
               onPress={() => router.push(`/partite` as any)}
@@ -260,13 +456,15 @@ export default function HomeTabScreen() {
               <View
                 style={[
                   styles.outcomeBadge,
-                  won ? styles.winBadge : styles.lossBadge,
+                  won
+                    ? { backgroundColor: c.winBg }
+                    : { backgroundColor: c.lossBg },
                 ]}
               >
                 <Text
                   style={[
                     styles.outcomeText,
-                    won ? styles.winText : styles.lossText,
+                    won ? { color: c.win } : { color: c.loss },
                   ]}
                 >
                   {won ? "V" : "S"}
@@ -276,16 +474,25 @@ export default function HomeTabScreen() {
                 <TeamLogo teamName={opponent} size={22} />
               </View>
               <View style={styles.matchInfo}>
-                <Text style={styles.matchOpponent} numberOfLines={1}>
+                <Text
+                  style={[styles.matchOpponent, { color: c.textPrimary }]}
+                  numberOfLines={1}
+                >
                   {isHome ? "ABC vs " : ""}
                   {opponent.replace(/^abc /i, "").replace(/^basket /i, "")}
                   {!isHome ? " · ABC" : ""}
                 </Text>
-                <Text style={styles.matchMeta}>
+                <Text style={[styles.matchMeta, { color: c.textMuted }]}>
                   {formatDate(m.date)} · {m.round}ª g.
                 </Text>
               </View>
-              <Text style={[styles.matchScore, won && { color: "#4ADE80" }]}>
+              <Text
+                style={[
+                  styles.matchScore,
+                  won && { color: c.win },
+                  !won && { color: c.textPrimary },
+                ]}
+              >
                 {ourScore ?? "?"}-{oppScore ?? "?"}
               </Text>
             </Pressable>
@@ -293,47 +500,67 @@ export default function HomeTabScreen() {
         })}
 
         {myTeam && (
-          <View style={styles.statsBox}>
+          <View
+            style={[
+              styles.statsBox,
+              { backgroundColor: c.bgCard, borderColor: c.border },
+            ]}
+          >
             <View style={styles.statsBoxRow}>
               <View style={styles.statsBoxItem}>
-                <Text style={styles.statsBoxLabel}>Punti fatti</Text>
-                <Text style={styles.statsBoxValue}>
+                <Text style={[styles.statsBoxLabel, { color: c.textMuted }]}>
+                  Punti fatti
+                </Text>
+                <Text style={[styles.statsBoxValue, { color: c.textPrimary }]}>
                   {(myTeam.pf / total).toFixed(1)}
                 </Text>
-                <Text style={styles.statsBoxSub}>a partita</Text>
+                <Text style={[styles.statsBoxSub, { color: c.textMuted }]}>
+                  a partita
+                </Text>
               </View>
-              <View style={styles.statsBoxDivider} />
+              <View
+                style={[styles.statsBoxDivider, { backgroundColor: c.border }]}
+              />
               <View style={styles.statsBoxItem}>
-                <Text style={styles.statsBoxLabel}>Punti subiti</Text>
-                <Text style={styles.statsBoxValue}>
+                <Text style={[styles.statsBoxLabel, { color: c.textMuted }]}>
+                  Punti subiti
+                </Text>
+                <Text style={[styles.statsBoxValue, { color: c.textPrimary }]}>
                   {(myTeam.pa / total).toFixed(1)}
                 </Text>
-                <Text style={styles.statsBoxSub}>a partita</Text>
+                <Text style={[styles.statsBoxSub, { color: c.textMuted }]}>
+                  a partita
+                </Text>
               </View>
-              <View style={styles.statsBoxDivider} />
+              <View
+                style={[styles.statsBoxDivider, { backgroundColor: c.border }]}
+              />
               <View style={styles.statsBoxItem}>
-                <Text style={styles.statsBoxLabel}>Differenza</Text>
+                <Text style={[styles.statsBoxLabel, { color: c.textMuted }]}>
+                  Differenza
+                </Text>
                 <Text
                   style={[
                     styles.statsBoxValue,
-                    { color: (myTeam.diff ?? 0) >= 0 ? "#4ADE80" : "#F87171" },
+                    { color: (myTeam.diff ?? 0) >= 0 ? c.win : c.loss },
                   ]}
                 >
                   {(myTeam.diff ?? 0 >= 0) ? "+" : ""}
                   {myTeam.diff}
                 </Text>
-                <Text style={styles.statsBoxSub}>totale</Text>
+                <Text style={[styles.statsBoxSub, { color: c.textMuted }]}>
+                  totale
+                </Text>
               </View>
             </View>
           </View>
         )}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1E293B" },
   scroll: { paddingHorizontal: 20, paddingTop: 16 },
 
   header: {
@@ -342,23 +569,19 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
   },
-  headerSub: { fontSize: 12, color: "#64748B", marginBottom: 2 },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#F1F5F9" },
+  headerSub: { fontSize: 12, marginBottom: 2 },
+  headerTitle: { fontSize: 20, fontWeight: "700" },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   notifBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(232,96,10,0.08)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.2)",
   },
   posBadge: {
-    backgroundColor: "rgba(232,96,10,0.08)",
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.3)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -366,36 +589,30 @@ const styles = StyleSheet.create({
   },
   posBadgeLabel: {
     fontSize: 9,
-    color: "#64748B",
     fontWeight: "600",
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
-  posBadgeValue: { fontSize: 18, fontWeight: "800", color: "#E8600A" },
+  posBadgeValue: { fontSize: 18, fontWeight: "800" },
 
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   summaryCard: {
     flex: 1,
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 10,
     alignItems: "center",
     borderWidth: 0.5,
-    borderColor: "#475569",
   },
   summaryCardAccent: {
-    backgroundColor: "rgba(232,96,10,0.06)",
-    borderColor: "rgba(232,96,10,0.15)",
+    borderWidth: 0.5,
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#F1F5F9",
     marginBottom: 1,
   },
   summaryLabel: {
     fontSize: 9,
-    color: "#64748B",
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -404,7 +621,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#94A3B8",
     letterSpacing: 0.5,
     textTransform: "uppercase",
     marginBottom: 10,
@@ -414,11 +630,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: "#334155",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderWidth: 0.5,
-    borderColor: "#475569",
   },
   tableCell: { fontSize: 11, fontWeight: "700" },
   colPos: { width: 28, textAlign: "center" },
@@ -431,11 +645,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 10,
-    backgroundColor: "rgba(232,96,10,0.08)",
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.3)",
   },
-  myTeamText: { color: "#E8600A", fontSize: 12 },
+  myTeamText: { fontSize: 12 },
 
   standNameRow: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
   matchLogoWrap: { width: 28, alignItems: "center" },
@@ -443,33 +655,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 9,
-    backgroundColor: "#1E293B",
     borderBottomWidth: 0.5,
-    borderBottomColor: "rgba(255,255,255,0.04)",
   },
-  standText: { color: "#94A3B8", fontSize: 12 },
+  standText: { fontSize: 12 },
 
   viewAllBtn: {
-    backgroundColor: "#334155",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
     marginTop: 10,
     marginBottom: 24,
     borderWidth: 0.5,
-    borderColor: "rgba(232,96,10,0.2)",
   },
-  viewAllBtnText: { color: "#E8600A", fontSize: 13, fontWeight: "600" },
+  viewAllBtnText: { fontSize: 13, fontWeight: "600" },
 
   matchRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
     borderWidth: 0.5,
-    borderColor: "#475569",
   },
   outcomeBadge: {
     width: 30,
@@ -479,44 +685,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
-  winBadge: { backgroundColor: "#14532D" },
-  lossBadge: { backgroundColor: "#450A0A" },
   outcomeText: { fontSize: 13, fontWeight: "700" },
-  winText: { color: "#4ADE80" },
-  lossText: { color: "#F87171" },
   matchInfo: { flex: 1 },
   matchOpponent: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#F1F5F9",
     marginBottom: 2,
   },
-  matchMeta: { fontSize: 11, color: "#64748B" },
+  matchMeta: { fontSize: 11 },
   matchScore: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#F1F5F9",
     marginLeft: 8,
   },
 
   statsBox: {
-    backgroundColor: "#334155",
     borderRadius: 14,
     padding: 16,
     marginTop: 16,
     borderWidth: 0.5,
-    borderColor: "#475569",
   },
   statsBoxRow: { flexDirection: "row", alignItems: "center" },
   statsBoxItem: { flex: 1, alignItems: "center" },
   statsBoxDivider: {
     width: 1,
     height: 36,
-    backgroundColor: "#475569",
   },
   statsBoxLabel: {
     fontSize: 10,
-    color: "#64748B",
     fontWeight: "500",
     marginBottom: 4,
     textTransform: "uppercase",
@@ -525,8 +721,7 @@ const styles = StyleSheet.create({
   statsBoxValue: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#F1F5F9",
     marginBottom: 2,
   },
-  statsBoxSub: { fontSize: 9, color: "#64748B", fontWeight: "500" },
+  statsBoxSub: { fontSize: 9, fontWeight: "500" },
 });

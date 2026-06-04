@@ -1,8 +1,10 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
-import { useCallback, useEffect, useState } from "react";
+import { useColors } from "@/src/theme/ThemeContext";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -74,6 +76,28 @@ export default function CalendarioScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(12)).current;
+
+  const animateIn = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(12);
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  const c = useColors();
+
   const fetchMatches = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
@@ -85,13 +109,14 @@ export default function CalendarioScreen() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as MatchFromAPI[];
       setMatches(data.map(mapMatch));
+      if (!isRefresh) animateIn();
     } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [animateIn]);
 
   useEffect(() => {
     fetchMatches();
@@ -99,7 +124,7 @@ export default function CalendarioScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top }]}>
+      <View style={[styles.center, { backgroundColor: c.bg, paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={ORANGE} />
       </View>
     );
@@ -107,8 +132,8 @@ export default function CalendarioScreen() {
 
   if (error) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top }]}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[styles.center, { backgroundColor: c.bg, paddingTop: insets.top }]}>
+        <Text style={[styles.errorText, { color: c.loss }]}>{error}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => fetchMatches()}>
           <Text style={styles.retryBtnText}>Riprova</Text>
         </TouchableOpacity>
@@ -117,10 +142,10 @@ export default function CalendarioScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
+    <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <View style={[styles.header, { backgroundColor: c.bg }]}>
         <Text style={styles.headerSmall}>ABC CASTELFIORENTINO</Text>
-        <Text style={styles.headerTitle}>Calendario</Text>
+        <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Calendario</Text>
       </View>
 
       <FlatList
@@ -143,7 +168,12 @@ export default function CalendarioScreen() {
           const won = item.isPlayed && ourScore != null && ourScore > oppScore!;
 
           return (
-            <View style={[styles.card, !item.isPlayed && styles.cardFuture]}>
+            <View style={[
+                styles.card,
+                !item.isPlayed
+                  ? { backgroundColor: c.bgCardAlt, borderColor: c.border, borderLeftColor: c.textMuted }
+                  : { backgroundColor: c.bgCard, borderColor: c.border, borderLeftColor: c.accent },
+              ]}>
               <View style={styles.roundCol}>
                 <View style={styles.roundBadge}>
                   <Text style={styles.roundBadgeText}>{item.round}ª</Text>
@@ -154,13 +184,18 @@ export default function CalendarioScreen() {
                 <View style={styles.opponentRow}>
                   <TeamLogo teamName={opponent} size={item.isPlayed ? 24 : 20} />
                   <Text
-                    style={[styles.opponentName, !item.isPlayed && styles.opponentNameFuture]}
+                    style={[
+                      styles.opponentName,
+                      !item.isPlayed
+                        ? { color: c.textSecondary }
+                        : { color: c.textPrimary },
+                    ]}
                     numberOfLines={1}
                   >
                     {opponent}
                   </Text>
-                  <View style={styles.venueTag}>
-                    <Text style={styles.venueTagText}>
+                  <View style={[styles.venueTag, { backgroundColor: c.border }]}>
+                    <Text style={[styles.venueTagText, { color: c.textSecondary }]}>
                       {isAbcHome ? "Casa" : "Trasferta"}
                     </Text>
                   </View>
@@ -168,12 +203,12 @@ export default function CalendarioScreen() {
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Text style={styles.metaIcon}>📅</Text>
-                    <Text style={styles.metaText}>{formatDate(item.date)}</Text>
+                    <Text style={[styles.metaText, { color: c.textMuted }]}>{formatDate(item.date)}</Text>
                   </View>
                   {item.time && (
                     <View style={styles.metaItem}>
                       <Text style={styles.metaIcon}>⏰</Text>
-                      <Text style={styles.metaText}>{formatTime(item.time)}</Text>
+                      <Text style={[styles.metaText, { color: c.textMuted }]}>{formatTime(item.time)}</Text>
                     </View>
                   )}
                 </View>
@@ -182,39 +217,37 @@ export default function CalendarioScreen() {
               <View style={styles.scoreCol}>
                 {item.isPlayed ? (
                   <>
-                    <Text style={[styles.scoreNum, won && styles.scoreWin]}>
+                    <Text style={[styles.scoreNum, { color: c.textPrimary }, won && styles.scoreWin]}>
                       {ourScore}
                     </Text>
-                    <Text style={styles.scoreDash}>-</Text>
-                    <Text style={[styles.scoreNum, !won && styles.scoreLoss]}>
+                    <Text style={[styles.scoreDash, { color: c.textMuted }]}>-</Text>
+                    <Text style={[styles.scoreNum, { color: c.textPrimary }, !won && styles.scoreLoss]}>
                       {oppScore}
                     </Text>
                   </>
                 ) : (
-                  <Text style={styles.vsLabel}>VS</Text>
+                  <Text style={[styles.vsLabel, { color: c.textMuted }]}>VS</Text>
                 )}
               </View>
             </View>
           );
         }}
       />
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
   },
   center: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
-  errorText: { color: "#DC2626", marginBottom: 16, fontSize: 15 },
+  errorText: { marginBottom: 16, fontSize: 15 },
   retryBtn: {
     backgroundColor: ORANGE,
     paddingVertical: 10,
@@ -227,9 +260,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-    backgroundColor: "#F8F9FA",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   headerSmall: {
     fontSize: 11,
@@ -241,7 +271,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: "800",
-    color: "#111827",
   },
 
   list: {
@@ -252,25 +281,14 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
     borderLeftWidth: 4,
-    borderLeftColor: "#E8600A",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
   },
   cardFuture: {
-    borderColor: "#F0F0F0",
     borderLeftWidth: 4,
-    borderLeftColor: "#D1D5DB",
-    backgroundColor: "#FAFAFA",
   },
 
   roundCol: {
@@ -302,21 +320,17 @@ const styles = StyleSheet.create({
   opponentName: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#111827",
     flex: 1,
   },
   opponentNameFuture: {
     fontWeight: "600",
-    color: "#6B7280",
   },
   venueTag: {
-    backgroundColor: "#F3F4F6",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   venueTagText: {
-    color: "#6B7280",
     fontSize: 10,
     fontWeight: "700",
   },
@@ -333,7 +347,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   metaText: {
-    color: "#9CA3AF",
     fontSize: 11,
     fontWeight: "500",
   },
@@ -348,15 +361,13 @@ const styles = StyleSheet.create({
   scoreNum: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#111827",
     minWidth: 24,
     textAlign: "center",
   },
-  scoreWin: { color: "#059669" },
-  scoreLoss: { color: "#DC2626" },
-  scoreDash: { color: "#D1D5DB", fontSize: 18, fontWeight: "700" },
+  scoreWin: { color: "#4ADE80" },
+  scoreLoss: { color: "#F87171" },
+  scoreDash: { fontSize: 18, fontWeight: "700" },
   vsLabel: {
-    color: "#D1D5DB",
     fontSize: 14,
     fontWeight: "800",
     letterSpacing: 1,

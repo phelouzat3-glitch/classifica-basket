@@ -1,6 +1,6 @@
 import { API_URL } from "@/src/config/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 const { width } = Dimensions.get("window");
 
@@ -42,6 +43,7 @@ export default function PlayerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const c = useColors();
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,12 +73,12 @@ export default function PlayerDetailScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
+          <ActivityIndicator size="large" color={c.accent} />
         </View>
       </View>
     );
@@ -87,21 +89,21 @@ export default function PlayerDetailScreen() {
       <View
         style={[
           styles.root,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>{error || "Giocatore non trovato"}</Text>
-          <Pressable style={styles.retryBtn} onPress={() => router.back()}>
-            <Text style={styles.retryBtnText}>Torna indietro</Text>
+          <Text style={[styles.errorText, { color: "#EF4444" }]}>{error || "Giocatore non trovato"}</Text>
+          <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={() => router.back()}>
+            <Text style={[styles.retryBtnText, { color: "#08090B" }]}>Torna indietro</Text>
           </Pressable>
         </View>
       </View>
     );
   }
 
-  const roleColor = ROLE_COLORS[player.role] ?? COLORS.accent;
+  const roleColor = ROLE_COLORS[player.role] ?? c.accent;
 
   const stats = [
     { label: "PTS", value: player.pointsPerGame?.toFixed(1) ?? "0.0", sub: "a partita" },
@@ -114,7 +116,7 @@ export default function PlayerDetailScreen() {
     <View
       style={[
         styles.root,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
       <StatusBar barStyle="light-content" />
@@ -124,7 +126,7 @@ export default function PlayerDetailScreen() {
           style={styles.backBtn}
           onPress={() => router.back()}
         >
-          <Text style={styles.backBtnText}>← Indietro</Text>
+          <Text style={[styles.backBtnText, { color: c.accent }]}>← Indietro</Text>
         </Pressable>
 
         <View style={styles.heroSection}>
@@ -139,7 +141,7 @@ export default function PlayerDetailScreen() {
             </Text>
           </View>
 
-          <Text style={styles.playerName}>{player.name}</Text>
+          <Text style={[styles.playerName, { color: c.textPrimary }]}>{player.name}</Text>
           <View
             style={[
               styles.rolePill,
@@ -154,14 +156,14 @@ export default function PlayerDetailScreen() {
           <View style={styles.infoRow}>
             {player.height ? (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Altezza</Text>
-                <Text style={styles.infoValue}>{player.height}</Text>
+                <Text style={[styles.infoLabel, { color: c.textMuted }]}>Altezza</Text>
+                <Text style={[styles.infoValue, { color: c.textPrimary }]}>{player.height}</Text>
               </View>
             ) : null}
             {player.age ? (
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>Età</Text>
-                <Text style={styles.infoValue}>{player.age} anni</Text>
+                <Text style={[styles.infoLabel, { color: c.textMuted }]}>Età</Text>
+                <Text style={[styles.infoValue, { color: c.textPrimary }]}>{player.age} anni</Text>
               </View>
             ) : null}
           </View>
@@ -169,16 +171,16 @@ export default function PlayerDetailScreen() {
 
         <View style={styles.statsGrid}>
           {stats.map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statSub}>{stat.sub}</Text>
+            <View key={stat.label} style={[styles.statCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+              <Text style={[styles.statLabel, { color: c.accent }]}>{stat.label}</Text>
+              <Text style={[styles.statValue, { color: c.textPrimary }]}>{stat.value}</Text>
+              <Text style={[styles.statSub, { color: c.textSecondary }]}>{stat.sub}</Text>
             </View>
           ))}
         </View>
 
         <Pressable
-          style={styles.shareBtn}
+          style={[styles.shareBtn, { backgroundColor: c.accent }]}
           onPress={async () => {
             try {
               await Share.share({
@@ -187,29 +189,16 @@ export default function PlayerDetailScreen() {
             } catch {}
           }}
         >
-          <Text style={styles.shareBtnText}>Condividi giocatore</Text>
+          <Text style={[styles.shareBtnText, { color: "#08090B" }]}>Condividi giocatore</Text>
         </Pressable>
       </ScrollView>
     </View>
   );
 }
 
-const COLORS = {
-  bg: "#1E293B",
-  surface: "#334155",
-  border: "#475569",
-  borderLight: "#475569",
-  accent: "#E8600A",
-  accentMuted: "rgba(232, 96, 10, 0.15)",
-  textPrimary: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-};
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.bg,
   },
   scroll: {
     paddingHorizontal: 22,
@@ -227,7 +216,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   backBtnText: {
-    color: COLORS.accent,
     fontSize: 15,
     fontWeight: "600",
   },
@@ -252,7 +240,6 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 26,
     fontWeight: "800",
-    color: COLORS.textPrimary,
     letterSpacing: -0.3,
     textAlign: "center",
   },
@@ -278,14 +265,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 11,
-    color: COLORS.textMuted,
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   infoValue: {
     fontSize: 15,
-    color: COLORS.textPrimary,
     fontWeight: "600",
   },
 
@@ -297,56 +282,46 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: (width - 54) / 2,
-    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 18,
     borderWidth: 1,
-    borderColor: COLORS.border,
     alignItems: "center",
     gap: 4,
   },
   statLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: COLORS.accent,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
   statValue: {
     fontSize: 28,
     fontWeight: "900",
-    color: COLORS.textPrimary,
   },
   statSub: {
     fontSize: 11,
-    color: COLORS.textSecondary,
     fontWeight: "500",
   },
 
   errorText: {
-    color: "#EF4444",
     marginBottom: 16,
     textAlign: "center",
   },
   retryBtn: {
-    backgroundColor: COLORS.accent,
     paddingVertical: 11,
     paddingHorizontal: 32,
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#08090B",
     fontWeight: "700",
   },
   shareBtn: {
     marginTop: 24,
-    backgroundColor: COLORS.accent,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
   },
   shareBtnText: {
-    color: "#08090B",
     fontWeight: "700",
     fontSize: 15,
   },
