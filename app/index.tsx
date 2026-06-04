@@ -17,8 +17,9 @@ export default function LandingScreen() {
         toValue: 1,
         duration: 3000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
+      { iterations: -1 },
     );
     loop.start();
     return () => loop.stop();
