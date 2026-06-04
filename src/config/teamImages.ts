@@ -1,39 +1,21 @@
-import logoAbc from "@/assets/images/teams/abc-castelfiorentino.png";
-import logoAgliana from "@/assets/images/teams/pallacanestro-agliana-2000.png";
-import logoBottegone from "@/assets/images/teams/bottegone-basket-2001.png";
-import logoCertaldo from "@/assets/images/teams/virtus-certaldo.png";
-import logoCusFirenze from "@/assets/images/teams/cus-firenze-basket.png";
-import logoDonBosco from "@/assets/images/teams/don-bosco-livorno.png";
-import logoDukes from "@/assets/images/teams/dukes-sansepolcro.png";
-import logoFides from "@/assets/images/teams/fides-montevarchi.png";
-import logoFolgore from "@/assets/images/teams/folgore-fucecchio.png";
-import logoPratoDragons from "@/assets/images/teams/pallacanestro-prato-dragons.png";
-import logoRosignano from "@/assets/images/teams/basket-sei-rose-rosignano.png";
-import logoSancat from "@/assets/images/teams/sancat-basket-firenze.png";
-import logoSanVincenzo from "@/assets/images/teams/basket-san-vincenzo.png";
-import logoUnionPrato from "@/assets/images/teams/union-basket-prato.png";
-import logoUSLivorno from "@/assets/images/teams/us-livorno-basket.png";
-import logoUSPino from "@/assets/images/teams/unione-sportiva-pino-firenze.png";
-import logoValdisieve from "@/assets/images/teams/valdisieve-basket.png";
-
-const LOGO_BY_ID: Record<string, any> = {
-  "abc-castelfiorentino": logoAbc,
-  "pallacanestro-agliana-2000": logoAgliana,
-  "bottegone-basket-2001": logoBottegone,
-  "virtus-certaldo": logoCertaldo,
-  "cus-firenze-basket": logoCusFirenze,
-  "don-bosco-livorno": logoDonBosco,
-  "dukes-sansepolcro": logoDukes,
-  "fides-montevarchi": logoFides,
-  "folgore-fucecchio": logoFolgore,
-  "pallacanestro-prato-dragons": logoPratoDragons,
-  "basket-sei-rose-rosignano": logoRosignano,
-  "sancat-basket-firenze": logoSancat,
-  "basket-san-vincenzo": logoSanVincenzo,
-  "union-basket-prato": logoUnionPrato,
-  "us-livorno-basket": logoUSLivorno,
-  "unione-sportiva-pino-firenze": logoUSPino,
-  "valdisieve-basket": logoValdisieve,
+export const TEAM_LOGOS: Record<string, any> = {
+  "union-basket-prato": require("@/assets/images/teams/union-basket-prato.png"),
+  "abc-castelfiorentino": require("@/assets/images/teams/abc-castelfiorentino.png"),
+  "pallacanestro-prato-dragons": require("@/assets/images/teams/pallacanestro-prato-dragons.png"),
+  "pallacanestro-agliana-2000": require("@/assets/images/teams/pallacanestro-agliana-2000.png"),
+  "us-livorno-basket": require("@/assets/images/teams/us-livorno-basket.png"),
+  "basket-sei-rose-rosignano": require("@/assets/images/teams/basket-sei-rose-rosignano.png"),
+  "cus-firenze-basket": require("@/assets/images/teams/cus-firenze-basket.png"),
+  "dukes-sansepolcro": require("@/assets/images/teams/dukes-sansepolcro.png"),
+  "folgore-fucecchio": require("@/assets/images/teams/folgore-fucecchio.png"),
+  "bottegone-basket-2001": require("@/assets/images/teams/bottegone-basket-2001.png"),
+  "virtus-certaldo": require("@/assets/images/teams/virtus-certaldo.png"),
+  "unione-sportiva-pino-firenze": require("@/assets/images/teams/unione-sportiva-pino-firenze.png"),
+  "sancat-basket-firenze": require("@/assets/images/teams/sancat-basket-firenze.png"),
+  "valdisieve-basket": require("@/assets/images/teams/valdisieve-basket.png"),
+  "fides-montevarchi": require("@/assets/images/teams/fides-montevarchi.png"),
+  "don-bosco-livorno": require("@/assets/images/teams/don-bosco-livorno.png"),
+  "basket-san-vincenzo": require("@/assets/images/teams/basket-san-vincenzo.png"),
 };
 
 const TEAM_TO_ID: Record<string, string> = {
@@ -62,5 +44,5 @@ const TEAM_TO_ID: Record<string, string> = {
 
 export function getTeamLogo(name: string): any {
   const id = TEAM_TO_ID[name.toLowerCase().trim()];
-  return id ? LOGO_BY_ID[id] : undefined;
+  return id ? TEAM_LOGOS[id] : undefined;
 }
