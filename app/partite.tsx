@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   RefreshControl,
   Share,
   StyleSheet,
@@ -25,6 +26,7 @@ type MatchFromApi = {
   home_score: number | null;
   away_score: number | null;
   is_my_team: boolean;
+  location?: string;
 };
 
 type FilterType = "Tutte" | "Giocate" | "Da giocare";
@@ -279,6 +281,22 @@ export default function PartiteScreen() {
                 </View>
               </View>
 
+              {item.location ? (
+                <TouchableOpacity
+                  style={styles.locationButton}
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://maps.google.com/?q=${encodeURIComponent(item.location!)}`,
+                    )
+                  }
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.locationButtonText}>
+                    📍 {item.location}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
               <TouchableOpacity
                 style={styles.shareButton}
                 onPress={shareMatch}
@@ -444,6 +462,15 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  locationButton: {
+    marginTop: 10,
+    alignSelf: "flex-start",
+  },
+  locationButtonText: {
+    color: "#94A3B8",
+    fontSize: 13,
+    fontWeight: "500",
   },
   shareButton: {
     marginTop: 12,

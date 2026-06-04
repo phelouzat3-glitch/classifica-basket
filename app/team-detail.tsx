@@ -4,6 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -186,6 +188,17 @@ export default function TeamDetailScreen() {
                 </Text>
               </View>
             </View>
+            <TouchableOpacity
+              style={styles.mapButton}
+              onPress={() =>
+                Linking.openURL(
+                  "https://maps.google.com/?q=PalaGilardetti+Castelfiorentino",
+                )
+              }
+              activeOpacity={0.8}
+            >
+              <Text style={styles.mapButtonText}>📍 Apri su Google Maps</Text>
+            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -326,5 +339,19 @@ const styles = StyleSheet.create({
   stadiumCap: {
     fontSize: 11,
     color: "#64748B",
+  },
+  mapButton: {
+    marginTop: 12,
+    backgroundColor: "#1E293B",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+  mapButtonText: {
+    color: "#E8600A",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });
