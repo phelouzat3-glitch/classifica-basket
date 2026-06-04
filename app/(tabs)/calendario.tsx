@@ -258,6 +258,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    borderLeftWidth: 4,
+    borderLeftColor: "#E8600A",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -266,6 +268,8 @@ const styles = StyleSheet.create({
   },
   cardFuture: {
     borderColor: "#F0F0F0",
+    borderLeftWidth: 4,
+    borderLeftColor: "#D1D5DB",
     backgroundColor: "#FAFAFA",
   },
 
