@@ -46,7 +46,18 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {/* 4. Quarta Scheda: Rosa */}
+      {/* 4. Quarta Scheda: Marcatori */}
+      <Tabs.Screen
+        name="marcatori"
+        options={{
+          title: "Marcatori",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* 5. Quinta Scheda: Rosa */}
       <Tabs.Screen
         name="rosa"
         options={{
@@ -57,7 +68,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5. Quinta Scheda: Calendario */}
+      {/* 6. Sesta Scheda: Calendario */}
       <Tabs.Screen
         name="calendario"
         options={{
