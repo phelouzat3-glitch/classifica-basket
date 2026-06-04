@@ -1,62 +1,66 @@
-export const TEAM_LOGOS: Record<string, any> = {
-  "union-basket-prato": require("@/assets/images/teams/union-basket-prato.png"),
-  "abc-castelfiorentino": require("@/assets/images/teams/abc-castelfiorentino.png"),
-  "pallacanestro-prato-dragons": require("@/assets/images/teams/pallacanestro-prato-dragons.png"),
-  "pallacanestro-agliana-2000": require("@/assets/images/teams/pallacanestro-agliana-2000.png"),
-  "us-livorno-basket": require("@/assets/images/teams/us-livorno-basket.png"),
-  "basket-sei-rose-rosignano": require("@/assets/images/teams/basket-sei-rose-rosignano.png"),
-  "cus-firenze-basket": require("@/assets/images/teams/cus-firenze-basket.png"),
-  "dukes-sansepolcro": require("@/assets/images/teams/dukes-sansepolcro.png"),
-  "folgore-fucecchio": require("@/assets/images/teams/folgore-fucecchio.png"),
-  "bottegone-basket-2001": require("@/assets/images/teams/bottegone-basket-2001.png"),
-  "virtus-certaldo": require("@/assets/images/teams/virtus-certaldo.png"),
-  "unione-sportiva-pino-firenze": require("@/assets/images/teams/unione-sportiva-pino-firenze.png"),
-  "sancat-basket-firenze": require("@/assets/images/teams/sancat-basket-firenze.png"),
-  "valdisieve-basket": require("@/assets/images/teams/valdisieve-basket.png"),
-  "fides-montevarchi": require("@/assets/images/teams/fides-montevarchi.png"),
-  "don-bosco-livorno": require("@/assets/images/teams/don-bosco-livorno.png"),
-  "basket-san-vincenzo": require("@/assets/images/teams/basket-san-vincenzo.png"),
+import logoAbc from "@/assets/images/teams/abc-castelfiorentino.png";
+import logoAgliana from "@/assets/images/teams/pallacanestro-agliana-2000.png";
+import logoBottegone from "@/assets/images/teams/bottegone-basket-2001.png";
+import logoCertaldo from "@/assets/images/teams/virtus-certaldo.png";
+import logoCusFirenze from "@/assets/images/teams/cus-firenze-basket.png";
+import logoDonBosco from "@/assets/images/teams/don-bosco-livorno.png";
+import logoDukes from "@/assets/images/teams/dukes-sansepolcro.png";
+import logoFides from "@/assets/images/teams/fides-montevarchi.png";
+import logoFolgore from "@/assets/images/teams/folgore-fucecchio.png";
+import logoPratoDragons from "@/assets/images/teams/pallacanestro-prato-dragons.png";
+import logoRosignano from "@/assets/images/teams/basket-sei-rose-rosignano.png";
+import logoSancat from "@/assets/images/teams/sancat-basket-firenze.png";
+import logoSanVincenzo from "@/assets/images/teams/basket-san-vincenzo.png";
+import logoUnionPrato from "@/assets/images/teams/union-basket-prato.png";
+import logoUSLivorno from "@/assets/images/teams/us-livorno-basket.png";
+import logoUSPino from "@/assets/images/teams/unione-sportiva-pino-firenze.png";
+import logoValdisieve from "@/assets/images/teams/valdisieve-basket.png";
+
+const LOGO_BY_ID: Record<string, any> = {
+  "abc-castelfiorentino": logoAbc,
+  "pallacanestro-agliana-2000": logoAgliana,
+  "bottegone-basket-2001": logoBottegone,
+  "virtus-certaldo": logoCertaldo,
+  "cus-firenze-basket": logoCusFirenze,
+  "don-bosco-livorno": logoDonBosco,
+  "dukes-sansepolcro": logoDukes,
+  "fides-montevarchi": logoFides,
+  "folgore-fucecchio": logoFolgore,
+  "pallacanestro-prato-dragons": logoPratoDragons,
+  "basket-sei-rose-rosignano": logoRosignano,
+  "sancat-basket-firenze": logoSancat,
+  "basket-san-vincenzo": logoSanVincenzo,
+  "union-basket-prato": logoUnionPrato,
+  "us-livorno-basket": logoUSLivorno,
+  "unione-sportiva-pino-firenze": logoUSPino,
+  "valdisieve-basket": logoValdisieve,
 };
 
-const TEAM_NAME_TO_ID: Record<string, string> = {
-  "Union Basket Prato": "union-basket-prato",
-  "Abc Castelfiorentino": "abc-castelfiorentino",
-  "Pallacanestro Prato Dragons": "pallacanestro-prato-dragons",
-  "Pallacanestro Prato": "pallacanestro-prato-dragons",
-  "Pallacanestro Agliana 2000": "pallacanestro-agliana-2000",
-  "US Livorno Basket": "us-livorno-basket",
-  "Basket Sei Rose Rosignano": "basket-sei-rose-rosignano",
-  "Sei Rose Rosignano": "basket-sei-rose-rosignano",
-  "Cus Firenze Basket": "cus-firenze-basket",
-  "CUS Firenze": "cus-firenze-basket",
-  "Dukes Sansepolcro": "dukes-sansepolcro",
-  "Folgore Fucecchio": "folgore-fucecchio",
-  "Bottegone Basket 2001": "bottegone-basket-2001",
-  "Virtus Certaldo": "virtus-certaldo",
-  "Unione Sportiva Pino Firenze": "unione-sportiva-pino-firenze",
-  "Sancat Basket Firenze": "sancat-basket-firenze",
-  "Valdisieve Basket": "valdisieve-basket",
-  "Fides Montevarchi": "fides-montevarchi",
-  "Don Bosco Livorno": "don-bosco-livorno",
-  "Basket San Vincenzo": "basket-san-vincenzo",
-  "Basket Livorno": "us-livorno-basket",
+const TEAM_TO_ID: Record<string, string> = {
+  "abc castelfiorentino": "abc-castelfiorentino",
+  "pallacanestro agliana 2000": "pallacanestro-agliana-2000",
+  "bottegone basket 2001": "bottegone-basket-2001",
+  "virtus certaldo": "virtus-certaldo",
+  "cus firenze basket": "cus-firenze-basket",
+  "cus firenze": "cus-firenze-basket",
+  "don bosco livorno": "don-bosco-livorno",
+  "dukes sansepolcro": "dukes-sansepolcro",
+  "fides montevarchi": "fides-montevarchi",
+  "folgore fucecchio": "folgore-fucecchio",
+  "pallacanestro prato dragons": "pallacanestro-prato-dragons",
+  "pallacanestro prato": "pallacanestro-prato-dragons",
+  "basket sei rose rosignano": "basket-sei-rose-rosignano",
+  "sei rose rosignano": "basket-sei-rose-rosignano",
+  "sancat basket firenze": "sancat-basket-firenze",
+  "basket san vincenzo": "basket-san-vincenzo",
+  "union basket prato": "union-basket-prato",
+  "us livorno basket": "us-livorno-basket",
+  "basket livorno": "us-livorno-basket",
+  "unione sportiva pino firenze": "unione-sportiva-pino-firenze",
+  "valdisieve basket": "valdisieve-basket",
 };
-
-export function getTeamId(name: string): string | undefined {
-  const exact = TEAM_NAME_TO_ID[name];
-  if (exact) return exact;
-  const lower = name.toLowerCase();
-  for (const [key, val] of Object.entries(TEAM_NAME_TO_ID)) {
-    if (key.toLowerCase() === lower) return val;
-  }
-  for (const [key, val] of Object.entries(TEAM_NAME_TO_ID)) {
-    if (key.toLowerCase().includes(lower) || lower.includes(key.toLowerCase()))
-      return val;
-  }
-  return undefined;
-}
 
 export function getTeamLogo(name: string): any {
-  const id = getTeamId(name);
-  return id ? TEAM_LOGOS[id] : undefined;
+  const id = TEAM_TO_ID[name.toLowerCase().trim()];
+  return id ? LOGO_BY_ID[id] : undefined;
 }
