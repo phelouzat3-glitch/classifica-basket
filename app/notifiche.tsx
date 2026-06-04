@@ -1,7 +1,7 @@
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,8 +13,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 export default function NotificheScreen() {
+  const c = useColors();
   const [status, setStatus] = useState<"idle" | "loading" | "registered" | "error" | "unavailable">("idle");
   const [token, setToken] = useState<string | null>(null);
 
@@ -29,10 +31,16 @@ export default function NotificheScreen() {
     setStatus("loading");
     try {
       const { default: Constants } = await import("expo-constants");
-      const { getExpoPushTokenAsync } = await import("expo-notifications");
-      const tokenData = await getExpoPushTokenAsync({
-        projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "",
-      });
+      const { requestPermissionsAsync, getExpoPushTokenAsync } = await import("expo-notifications");
+      const perm = await requestPermissionsAsync();
+      if (!perm.granted) {
+        throw new Error("Permesso notifiche non concesso");
+      }
+      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "";
+      if (!projectId) {
+        throw new Error("Project ID non trovato");
+      }
+      const tokenData = await getExpoPushTokenAsync({ projectId });
       const pushToken = tokenData.data;
       setToken(pushToken);
 
@@ -54,76 +62,76 @@ export default function NotificheScreen() {
   }, [register]);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg }]}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>← Indietro</Text>
+          <Text style={[styles.backBtnText, { color: c.accent }]}>← Indietro</Text>
         </Pressable>
 
-        <Text style={styles.title}>Notifiche Push</Text>
-        <Text style={styles.subtitle}>Ricevi aggiornamenti su partite e risultati</Text>
+        <Text style={[styles.title, { color: c.textPrimary }]}>Notifiche Push</Text>
+        <Text style={[styles.subtitle, { color: c.textMuted }]}>Ricevi aggiornamenti su partite e risultati</Text>
 
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: c.bgCard }]}>
           {Platform.OS === "web" ? (
             <>
               <Text style={styles.icon}>📱</Text>
-              <Text style={styles.cardTitle}>Non disponibile sul web</Text>
-              <Text style={styles.cardBody}>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Non disponibile sul web</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
                 Le notifiche push funzionano sull'app mobile nativa. Scarica l'app sul tuo
                 telefono per attivarle.
               </Text>
             </>
           ) : status === "loading" ? (
             <>
-              <ActivityIndicator size="large" color="#E8600A" />
-              <Text style={styles.cardTitle}>Attivazione...</Text>
-              <Text style={styles.cardBody}>Richiesta autorizzazione notifiche</Text>
+              <ActivityIndicator size="large" color={c.accent} />
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Attivazione...</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>Richiesta autorizzazione notifiche</Text>
             </>
           ) : status === "registered" ? (
             <>
               <Text style={styles.icon}>✅</Text>
-              <Text style={styles.cardTitle}>Notifiche attive</Text>
-              <Text style={styles.cardBody}>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Notifiche attive</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
                 Riceverai aggiornamenti su risultati e partite dell'ABC Castelfiorentino.
               </Text>
-              {token && <Text style={styles.tokenText}>Token: {token.slice(0, 20)}...</Text>}
+              {token && <Text style={[styles.tokenText, { color: c.textMuted }]}>Token: {token.slice(0, 20)}...</Text>}
             </>
           ) : status === "error" ? (
             <>
               <Text style={styles.icon}>❌</Text>
-              <Text style={styles.cardTitle}>Errore</Text>
-              <Text style={styles.cardBody}>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Errore</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
                 Non è stato possibile attivare le notifiche. Controlla le impostazioni del
                 telefono.
               </Text>
-              <Pressable style={styles.retryBtn} onPress={register}>
-                <Text style={styles.retryBtnText}>Riprova</Text>
+              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Riprova</Text>
               </Pressable>
             </>
           ) : (
             <>
               <Text style={styles.icon}>🔔</Text>
-              <Text style={styles.cardTitle}>Pronto</Text>
-              <Pressable style={styles.retryBtn} onPress={register}>
-                <Text style={styles.retryBtnText}>Attiva notifiche</Text>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Pronto</Text>
+              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Attiva notifiche</Text>
               </Pressable>
             </>
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Cosa riceverai</Text>
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>Cosa riceverai</Text>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>🏀</Text>
-          <Text style={styles.featureText}>Risultato finale delle partite</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>Risultato finale delle partite</Text>
         </View>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>📅</Text>
-          <Text style={styles.featureText}>Promemoria prossima partita</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>Promemoria prossima partita</Text>
         </View>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>📊</Text>
-          <Text style={styles.featureText}>Aggiornamenti classifica</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>Aggiornamenti classifica</Text>
         </View>
       </ScrollView>
     </View>
@@ -131,17 +139,16 @@ export default function NotificheScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0F172A" },
+  root: { flex: 1 },
   scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
   backBtn: { marginBottom: 12 },
-  backBtnText: { color: "#E8600A", fontSize: 15, fontWeight: "600" },
+  backBtnText: { fontSize: 15, fontWeight: "600" },
 
-  title: { fontSize: 26, fontWeight: "800", color: "#FFFFFF", marginBottom: 4 },
-  subtitle: { fontSize: 14, color: "#64748B", marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: "800", marginBottom: 4 },
+  subtitle: { fontSize: 14, marginBottom: 24 },
 
   card: {
-    backgroundColor: "#1E293B",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
@@ -150,23 +157,21 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.06)",
   },
   icon: { fontSize: 40, marginBottom: 12 },
-  cardTitle: { fontSize: 17, fontWeight: "700", color: "#FFFFFF", marginBottom: 8, textAlign: "center" },
-  cardBody: { fontSize: 13, color: "#94A3B8", textAlign: "center", lineHeight: 19, marginBottom: 6 },
-  tokenText: { fontSize: 10, color: "#64748B", marginTop: 8 },
+  cardTitle: { fontSize: 17, fontWeight: "700", marginBottom: 8, textAlign: "center" },
+  cardBody: { fontSize: 13, textAlign: "center", lineHeight: 19, marginBottom: 6 },
+  tokenText: { fontSize: 10, marginTop: 8 },
 
   retryBtn: {
-    backgroundColor: "#E8600A",
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 10,
     marginTop: 12,
   },
-  retryBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 14 },
+  retryBtnText: { fontWeight: "700", fontSize: 14 },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#94A3B8",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -180,5 +185,5 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(255,255,255,0.04)",
   },
   featureIcon: { fontSize: 18 },
-  featureText: { fontSize: 14, color: "#E2E8F0", fontWeight: "500" },
+  featureText: { fontSize: 14, fontWeight: "500" },
 });
