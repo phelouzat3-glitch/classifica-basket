@@ -1,6 +1,6 @@
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -95,6 +95,15 @@ export default function MarcatoriScreen() {
     return bVal - aVal;
   });
 
+  const [debugRaw, setDebugRaw] = useState<string>("");
+
+  useEffect(() => {
+    fetch(`${API_URL}/players`)
+      .then((r) => r.text())
+      .then((t) => setDebugRaw(t.slice(0, 300)))
+      .catch(() => setDebugRaw("errore fetch"));
+  }, []);
+
   if (loading) {
     return (
       <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -125,6 +134,7 @@ export default function MarcatoriScreen() {
       <StatusBar barStyle="light-content" />
 
       <Text style={styles.title}>Classifica Marcatori</Text>
+      <Text style={{ color: "#FF6", fontSize: 10, paddingHorizontal: 16, marginBottom: 8 }}>{debugRaw}</Text>
 
       <View style={styles.filterRow}>
         {FILTERS.map((f) => (
