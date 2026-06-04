@@ -17,12 +17,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type PlayerFromApi = {
   id: number;
   name: string;
-  jersey_number: number;
+  jersey_number?: number;
+  jerseyNumber?: number;
   role: string;
-  points_per_game: number;
-  rebounds_per_game: number;
-  assists_per_game: number;
+  points_per_game?: number;
+  pointsPerGame?: number;
+  rebounds_per_game?: number;
+  reboundsPerGame?: number;
+  assists_per_game?: number;
+  assistsPerGame?: number;
 };
+
+function getStat(p: PlayerFromApi, key: string): number {
+  const camel = key.replace(/_([a-z])/g, (_, l) => l.toUpperCase());
+  return (p as any)[key] ?? (p as any)[camel] ?? 0;
+}
 
 type StatKey = "points_per_game" | "rebounds_per_game" | "assists_per_game";
 type Category = { key: StatKey; label: string; suffix: string };
@@ -62,7 +71,7 @@ export default function MarcatoriScreen() {
   }, [fetchPlayers]);
 
   const sorted = [...players].sort(
-    (a, b) => (b[activeCat] ?? 0) - (a[activeCat] ?? 0),
+    (a, b) => getStat(b, activeCat) - getStat(a, activeCat),
   );
 
   const currentCat = CATEGORIES.find((c) => c.key === activeCat)!;
@@ -132,7 +141,7 @@ export default function MarcatoriScreen() {
         }
         renderItem={({ item, index }) => {
           const pos = index + 1;
-          const value = item[activeCat]?.toFixed(1) ?? "0.0";
+          const value = getStat(item, activeCat).toFixed(1);
           const isTop3 = pos <= 3;
           const medalColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
           const medal = isTop3 ? medalColors[index] : null;
