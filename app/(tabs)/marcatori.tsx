@@ -35,7 +35,7 @@ const CATEGORIES: Category[] = [
 
 export default function MarcatoriScreen() {
   const [players, setPlayers] = useState<PlayerFromApi[]>([]);
-  const [activeCat, setActiveCat] = useState<StatKey>("points_per_game");
+  const [activeCat, setActiveCat] = useState<StatKey>("pointsPerGame");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
