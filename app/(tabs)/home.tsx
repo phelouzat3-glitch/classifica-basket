@@ -149,7 +149,6 @@ export default function HomeTabScreen() {
             </View>
           </View>
         </View>
-        </View>
 
         <View style={styles.summaryRow}>
           <View style={styles.summaryCard}>
