@@ -102,12 +102,12 @@ export default function RosaScreen() {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 380,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 380,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
