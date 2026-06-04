@@ -17,15 +17,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type PlayerFromApi = {
   id: number;
   name: string;
-  jersey_number: number;
+  jerseyNumber: number;
   role: string;
-  photo_url: string | null;
+  photoUrl: string | null;
   height: string;
   age: number;
-  games_played: number;
-  points_per_game: number;
-  rebounds_per_game: number;
-  assists_per_game: number;
+  gamesPlayed: number;
+  pointsPerGame: number;
+  reboundsPerGame: number;
+  assistsPerGame: number;
 };
 
 type Player = {
@@ -46,15 +46,15 @@ function mapPlayer(p: PlayerFromApi): Player {
   return {
     id: p.id,
     name: p.name,
-    jerseyNumber: p.jersey_number,
+    jerseyNumber: p.jerseyNumber,
     role: p.role,
-    photoUrl: p.photo_url,
+    photoUrl: p.photoUrl,
     height: p.height,
     age: p.age,
-    gamesPlayed: p.games_played,
-    pointsPerGame: p.points_per_game,
-    reboundsPerGame: p.rebounds_per_game,
-    assistsPerGame: p.assists_per_game,
+    gamesPlayed: p.gamesPlayed,
+    pointsPerGame: p.pointsPerGame,
+    reboundsPerGame: p.reboundsPerGame,
+    assistsPerGame: p.assistsPerGame,
   };
 }
 
