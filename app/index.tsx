@@ -1,9 +1,8 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
 const ORANGE = "#E8600A";
 
 export default function LandingScreen() {
@@ -11,54 +10,54 @@ export default function LandingScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="light" />
-
-      <View style={styles.topSection}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>Serie C · Girone B</Text>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.topSection}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Serie C · Girone B</Text>
+          </View>
+          <Text style={styles.teamName}>ABC Castelfiorentino</Text>
+          <Text style={styles.division}>Stagione 2025/26</Text>
         </View>
-        <Text style={styles.teamName}>ABC Castelfiorentino</Text>
-        <Text style={styles.division}>Stagione 2025/26</Text>
-      </View>
 
-      <View style={styles.centerSection}>
-        <View style={styles.ballContainer}>
-          <View style={styles.glowEffect} />
+        <View style={styles.centerSection}>
           <Text style={styles.ballEmoji}>🏀</Text>
+          <Text style={styles.welcome}>Benvenuto</Text>
+          <Text style={styles.subtitle}>
+            Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
+          </Text>
+          <View style={styles.features}>
+            <View style={styles.featureRow}>
+              <Text style={styles.featureDot}>●</Text>
+              <Text style={styles.featureText}>Classifica aggiornata</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Text style={styles.featureDot}>●</Text>
+              <Text style={styles.featureText}>Calendario partite</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Text style={styles.featureDot}>●</Text>
+              <Text style={styles.featureText}>Statistiche e marcatori</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Text style={styles.featureDot}>●</Text>
+              <Text style={styles.featureText}>Rosa e dettagli giocatori</Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.welcome}>Benvenuto</Text>
-        <Text style={styles.subtitle}>
-          Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
-        </Text>
-        <View style={styles.features}>
-          <View style={styles.featureRow}>
-            <Text style={styles.featureDot}>●</Text>
-            <Text style={styles.featureText}>Classifica aggiornata</Text>
-          </View>
-          <View style={styles.featureRow}>
-            <Text style={styles.featureDot}>●</Text>
-            <Text style={styles.featureText}>Calendario partite</Text>
-          </View>
-          <View style={styles.featureRow}>
-            <Text style={styles.featureDot}>●</Text>
-            <Text style={styles.featureText}>Statistiche e marcatori</Text>
-          </View>
-          <View style={styles.featureRow}>
-            <Text style={styles.featureDot}>●</Text>
-            <Text style={styles.featureText}>Rosa e dettagli giocatori</Text>
-          </View>
-        </View>
-      </View>
 
-      <View style={styles.bottomSection}>
         <Pressable
           style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
           onPress={() => router.replace("/(tabs)/home" as any)}
         >
           <Text style={styles.buttonText}>Entra</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -67,6 +66,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1E293B",
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 32,
     justifyContent: "space-between",
   },
@@ -105,23 +107,10 @@ const styles = StyleSheet.create({
   centerSection: {
     alignItems: "center",
   },
-  ballContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-    marginBottom: 16,
-  },
-  glowEffect: {
-    position: "absolute",
-    width: width * 0.35,
-    height: width * 0.35,
-    borderRadius: (width * 0.35) / 2,
-    backgroundColor: ORANGE,
-    opacity: 0.15,
-  },
   ballEmoji: {
     fontSize: 64,
     textAlign: "center",
+    marginBottom: 16,
   },
   welcome: {
     fontSize: 20,
@@ -154,9 +143,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#CBD5E1",
     fontWeight: "500",
-  },
-  bottomSection: {
-    paddingBottom: 20,
   },
   button: {
     backgroundColor: ORANGE,
