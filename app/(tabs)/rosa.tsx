@@ -148,7 +148,7 @@ export default function RosaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingLabel}>Caricamento rosa…</Text>
@@ -165,7 +165,7 @@ export default function RosaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <View style={styles.errorCard}>
             <View style={styles.errorIconWrap}>
@@ -192,7 +192,7 @@ export default function RosaScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       <Animated.View
         style={[
@@ -293,16 +293,16 @@ export default function RosaScreen() {
 }
 
 const COLORS = {
-  bg: "#F8F9FA",
-  surface: "#FFFFFF",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
+  bg: "#1E293B",
+  surface: "#334155",
+  border: "#475569",
+  borderLight: "#334155",
   accent: "#E8600A",
-  accentMuted: "rgba(232, 96, 10, 0.08)",
-  accentBorder: "rgba(232, 96, 10, 0.15)",
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
+  accentMuted: "rgba(232, 96, 10, 0.15)",
+  accentBorder: "rgba(232, 96, 10, 0.25)",
+  textPrimary: "#F1F5F9",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
 };
 
 const styles = StyleSheet.create({
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   },
   playerCardPressed: {
     opacity: 0.7,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#2a3a4c",
   },
 
   jerseyBadge: {
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#FFFFFF",
+    color: "#1E293B",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,

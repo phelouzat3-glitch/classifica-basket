@@ -83,7 +83,7 @@ export default function MarcatoriScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#E8600A" />
         </View>
@@ -98,7 +98,7 @@ export default function MarcatoriScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <Text style={styles.title}>Classifica Marcatori</Text>
 
       <View style={styles.filterRow}>
@@ -183,23 +183,23 @@ export default function MarcatoriScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#F8F9FA" },
+  root: { flex: 1, backgroundColor: "#1E293B" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  title: { fontSize: 24, fontWeight: "800", color: "#111827", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  title: { fontSize: 24, fontWeight: "800", color: "#F1F5F9", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   filterRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 12 },
-  filterBtn: { flex: 1, backgroundColor: "#F3F4F6", paddingVertical: 8, borderRadius: 20, alignItems: "center", borderWidth: 1, borderColor: "#E5E7EB" },
+  filterBtn: { flex: 1, backgroundColor: "#334155", paddingVertical: 8, borderRadius: 20, alignItems: "center", borderWidth: 1, borderColor: "#475569" },
   filterBtnActive: { backgroundColor: "#E8600A", borderColor: "#E8600A" },
-  filterBtnText: { color: "#6B7280", fontSize: 14, fontWeight: "700" },
+  filterBtnText: { color: "#94A3B8", fontSize: 14, fontWeight: "700" },
   filterBtnTextActive: { color: "#FFFFFF" },
   list: { paddingHorizontal: 16, paddingBottom: 30 },
-  row: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFFFFF", borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "#E5E7EB" },
+  row: { flexDirection: "row", alignItems: "center", backgroundColor: "#334155", borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "#475569" },
   rowPressed: { opacity: 0.7 },
-  posBadge: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", marginRight: 12 },
-  posText: { fontSize: 15, fontWeight: "700", color: "#6B7280" },
+  posBadge: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#1E293B", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  posText: { fontSize: 15, fontWeight: "700", color: "#64748B" },
   playerInfo: { flex: 1 },
-  playerName: { fontSize: 15, fontWeight: "700", color: "#111827" },
-  playerMeta: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+  playerName: { fontSize: 15, fontWeight: "700", color: "#F1F5F9" },
+  playerMeta: { fontSize: 12, color: "#94A3B8", marginTop: 2 },
   statBox: { alignItems: "center", minWidth: 60 },
   statValue: { fontSize: 20, fontWeight: "900", color: "#E8600A" },
-  statSuffix: { fontSize: 10, color: "#9CA3AF", fontWeight: "600", marginTop: 1 },
+  statSuffix: { fontSize: 10, color: "#64748B", fontWeight: "600", marginTop: 1 },
 });

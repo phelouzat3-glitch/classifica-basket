@@ -112,7 +112,7 @@ export default function HomeTabScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -333,7 +333,7 @@ export default function HomeTabScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  container: { flex: 1, backgroundColor: "#1E293B" },
   scroll: { paddingHorizontal: 20, paddingTop: 16 },
 
   header: {
@@ -342,8 +342,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 20,
   },
-  headerSub: { fontSize: 12, color: "#9CA3AF", marginBottom: 2 },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#111827" },
+  headerSub: { fontSize: 12, color: "#64748B", marginBottom: 2 },
+  headerTitle: { fontSize: 20, fontWeight: "700", color: "#F1F5F9" },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   notifBtn: {
     width: 36,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   posBadgeLabel: {
     fontSize: 9,
-    color: "#9CA3AF",
+    color: "#64748B",
     fontWeight: "600",
     letterSpacing: 0.5,
     textTransform: "uppercase",
@@ -376,12 +376,12 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   summaryCard: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 10,
     alignItems: "center",
     borderWidth: 0.5,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   summaryCardAccent: {
     backgroundColor: "rgba(232,96,10,0.06)",
@@ -390,12 +390,12 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#111827",
+    color: "#F1F5F9",
     marginBottom: 1,
   },
   summaryLabel: {
     fontSize: 9,
-    color: "#9CA3AF",
+    color: "#64748B",
     fontWeight: "500",
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6B7280",
+    color: "#94A3B8",
     letterSpacing: 0.5,
     textTransform: "uppercase",
     marginBottom: 10,
@@ -414,11 +414,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#334155",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     borderWidth: 0.5,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   tableCell: { fontSize: 11, fontWeight: "700" },
   colPos: { width: 28, textAlign: "center" },
@@ -443,14 +443,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 10,
     paddingVertical: 9,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#1E293B",
     borderBottomWidth: 0.5,
-    borderBottomColor: "rgba(0,0,0,0.04)",
+    borderBottomColor: "rgba(255,255,255,0.04)",
   },
-  standText: { color: "#4B5563", fontSize: 12 },
+  standText: { color: "#94A3B8", fontSize: 12 },
 
   viewAllBtn: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#334155",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
@@ -464,12 +464,12 @@ const styles = StyleSheet.create({
   matchRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
     borderWidth: 0.5,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   outcomeBadge: {
     width: 30,
@@ -479,44 +479,44 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
-  winBadge: { backgroundColor: "#DCFCE7" },
-  lossBadge: { backgroundColor: "#FEE2E2" },
+  winBadge: { backgroundColor: "#14532D" },
+  lossBadge: { backgroundColor: "#450A0A" },
   outcomeText: { fontSize: 13, fontWeight: "700" },
-  winText: { color: "#059669" },
-  lossText: { color: "#DC2626" },
+  winText: { color: "#4ADE80" },
+  lossText: { color: "#F87171" },
   matchInfo: { flex: 1 },
   matchOpponent: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#111827",
+    color: "#F1F5F9",
     marginBottom: 2,
   },
-  matchMeta: { fontSize: 11, color: "#9CA3AF" },
+  matchMeta: { fontSize: 11, color: "#64748B" },
   matchScore: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#111827",
+    color: "#F1F5F9",
     marginLeft: 8,
   },
 
   statsBox: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 14,
     padding: 16,
     marginTop: 16,
     borderWidth: 0.5,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   statsBoxRow: { flexDirection: "row", alignItems: "center" },
   statsBoxItem: { flex: 1, alignItems: "center" },
   statsBoxDivider: {
     width: 1,
     height: 36,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#475569",
   },
   statsBoxLabel: {
     fontSize: 10,
-    color: "#9CA3AF",
+    color: "#64748B",
     fontWeight: "500",
     marginBottom: 4,
     textTransform: "uppercase",
@@ -525,8 +525,8 @@ const styles = StyleSheet.create({
   statsBoxValue: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#111827",
+    color: "#F1F5F9",
     marginBottom: 2,
   },
-  statsBoxSub: { fontSize: 9, color: "#9CA3AF", fontWeight: "500" },
+  statsBoxSub: { fontSize: 9, color: "#64748B", fontWeight: "500" },
 });

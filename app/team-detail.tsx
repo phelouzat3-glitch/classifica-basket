@@ -110,7 +110,7 @@ export default function TeamDetailScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
 
       {/* Pulsante per tornare indietro */}
       <View style={styles.headerRow}>
@@ -209,7 +209,7 @@ export default function TeamDetailScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#1E293B",
   },
   centerContainer: {
     justifyContent: "center",
@@ -235,12 +235,12 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   profileCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
     marginBottom: 24,
   },
   avatarEmoji: {
@@ -250,17 +250,17 @@ const styles = StyleSheet.create({
   teamTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#111827",
+    color: "#F1F5F9",
     textAlign: "center",
     marginBottom: 6,
   },
   teamLocation: {
     fontSize: 14,
-    color: "#6B7280",
+    color: "#94A3B8",
     marginBottom: 14,
   },
   badgeMyTeam: {
-    backgroundColor: "rgba(232, 96, 10, 0.12)",
+    backgroundColor: "rgba(232, 96, 10, 0.2)",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#6B7280",
+    color: "#94A3B8",
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -290,33 +290,33 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     minWidth: "45%",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   statTitle: {
     fontSize: 12,
-    color: "#6B7280",
+    color: "#94A3B8",
     marginTop: 4,
   },
   statValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#111827",
+    color: "#F1F5F9",
   },
   winColor: { color: "#4CD137" },
   lossColor: { color: "#E74C3C" },
   stadiumCard: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
     gap: 16,
   },
   stadiumIcon: {
@@ -328,26 +328,26 @@ const styles = StyleSheet.create({
   stadiumName: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
+    color: "#F1F5F9",
     marginBottom: 2,
   },
   stadiumDetail: {
     fontSize: 13,
-    color: "#6B7280",
+    color: "#94A3B8",
     marginBottom: 4,
   },
   stadiumCap: {
     fontSize: 11,
-    color: "#9CA3AF",
+    color: "#64748B",
   },
   mapButton: {
     marginTop: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#334155",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#475569",
   },
   mapButtonText: {
     color: "#E8600A",

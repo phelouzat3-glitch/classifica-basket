@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native";
 export default function RootLayout() {
   return (
     <View style={styles.root}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <View style={styles.container}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
@@ -27,7 +27,7 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#1E293B",
   },
   container: {
     flex: 1,

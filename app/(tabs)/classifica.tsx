@@ -136,7 +136,7 @@ export default function ClassificaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.loadingLabel}>Caricamento in corso…</Text>
@@ -155,7 +155,7 @@ export default function ClassificaScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <View style={styles.errorCard}>
             <View style={styles.errorIconWrap}>
@@ -185,7 +185,7 @@ export default function ClassificaScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       {/* Header */}
       <Animated.View
@@ -229,19 +229,19 @@ export default function ClassificaScreen() {
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 
 const COLORS = {
-  bg: "#F8F9FA",
-  surface: "#FFFFFF",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
+  bg: "#1E293B",
+  surface: "#334155",
+  border: "#475569",
+  borderLight: "#334155",
   accent: "#E8A838",
-  accentMuted: "rgba(232, 168, 56, 0.08)",
-  accentBorder: "rgba(232, 168, 56, 0.15)",
+  accentMuted: "rgba(232, 168, 56, 0.15)",
+  accentBorder: "rgba(232, 168, 56, 0.25)",
   live: "#F0533A",
-  liveMuted: "rgba(240, 83, 58, 0.08)",
-  liveBorder: "rgba(240, 83, 58, 0.15)",
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
+  liveMuted: "rgba(240, 83, 58, 0.15)",
+  liveBorder: "rgba(240, 83, 58, 0.25)",
+  textPrimary: "#F1F5F9",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
 } as const;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -324,8 +324,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
+    borderColor: "#475569",
+    backgroundColor: "#334155",
   },
 
   // ── Centered states ───────────────────────────────────────────────────────
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(240, 83, 58, 0.06)",
+    backgroundColor: "rgba(240, 83, 58, 0.1)",
     borderWidth: 1,
     borderColor: COLORS.liveBorder,
     justifyContent: "center",
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   retryBtnText: {
-    color: "#FFFFFF",
+    color: "#1E293B",
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,

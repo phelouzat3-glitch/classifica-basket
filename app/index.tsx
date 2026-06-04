@@ -4,7 +4,6 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
-
 const ORANGE = "#E8600A";
 
 export default function LandingScreen() {
@@ -13,7 +12,7 @@ export default function LandingScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
 
       <View style={styles.topSection}>
         <View style={styles.badge}>
@@ -67,7 +66,7 @@ export default function LandingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#1E293B",
     paddingHorizontal: 32,
     justifyContent: "space-between",
   },
@@ -76,12 +75,12 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   badge: {
-    backgroundColor: `${ORANGE}12`,
+    backgroundColor: `${ORANGE}18`,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: `${ORANGE}25`,
+    borderColor: `${ORANGE}30`,
     marginBottom: 16,
   },
   badgeText: {
@@ -93,13 +92,13 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#111827",
+    color: "#F1F5F9",
     textAlign: "center",
     letterSpacing: -0.5,
   },
   division: {
     fontSize: 14,
-    color: "#9CA3AF",
+    color: "#94A3B8",
     fontWeight: "500",
     marginTop: 4,
   },
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
     height: width * 0.35,
     borderRadius: (width * 0.35) / 2,
     backgroundColor: ORANGE,
-    opacity: 0.12,
+    opacity: 0.15,
   },
   ballEmoji: {
     fontSize: 64,
@@ -127,12 +126,12 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: "#F1F5F9",
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 15,
-    color: "#6B7280",
+    color: "#94A3B8",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 28,
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 15,
-    color: "#374151",
+    color: "#CBD5E1",
     fontWeight: "500",
   },
   bottomSection: {

@@ -43,10 +43,14 @@ export default function PartiteScreen() {
 
   const filtered = useMemo(() => {
     if (activeFilter === "Giocate") {
-      return matches.filter((m) => m.home_score != null && m.away_score != null);
+      return matches.filter(
+        (m) => m.home_score != null && m.away_score != null,
+      );
     }
     if (activeFilter === "Da giocare") {
-      return matches.filter((m) => m.home_score == null && m.away_score == null);
+      return matches.filter(
+        (m) => m.home_score == null && m.away_score == null,
+      );
     }
     return matches;
   }, [matches, activeFilter]);
@@ -102,7 +106,10 @@ export default function PartiteScreen() {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.centerBox}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={() => fetchMatches()} style={styles.retryBtn}>
+          <TouchableOpacity
+            onPress={() => fetchMatches()}
+            style={styles.retryBtn}
+          >
             <Text style={styles.retryBtnText}>Riprova</Text>
           </TouchableOpacity>
         </View>
@@ -113,7 +120,10 @@ export default function PartiteScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace("/(tabs)/home" as any)} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => router.replace("/(tabs)/home" as any)}
+          style={styles.backBtn}
+        >
           <Text style={styles.backBtnText}>← Home</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Tutte le partite</Text>
@@ -123,10 +133,18 @@ export default function PartiteScreen() {
         {(["Tutte", "Giocate", "Da giocare"] as FilterType[]).map((f) => (
           <TouchableOpacity
             key={f}
-            style={[styles.filterBtn, activeFilter === f && styles.filterBtnActive]}
+            style={[
+              styles.filterBtn,
+              activeFilter === f && styles.filterBtnActive,
+            ]}
             onPress={() => setActiveFilter(f)}
           >
-            <Text style={[styles.filterBtnText, activeFilter === f && styles.filterBtnTextActive]}>
+            <Text
+              style={[
+                styles.filterBtnText,
+                activeFilter === f && styles.filterBtnTextActive,
+              ]}
+            >
               {f}
             </Text>
           </TouchableOpacity>
@@ -138,7 +156,12 @@ export default function PartiteScreen() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchMatches(true)} tintColor="#E8600A" colors={["#E8600A"]} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchMatches(true)}
+            tintColor="#E8600A"
+            colors={["#E8600A"]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyBox}>
@@ -151,17 +174,22 @@ export default function PartiteScreen() {
           const isPlayed = item.home_score != null && item.away_score != null;
           const isAbcHome = homeName.includes("Castelfiorentino");
           const isAbcAway = awayName.includes("Castelfiorentino");
-          const isAbcMatch = isAbcHome || isAbcAway;
 
           return (
             <Pressable
-              style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && { opacity: 0.7 },
+              ]}
               onPress={() => shareMatch(item)}
             >
               <View style={styles.cardHeader}>
                 <Text style={styles.roundText}>Giornata {item.round}</Text>
                 <Text style={styles.dateText}>
-                  {new Date(item.date).toLocaleDateString("it-IT", { day: "numeric", month: "short" })}
+                  {new Date(item.date).toLocaleDateString("it-IT", {
+                    day: "numeric",
+                    month: "short",
+                  })}
                   {item.time ? `, ${item.time.slice(0, 5)}` : ""}
                 </Text>
               </View>
@@ -169,18 +197,31 @@ export default function PartiteScreen() {
               <View style={styles.teamsRow}>
                 <View style={[styles.teamCol, isAbcHome && styles.abcCol]}>
                   <TeamLogo teamName={homeName} size={20} />
-                  <Text style={[styles.teamName, isAbcHome && styles.abcName]} numberOfLines={1}>
+                  <Text
+                    style={[styles.teamName, isAbcHome && styles.abcName]}
+                    numberOfLines={1}
+                  >
                     {homeName}
                   </Text>
                 </View>
 
                 {isPlayed ? (
                   <View style={styles.scoreCol}>
-                    <Text style={[styles.score, item.home_score! > item.away_score! && styles.scoreWon]}>
+                    <Text
+                      style={[
+                        styles.score,
+                        item.home_score! > item.away_score! && styles.scoreWon,
+                      ]}
+                    >
                       {item.home_score}
                     </Text>
                     <Text style={styles.scoreDash}>-</Text>
-                    <Text style={[styles.score, item.away_score! > item.home_score! && styles.scoreWon]}>
+                    <Text
+                      style={[
+                        styles.score,
+                        item.away_score! > item.home_score! && styles.scoreWon,
+                      ]}
+                    >
                       {item.away_score}
                     </Text>
                   </View>
@@ -190,7 +231,10 @@ export default function PartiteScreen() {
 
                 <View style={[styles.teamCol, isAbcAway && styles.abcCol]}>
                   <TeamLogo teamName={awayName} size={20} />
-                  <Text style={[styles.teamName, isAbcAway && styles.abcName]} numberOfLines={1}>
+                  <Text
+                    style={[styles.teamName, isAbcAway && styles.abcName]}
+                    numberOfLines={1}
+                  >
                     {awayName}
                   </Text>
                 </View>
@@ -204,35 +248,76 @@ export default function PartiteScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  container: { flex: 1, backgroundColor: "#1E293B" },
   centerBox: { flex: 1, justifyContent: "center", alignItems: "center" },
-  errorText: { color: "#DC2626", textAlign: "center", marginBottom: 16 },
-  retryBtn: { backgroundColor: "#E8600A", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+  errorText: { color: "#EF4444", textAlign: "center", marginBottom: 16 },
+  retryBtn: {
+    backgroundColor: "#E8600A",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
   retryBtnText: { color: "#FFF", fontWeight: "bold" },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8 },
   backBtn: { padding: 8 },
   backBtnText: { color: "#E8600A", fontSize: 15, fontWeight: "600" },
-  title: { color: "#111827", fontSize: 22, fontWeight: "bold", paddingLeft: 8, paddingVertical: 8 },
-  filterRow: { flexDirection: "row", paddingHorizontal: 16, marginBottom: 10, gap: 8 },
-  filterBtn: { flex: 1, backgroundColor: "#F3F4F6", paddingVertical: 8, borderRadius: 20, alignItems: "center", borderWidth: 1, borderColor: "#E5E7EB" },
+  title: {
+    color: "#F1F5F9",
+    fontSize: 22,
+    fontWeight: "bold",
+    paddingLeft: 8,
+    paddingVertical: 8,
+  },
+  filterRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    gap: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    backgroundColor: "#334155",
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#475569",
+  },
   filterBtnActive: { backgroundColor: "#E8600A", borderColor: "#E8600A" },
-  filterBtnText: { color: "#6B7280", fontSize: 13, fontWeight: "600" },
+  filterBtnText: { color: "#94A3B8", fontSize: 13, fontWeight: "600" },
   filterBtnTextActive: { color: "#FFF", fontWeight: "700" },
   list: { padding: 16, paddingBottom: 40 },
   emptyBox: { alignItems: "center", padding: 30 },
-  emptyText: { color: "#6B7280", fontSize: 14 },
-  card: { backgroundColor: "#FFFFFF", borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "#E5E7EB" },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 12 },
+  emptyText: { color: "#94A3B8", fontSize: 14 },
+  card: {
+    backgroundColor: "#334155",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#475569",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
   roundText: { fontSize: 12, fontWeight: "800", color: "#E8600A" },
-  dateText: { fontSize: 11, color: "#9CA3AF" },
+  dateText: { fontSize: 11, color: "#64748B" },
   teamsRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   teamCol: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },
   abcCol: {},
-  teamName: { color: "#111827", fontSize: 13, fontWeight: "600", flex: 1 },
+  teamName: { color: "#F1F5F9", fontSize: 13, fontWeight: "600", flex: 1 },
   abcName: { color: "#E8600A", fontWeight: "800" },
   scoreCol: { flexDirection: "row", alignItems: "center", gap: 3 },
-  score: { color: "#111827", fontSize: 18, fontWeight: "800", minWidth: 22, textAlign: "center" },
-  scoreWon: { color: "#059669" },
-  scoreDash: { color: "#D1D5DB", fontSize: 16, fontWeight: "600" },
-  vsCol: { color: "#D1D5DB", fontSize: 14, fontWeight: "800" },
+  score: {
+    color: "#F1F5F9",
+    fontSize: 18,
+    fontWeight: "800",
+    minWidth: 22,
+    textAlign: "center",
+  },
+  scoreWon: { color: "#4ADE80" },
+  scoreDash: { color: "#475569", fontSize: 16, fontWeight: "600" },
+  vsCol: { color: "#475569", fontSize: 14, fontWeight: "800" },
 });

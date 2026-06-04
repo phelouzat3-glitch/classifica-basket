@@ -74,7 +74,7 @@ export default function PlayerDetailScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.accent} />
         </View>
@@ -90,7 +90,7 @@ export default function PlayerDetailScreen() {
           { paddingTop: insets.top, paddingBottom: insets.bottom },
         ]}
       >
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error || "Giocatore non trovato"}</Text>
           <Pressable style={styles.retryBtn} onPress={() => router.back()}>
@@ -117,7 +117,7 @@ export default function PlayerDetailScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <Pressable
@@ -195,15 +195,15 @@ export default function PlayerDetailScreen() {
 }
 
 const COLORS = {
-  bg: "#F8F9FA",
-  surface: "#FFFFFF",
-  border: "#E5E7EB",
-  borderLight: "#E5E7EB",
+  bg: "#1E293B",
+  surface: "#334155",
+  border: "#475569",
+  borderLight: "#475569",
   accent: "#E8600A",
-  accentMuted: "rgba(232, 96, 10, 0.08)",
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
+  accentMuted: "rgba(232, 96, 10, 0.15)",
+  textPrimary: "#F1F5F9",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
 };
 
 const styles = StyleSheet.create({
