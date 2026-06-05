@@ -10,6 +10,7 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -63,6 +64,13 @@ function formatDate(dateStr: string): string {
     "Dic",
   ];
   return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function formatDateLong(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+  const months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
 }
 
 export default function HomeTabScreen() {
@@ -284,22 +292,70 @@ export default function HomeTabScreen() {
           </View>
         </View>
 
-        {nextMatch && timeLeft && (
+        {nextMatch && (
           <Pressable
-            style={[styles.countdownCard, { backgroundColor: c.accentBg, borderColor: c.accentBorder }]}
-            onPress={() => router.push("/(tabs)/calendario" as any)}
+            style={[styles.nextMatchCard, { backgroundColor: c.bgCard, borderColor: c.accentBorder }]}
+            onPress={() => router.push(`/match-detail?id=${nextMatch.id}` as any)}
           >
-            <Text style={[styles.countdownLabel, { color: c.accent }]}>
-              Prossima partita
-            </Text>
-            <Text style={[styles.countdownDate, { color: c.textPrimary }]}>
-              {nextMatch.home_team === "Abc Castelfiorentino"
-                ? `${nextMatch.away_team} (Casa)`
-                : `${nextMatch.home_team} (Trasferta)`}
-            </Text>
-            <Text style={[styles.countdownTimer, { color: c.accent }]}>
-              {timeLeft}
-            </Text>
+            <View style={[styles.nextMatchBadge, { backgroundColor: c.accent }]}>
+              <Text style={styles.nextMatchBadgeText}>PROSSIMA PARTITA</Text>
+            </View>
+
+            <View style={styles.nextMatchBody}>
+              <View style={styles.nextMatchOpponent}>
+                <TeamLogo
+                  teamName={
+                    nextMatch.home_team === "Abc Castelfiorentino"
+                      ? nextMatch.away_team
+                      : nextMatch.home_team
+                  }
+                  size={36}
+                />
+                <View style={styles.nextMatchInfo}>
+                  <Text style={[styles.nextMatchTeamName, { color: c.textPrimary }]} numberOfLines={1}>
+                    {nextMatch.home_team === "Abc Castelfiorentino"
+                      ? nextMatch.away_team
+                      : nextMatch.home_team}
+                  </Text>
+                  <Text style={[styles.nextMatchVenue, { color: c.textMuted }]}>
+                    {nextMatch.home_team === "Abc Castelfiorentino" ? "🏠 In casa" : "✈️ In trasferta"}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.nextMatchMeta}>
+                <Text style={[styles.nextMatchDate, { color: c.textSecondary }]}>
+                  {formatDateLong(nextMatch.date)}
+                </Text>
+                <Text style={[styles.nextMatchTime, { color: c.textMuted }]}>
+                  {nextMatch.time ?? "20:30"} · {nextMatch.round}ª giornata
+                </Text>
+              </View>
+
+              {timeLeft && (
+                <View style={[styles.nextMatchTimerWrap, { backgroundColor: c.accentBg }]}>
+                  <Text style={[styles.nextMatchTimer, { color: c.accent }]}>{timeLeft}</Text>
+                  <Text style={[styles.nextMatchTimerLabel, { color: c.textMuted }]}>mancano</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.nextMatchActions}>
+              <Pressable
+                style={[styles.nextMatchActionBtn, { backgroundColor: c.accent }]}
+                onPress={() => {
+                  const opp = nextMatch.home_team === "Abc Castelfiorentino" ? nextMatch.away_team : nextMatch.home_team;
+                  const venue = nextMatch.home_team === "Abc Castelfiorentino" ? "in casa" : "in trasferta";
+                  Share.share({
+                    message: `🏀 ABC Castelfiorentino vs ${opp} (${venue})\n${formatDateLong(nextMatch.date)} · ${nextMatch.time ?? "20:30"}\n📅 ${nextMatch.round}ª giornata`,
+                  });
+                }}
+              >
+                <Ionicons name="share-outline" size={16} color="#fff" />
+                <Text style={styles.nextMatchActionText}>Condividi</Text>
+              </Pressable>
+              <Ionicons name="chevron-forward" size={18} color={c.textMuted} />
+            </View>
           </Pressable>
         )}
 
@@ -768,14 +824,52 @@ const styles = StyleSheet.create({
   },
   statsBoxSub: { fontSize: 9, fontWeight: "500" },
 
-  countdownCard: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
+  nextMatchCard: {
+    borderRadius: 16,
     borderWidth: 1,
-    alignItems: "center",
+    marginBottom: 20,
+    overflow: "hidden",
   },
-  countdownLabel: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 },
-  countdownDate: { fontSize: 14, fontWeight: "600", marginBottom: 8 },
-  countdownTimer: { fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  nextMatchBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    alignSelf: "center",
+    marginTop: 16,
+    borderRadius: 999,
+  },
+  nextMatchBadgeText: { color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 1 },
+  nextMatchBody: { padding: 16, alignItems: "center" },
+  nextMatchOpponent: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 },
+  nextMatchInfo: {},
+  nextMatchTeamName: { fontSize: 17, fontWeight: "700" },
+  nextMatchVenue: { fontSize: 12, marginTop: 2 },
+  nextMatchMeta: { alignItems: "center", marginBottom: 12 },
+  nextMatchDate: { fontSize: 13, fontWeight: "600" },
+  nextMatchTime: { fontSize: 12, marginTop: 2 },
+  nextMatchTimerWrap: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  nextMatchTimer: { fontSize: 24, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  nextMatchTimerLabel: { fontSize: 11, fontWeight: "500" },
+  nextMatchActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  nextMatchActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  nextMatchActionText: { color: "#fff", fontSize: 13, fontWeight: "700" },
 });
