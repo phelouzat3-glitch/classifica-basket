@@ -33,6 +33,12 @@ function LayoutContent() {
   const theme = useTheme();
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      try { document.body.style.backgroundColor = c.bg; } catch {}
+    }
+  }, [c.bg]);
+
+  useEffect(() => {
     if (Platform.OS === "web") return;
     let cancelled = false;
     (async () => {
@@ -110,7 +116,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   toggleBtn: {
-    position: "absolute",
+    position: Platform.OS === "web" ? "fixed" : "absolute",
     bottom: 80,
     right: 12,
     width: 42,
@@ -124,5 +130,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+    zIndex: 999,
   },
 });

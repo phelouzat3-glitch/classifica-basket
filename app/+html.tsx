@@ -13,8 +13,7 @@ export default function Root({ children }: PropsWithChildren) {
         />
         <ScrollViewStyleReset />
         <style>{`
-          html, body, #root { background-color: #1E293B !important; margin: 0 !important; }
-          body > div { background-color: #1E293B !important; }
+          html, body, #root { background-color: #1E293B; margin: 0; }
         `}</style>
       </head>
       <body style={{ backgroundColor: "#1E293B", margin: 0 }}>{children}</body>

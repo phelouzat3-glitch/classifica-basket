@@ -1,6 +1,6 @@
 // src/components/MatchCard.tsx
 import { TeamLogo } from "@/components/TeamLogo";
-import { colors, radius, spacing, typography } from "@/src/theme";
+import { useColors } from "@/src/theme/ThemeContext";
 import { StyleSheet, Text, View } from "react-native";
 
 type Match = {
@@ -42,6 +42,7 @@ type Props = {
   match: Match;
 };
 export function MatchCard({ compact, match }: Props) {
+  const c = useColors();
   const isPlayed = match.homeScore !== null;
   const homeWon = isPlayed && match.homeScore! > match.awayScore!;
   const awayWon = isPlayed && match.awayScore! > match.homeScore!;
@@ -49,11 +50,11 @@ export function MatchCard({ compact, match }: Props) {
   const abcWon = abcIsHome ? homeWon : awayWon;
 
   return (
-    <View style={[styles.card, match.isMyTeam && styles.cardMyTeam]}>
+    <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }, match.isMyTeam && { borderLeftColor: c.accent }]}>
       {/* Giornata e data */}
       <View style={styles.topRow}>
-        <Text style={styles.round}>Giornata {match.round}</Text>
-        <Text style={styles.date}>{formatDate(match.date, match.time)}</Text>
+        <Text style={[styles.round, { color: c.accent }]}>Giornata {match.round}</Text>
+        <Text style={[styles.date, { color: c.textMuted }]}>{formatDate(match.date, match.time)}</Text>
       </View>
 
       {/* Squadre e risultato */}
@@ -62,28 +63,28 @@ export function MatchCard({ compact, match }: Props) {
           <View style={styles.teamNameRow}>
             <TeamLogo teamName={match.homeTeam} size={20} />
             <Text
-              style={[styles.teamName, homeWon && styles.teamWinner]}
+              style={[styles.teamName, { color: c.textPrimary }, homeWon && { color: c.win }]}
               numberOfLines={1}
             >
               {match.homeTeam}
             </Text>
           </View>
-          <Text style={styles.homeAway}>Casa</Text>
+          <Text style={[styles.homeAway, { color: c.textMuted }]}>Casa</Text>
         </View>
 
         <View style={styles.scoreBlock}>
           {isPlayed ? (
             <View style={styles.scoreRow}>
-              <Text style={[styles.score, homeWon && styles.scoreWinner]}>
+              <Text style={[styles.score, { color: c.textSecondary }, homeWon && { color: c.textPrimary, fontSize: 22 }]}>
                 {match.homeScore}
               </Text>
-              <Text style={styles.scoreSep}>–</Text>
-              <Text style={[styles.score, awayWon && styles.scoreWinner]}>
+              <Text style={[styles.scoreSep, { color: c.textMuted }]}>–</Text>
+              <Text style={[styles.score, { color: c.textSecondary }, awayWon && { color: c.textPrimary, fontSize: 22 }]}>
                 {match.awayScore}
               </Text>
             </View>
           ) : (
-            <Text style={styles.upcoming}>vs</Text>
+            <Text style={[styles.upcoming, { color: c.textMuted }]}>vs</Text>
           )}
         </View>
 
@@ -94,28 +95,29 @@ export function MatchCard({ compact, match }: Props) {
               style={[
                 styles.teamName,
                 styles.teamNameRight,
-                awayWon && styles.teamWinner,
+                { color: c.textPrimary },
+                awayWon && { color: c.win },
               ]}
               numberOfLines={1}
             >
               {match.awayTeam}
             </Text>
           </View>
-          <Text style={[styles.homeAway, styles.homeAwayRight]}>Ospite</Text>
+          <Text style={[styles.homeAway, styles.homeAwayRight, { color: c.textMuted }]}>Ospite</Text>
         </View>
       </View>
 
       {/* Palazzetto */}
-      <Text style={styles.location} numberOfLines={1}>
+      <Text style={[styles.location, { color: c.textMuted }]} numberOfLines={1}>
         📍 {match.location}
       </Text>
 
       {/* Badge vittoria/sconfitta per ABC */}
       {isPlayed && match.isMyTeam && (
         <View
-          style={[styles.badge, abcWon ? styles.badgeWin : styles.badgeLoss]}
+          style={[styles.badge, { backgroundColor: abcWon ? c.winBg : c.lossBg }]}
         >
-          <Text style={styles.badgeText}>
+          <Text style={[styles.badgeText, { color: c.textPrimary }]}>
             {abcWon ? "Vittoria" : "Sconfitta"}
           </Text>
         </View>
@@ -126,78 +128,64 @@ export function MatchCard({ compact, match }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    marginHorizontal: spacing.base,
-    marginBottom: spacing.sm,
+    borderRadius: 14,
+    padding: 14,
+    marginHorizontal: 12,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardMyTeam: {
     borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
   },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: spacing.md,
+    marginBottom: 12,
   },
   round: {
-    fontSize: typography.xs,
-    fontWeight: typography.semibold,
-    color: colors.primary,
+    fontSize: 11,
+    fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  date: { fontSize: typography.xs, color: colors.textMuted },
+  date: { fontSize: 11 },
   matchRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.sm,
+    marginBottom: 6,
   },
   teamBlock: { flex: 1 },
   teamBlockRight: { alignItems: "flex-end" },
   teamNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
 
   teamName: {
-    fontSize: typography.base,
-    fontWeight: typography.semibold,
-    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
   },
   teamNameRight: { textAlign: "right" },
-  teamWinner: { color: colors.win },
-  homeAway: { fontSize: typography.xs, color: colors.textMuted, marginTop: 2 },
+  homeAway: { fontSize: 11, marginTop: 2 },
   homeAwayRight: { textAlign: "right" },
   scoreBlock: { width: 80, alignItems: "center" },
   scoreRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   score: {
-    fontSize: typography.xl,
-    fontWeight: typography.bold,
-    color: colors.textSecondary,
+    fontSize: 18,
+    fontWeight: "700",
     minWidth: 28,
     textAlign: "center",
   },
-  scoreWinner: { color: colors.textPrimary, fontSize: 22 },
-  scoreSep: { fontSize: typography.lg, color: colors.textMuted },
-  upcoming: { fontSize: typography.lg, color: colors.textMuted },
+  scoreSep: { fontSize: 16 },
+  upcoming: { fontSize: 16 },
   location: {
-    fontSize: typography.xs,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
+    fontSize: 11,
+    marginTop: 4,
   },
   badge: {
     alignSelf: "flex-start",
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
+    marginTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
-  badgeWin: { backgroundColor: colors.winBg },
-  badgeLoss: { backgroundColor: colors.lossBg },
   badgeText: {
-    fontSize: typography.xs,
-    fontWeight: typography.bold,
-    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: "700",
   },
 });

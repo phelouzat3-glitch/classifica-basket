@@ -1,6 +1,7 @@
 import { API_URL } from "@/src/config/api";
+import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -12,7 +13,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors } from "@/src/theme/ThemeContext";
 
 type Standing = {
   position: number;
@@ -90,25 +90,30 @@ export default function StatisticheScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const [sRes, aRes, pRes] = await Promise.all([
-        fetch(`${API_URL}/standings`),
-        fetch(`${API_URL}/standings/analytics?season=2025/26&team=Abc%20Castelfiorentino`),
-        fetch(`${API_URL}/players`),
-      ]);
-      if (sRes.ok) setStandings(await sRes.json());
-      if (aRes.ok) setAnalytics(await aRes.json());
-      if (pRes.ok) setPlayers(await pRes.json());
-      if (!isRefresh) animateIn();
-    } catch {
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [animateIn]);
+  const load = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      try {
+        const [sRes, aRes, pRes] = await Promise.all([
+          fetch(`${API_URL}/standings`),
+          fetch(
+            `${API_URL}/standings/analytics?season=2025/26&team=Abc%20Castelfiorentino`,
+          ),
+          fetch(`${API_URL}/players`),
+        ]);
+        if (sRes.ok) setStandings(await sRes.json());
+        if (aRes.ok) setAnalytics(await aRes.json());
+        if (pRes.ok) setPlayers(await pRes.json());
+        if (!isRefresh) animateIn();
+      } catch {
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [animateIn],
+  );
 
   useEffect(() => {
     load();
@@ -117,9 +122,15 @@ export default function StatisticheScreen() {
   const myTeam = standings.find((s) => s.is_my_team);
   const total = myTeam ? totalGames(myTeam) : 0;
 
-  const topScorer = [...players].sort((a, b) => b.pointsPerGame - a.pointsPerGame)[0];
-  const topRebounder = [...players].sort((a, b) => b.reboundsPerGame - a.reboundsPerGame)[0];
-  const topAssist = [...players].sort((a, b) => b.assistsPerGame - a.assistsPerGame)[0];
+  const topScorer = [...players].sort(
+    (a, b) => b.pointsPerGame - a.pointsPerGame,
+  )[0];
+  const topRebounder = [...players].sort(
+    (a, b) => b.reboundsPerGame - a.reboundsPerGame,
+  )[0];
+  const topAssist = [...players].sort(
+    (a, b) => b.assistsPerGame - a.assistsPerGame,
+  )[0];
 
   const homeRec = analytics ? parseRecord(analytics.recordCasa) : null;
   const awayRec = analytics ? parseRecord(analytics.recordTrasferta) : null;
@@ -128,7 +139,16 @@ export default function StatisticheScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.root, { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View
+        style={[
+          styles.root,
+          {
+            backgroundColor: c.bg,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          },
+        ]}
+      >
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#E8600A" />
         </View>
@@ -137,7 +157,18 @@ export default function StatisticheScreen() {
   }
 
   return (
-    <Animated.View style={[styles.root, { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <Animated.View
+      style={[
+        styles.root,
+        {
+          backgroundColor: c.bg,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -152,38 +183,93 @@ export default function StatisticheScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={[styles.headerSub, { color: c.textMuted }]}>ABC Castelfiorentino</Text>
-            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Statistiche</Text>
+            <Text style={[styles.headerSub, { color: c.textMuted }]}>
+              ABC Castelfiorentino
+            </Text>
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
+              Statistiche
+            </Text>
           </View>
-          <View style={[styles.posBadge, { backgroundColor: c.accent + "1F", borderColor: c.border }]}>
-            <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>{myTeam?.season ?? "2025/26"}</Text>
-            <Text style={[styles.posBadgeValue, { color: c.accent }]}>{myTeam?.position ?? "-"}°</Text>
+          <View
+            style={[
+              styles.posBadge,
+              { backgroundColor: c.accent + "1F", borderColor: c.border },
+            ]}
+          >
+            <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>
+              {myTeam?.season ?? "2025/26"}
+            </Text>
+            <Text style={[styles.posBadgeValue, { color: c.accent }]}>
+              {myTeam?.position ?? "-"}°
+            </Text>
           </View>
         </View>
 
         <View style={styles.quickRow}>
-          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: "rgba(34,197,94,0.3)" }]}>
-            <Text style={[styles.quickValue, { color: "#4ADE80" }]}>{myTeam?.wins ?? 0}</Text>
-            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Vittorie</Text>
+          <View
+            style={[
+              styles.quickCard,
+              { backgroundColor: c.bgCard, borderColor: "rgba(34,197,94,0.3)" },
+            ]}
+          >
+            <Text style={[styles.quickValue, { color: "#4ADE80" }]}>
+              {myTeam?.wins ?? 0}
+            </Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>
+              Vittorie
+            </Text>
           </View>
-          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: "rgba(248,113,113,0.3)" }]}>
-            <Text style={[styles.quickValue, { color: "#F87171" }]}>{myTeam?.losses ?? 0}</Text>
-            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Sconfitte</Text>
+          <View
+            style={[
+              styles.quickCard,
+              {
+                backgroundColor: c.bgCard,
+                borderColor: "rgba(248,113,113,0.3)",
+              },
+            ]}
+          >
+            <Text style={[styles.quickValue, { color: "#F87171" }]}>
+              {myTeam?.losses ?? 0}
+            </Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>
+              Sconfitte
+            </Text>
           </View>
-          <View style={[styles.quickCard, { backgroundColor: c.bgCard, borderColor: c.accent }]}>
+          <View
+            style={[
+              styles.quickCard,
+              { backgroundColor: c.bgCard, borderColor: c.accent },
+            ]}
+          >
             <Text style={[styles.quickValue, { color: c.accent }]}>
               {myTeam ? Math.round((myTeam.wins / total) * 100) : 0}%
             </Text>
-            <Text style={[styles.quickLabel, { color: c.textMuted }]}>Vittorie</Text>
+            <Text style={[styles.quickLabel, { color: c.textMuted }]}>
+              Vittorie
+            </Text>
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Record Casa / Trasferta</Text>
-        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
+          Record Casa / Trasferta
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: c.bgCard, borderColor: c.border },
+          ]}
+        >
           {homeRec && (
             <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
-              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Casa</Text>
-              <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>
+                Casa
+              </Text>
+              <View
+                style={[
+                  styles.barTrack,
+                  { backgroundColor: "rgba(255,255,255,0.06)" },
+                ]}
+              >
                 <View
                   style={[
                     styles.barFill,
@@ -201,8 +287,15 @@ export default function StatisticheScreen() {
           )}
           {awayRec && (
             <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
-              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Trasferta</Text>
-              <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>
+                Trasferta
+              </Text>
+              <View
+                style={[
+                  styles.barTrack,
+                  { backgroundColor: "rgba(255,255,255,0.06)" },
+                ]}
+              >
                 <View
                   style={[
                     styles.barFill,
@@ -221,10 +314,22 @@ export default function StatisticheScreen() {
         </View>
 
         <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Punti</Text>
-        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: c.bgCard, borderColor: c.border },
+          ]}
+        >
           <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
-            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Fatti</Text>
-            <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
+            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>
+              Fatti
+            </Text>
+            <View
+              style={[
+                styles.barTrack,
+                { backgroundColor: "rgba(255,255,255,0.06)" },
+              ]}
+            >
               <View
                 style={[
                   styles.barFill,
@@ -235,11 +340,20 @@ export default function StatisticheScreen() {
                 ]}
               />
             </View>
-            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>{analytics?.puntiFattiMedie ?? "-"}</Text>
+            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
+              {analytics?.puntiFattiMedie ?? "-"}
+            </Text>
           </View>
           <View style={[styles.recordRow, { borderBottomColor: c.border }]}>
-            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Subiti</Text>
-            <View style={[styles.barTrack, { backgroundColor: "rgba(255,255,255,0.06)" }]}>
+            <Text style={[styles.recordLabel, { color: c.textPrimary }]}>
+              Subiti
+            </Text>
+            <View
+              style={[
+                styles.barTrack,
+                { backgroundColor: "rgba(255,255,255,0.06)" },
+              ]}
+            >
               <View
                 style={[
                   styles.barFill,
@@ -250,74 +364,129 @@ export default function StatisticheScreen() {
                 ]}
               />
             </View>
-            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>{analytics?.puntiSubitiMedie ?? "-"}</Text>
+            <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
+              {analytics?.puntiSubitiMedie ?? "-"}
+            </Text>
           </View>
           {myTeam && (
             <View style={[styles.recordRow, { borderBottomWidth: 0 }]}>
-              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>Diff.</Text>
+              <Text style={[styles.recordLabel, { color: c.textPrimary }]}>
+                Diff.
+              </Text>
               <View style={{ flex: 1 }} />
               <Text
                 style={[
                   styles.recordNumbers,
-                  { color: (myTeam.diff ?? 0) >= 0 ? "#4ADE80" : "#F87171", fontWeight: "700" },
+                  {
+                    color: (myTeam.diff ?? 0) >= 0 ? "#4ADE80" : "#F87171",
+                    fontWeight: "700",
+                  },
                 ]}
               >
-                {(myTeam.diff ?? 0) >= 0 ? "+" : ""}{myTeam.diff}
+                {(myTeam.diff ?? 0) >= 0 ? "+" : ""}
+                {myTeam.diff}
               </Text>
             </View>
           )}
         </View>
 
-        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Top Giocatori</Text>
-        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
+          Top Giocatori
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: c.bgCard, borderColor: c.border },
+          ]}
+        >
           {topScorer && (
             <Pressable
-              style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
-              onPress={() => router.push(`/player-detail?id=${topScorer.id}` as any)}
+              style={({ pressed }) => [
+                styles.topRow,
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() =>
+                router.push(`/player-detail?id=${topScorer.id}` as any)
+              }
             >
               <View style={styles.topLabelWrap}>
                 <View style={[styles.topDot, { backgroundColor: c.accent }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>P</Text>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
+                    P
+                  </Text>
                 </View>
-                <Text style={[styles.topName, { color: c.textPrimary }]}>{topScorer.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>
+                  {topScorer.name}
+                </Text>
               </View>
-              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topScorer.pointsPerGame.toFixed(1)} PPG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>
+                {topScorer.pointsPerGame.toFixed(1)} PPG
+              </Text>
             </Pressable>
           )}
           <View style={[styles.topDivider, { backgroundColor: c.border }]} />
           {topRebounder && (
             <Pressable
-              style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
-              onPress={() => router.push(`/player-detail?id=${topRebounder.id}` as any)}
+              style={({ pressed }) => [
+                styles.topRow,
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() =>
+                router.push(`/player-detail?id=${topRebounder.id}` as any)
+              }
             >
               <View style={styles.topLabelWrap}>
                 <View style={[styles.topDot, { backgroundColor: "#22C55E" }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>R</Text>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
+                    R
+                  </Text>
                 </View>
-                <Text style={[styles.topName, { color: c.textPrimary }]}>{topRebounder.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>
+                  {topRebounder.name}
+                </Text>
               </View>
-              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topRebounder.reboundsPerGame.toFixed(1)} RPG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>
+                {topRebounder.reboundsPerGame.toFixed(1)} RPG
+              </Text>
             </Pressable>
           )}
           <View style={[styles.topDivider, { backgroundColor: c.border }]} />
           {topAssist && (
             <Pressable
-              style={({ pressed }) => [styles.topRow, pressed && { opacity: 0.6 }]}
-              onPress={() => router.push(`/player-detail?id=${topAssist.id}` as any)}
+              style={({ pressed }) => [
+                styles.topRow,
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() =>
+                router.push(`/player-detail?id=${topAssist.id}` as any)
+              }
             >
               <View style={styles.topLabelWrap}>
                 <View style={[styles.topDot, { backgroundColor: "#3B82F6" }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>A</Text>
+                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
+                    A
+                  </Text>
                 </View>
-                <Text style={[styles.topName, { color: c.textPrimary }]}>{topAssist.name}</Text>
+                <Text style={[styles.topName, { color: c.textPrimary }]}>
+                  {topAssist.name}
+                </Text>
               </View>
-              <Text style={[styles.topStat, { color: c.textPrimary }]}>{topAssist.assistsPerGame.toFixed(1)} APG</Text>
+              <Text style={[styles.topStat, { color: c.textPrimary }]}>
+                {topAssist.assistsPerGame.toFixed(1)} APG
+              </Text>
             </Pressable>
           )}
         </View>
 
-        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>Ultimi 10</Text>
-        <View style={[styles.card, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+        <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
+          Ultimi 10
+        </Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: c.bgCard, borderColor: c.border },
+          ]}
+        >
           <View style={styles.last10Row}>
             {myTeam?.last10?.split("-").map((part, i) => {
               const dots = Number(part);
@@ -341,6 +510,19 @@ export default function StatisticheScreen() {
             {myTeam?.last10 ?? "-"} · Streak: {myTeam?.streak ?? "-"}
           </Text>
         </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.analyticsBtn,
+            { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+            pressed && { opacity: 0.7 },
+          ]}
+          onPress={() => router.push("/analytics-squadra" as any)}
+        >
+          <Text style={[styles.analyticsBtnText, { color: c.accent }]}>
+            Analisi completa squadra →
+          </Text>
+        </Pressable>
       </ScrollView>
     </Animated.View>
   );
@@ -410,11 +592,32 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   barFill: { height: "100%", borderRadius: 4 },
-  recordNumbers: { width: 60, textAlign: "right", fontSize: 13, fontWeight: "600" },
+  recordNumbers: {
+    width: 60,
+    textAlign: "right",
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8 },
-  topLabelWrap: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  topDot: { width: 24, height: 24, borderRadius: 6, alignItems: "center", justifyContent: "center" },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  topLabelWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  topDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   topDotText: { fontSize: 11, fontWeight: "800" },
   topName: { fontSize: 14, fontWeight: "600" },
   topStat: { fontSize: 14, fontWeight: "700" },
@@ -424,4 +627,15 @@ const styles = StyleSheet.create({
   last10Group: { flexDirection: "row", gap: 4, alignItems: "center" },
   last10Dot: { width: 12, height: 12, borderRadius: 3 },
   last10Text: { fontSize: 13, textAlign: "center", fontWeight: "500" },
+
+  analyticsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  analyticsBtnText: { fontSize: 14, fontWeight: "700" },
 });

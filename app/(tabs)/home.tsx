@@ -137,6 +137,30 @@ export default function HomeTabScreen() {
   const total = wins + losses;
   const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
 
+  const nextMatch = matches
+    .filter((m) => m.home_score === null)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] ?? null;
+
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!nextMatch) return;
+    const update = () => {
+      const now = new Date();
+      const matchDate = new Date(nextMatch.date + "T" + (nextMatch.time ?? "20:30") + ":00");
+      const diff = matchDate.getTime() - now.getTime();
+      if (diff <= 0) { setTimeLeft(null); return; }
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${days}g ${hours}h ${minutes}m ${seconds}s`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [nextMatch]);
+
   return (
     <Animated.View
       style={[
@@ -259,6 +283,25 @@ export default function HomeTabScreen() {
             </Text>
           </View>
         </View>
+
+        {nextMatch && timeLeft && (
+          <Pressable
+            style={[styles.countdownCard, { backgroundColor: c.accentBg, borderColor: c.accentBorder }]}
+            onPress={() => router.push("/(tabs)/calendario" as any)}
+          >
+            <Text style={[styles.countdownLabel, { color: c.accent }]}>
+              Prossima partita
+            </Text>
+            <Text style={[styles.countdownDate, { color: c.textPrimary }]}>
+              {nextMatch.home_team === "Abc Castelfiorentino"
+                ? `${nextMatch.away_team} (Casa)`
+                : `${nextMatch.home_team} (Trasferta)`}
+            </Text>
+            <Text style={[styles.countdownTimer, { color: c.accent }]}>
+              {timeLeft}
+            </Text>
+          </Pressable>
+        )}
 
         <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
           Classifica
@@ -724,4 +767,15 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   statsBoxSub: { fontSize: 9, fontWeight: "500" },
+
+  countdownCard: {
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  countdownLabel: { fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 },
+  countdownDate: { fontSize: 14, fontWeight: "600", marginBottom: 8 },
+  countdownTimer: { fontSize: 28, fontWeight: "800", fontVariant: ["tabular-nums"] },
 });
