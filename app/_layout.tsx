@@ -89,6 +89,10 @@ function LayoutContent() {
             name="player-detail"
             options={{ headerShown: true, title: "Giocatore", animation: "slide_from_right", animationDuration: 300 }}
           />
+          <Stack.Screen
+            name="match-detail"
+            options={{ headerShown: true, title: "Dettaglio Partita", animation: "slide_from_right", animationDuration: 300 }}
+          />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
         </Stack>
       </View>

@@ -494,7 +494,7 @@ export default function HomeTabScreen() {
                 { backgroundColor: c.bgCard, borderColor: c.border },
                 pressed && { opacity: 0.7 },
               ]}
-              onPress={() => router.push(`/partite` as any)}
+              onPress={() => router.push(`/match-detail?id=${m.id}` as any)}
             >
               <View
                 style={[
