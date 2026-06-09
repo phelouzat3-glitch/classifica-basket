@@ -1,10 +1,7 @@
 import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
 import {
-  Animated,
-  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -37,15 +34,7 @@ const MENU_ITEMS = [
   { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
 
-function BasketballField({
-  ballX,
-  ballY,
-  spinRotation,
-}: {
-  ballX: Animated.AnimatedInterpolation<number>;
-  ballY: Animated.AnimatedInterpolation<number>;
-  spinRotation: Animated.AnimatedInterpolation<string>;
-}) {
+function BasketballField() {
   return (
     <View style={styles.field}>
       <View style={styles.fieldBorder}>
@@ -55,20 +44,7 @@ function BasketballField({
         <View style={[styles.bottomKey, styles.keyBase]} />
         <View style={styles.topFreeThrow} />
         <View style={styles.bottomFreeThrow} />
-        <Animated.Text
-          style={[
-            styles.fieldBall,
-            {
-              transform: [
-                { translateX: ballX },
-                { translateY: ballY },
-                { rotate: spinRotation },
-              ],
-            },
-          ]}
-        >
-          🏀
-        </Animated.Text>
+        <Text style={styles.fieldBall}>🏀</Text>
       </View>
     </View>
   );
@@ -102,68 +78,10 @@ function MenuCard({
   );
 }
 
-const ORBIT_RADIUS = 28;
-const CIRCLE_POINTS = 16;
-
-const inputRange = Array.from({ length: CIRCLE_POINTS + 1 }, (_, i) => i / CIRCLE_POINTS);
-const orbitXMap = inputRange.map((t) => Math.cos(t * Math.PI * 2) * ORBIT_RADIUS);
-const orbitYMap = inputRange.map((t) => Math.sin(t * Math.PI * 2) * ORBIT_RADIUS);
-
-function useOrbitAnimation() {
-  const orbitAnim = useRef(new Animated.Value(0)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const orbitLoop = Animated.loop(
-      Animated.timing(orbitAnim, {
-        toValue: 1,
-        duration: 3000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-      { iterations: -1 },
-    );
-    const spinLoop = Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-      { iterations: -1 },
-    );
-    orbitLoop.start();
-    spinLoop.start();
-    return () => {
-      orbitLoop.stop();
-      spinLoop.stop();
-    };
-  }, [orbitAnim, spinAnim]);
-
-  const ballX = orbitAnim.interpolate({
-    inputRange,
-    outputRange: orbitXMap,
-    extrapolate: "clamp",
-  });
-  const ballY = orbitAnim.interpolate({
-    inputRange,
-    outputRange: orbitYMap,
-    extrapolate: "clamp",
-  });
-
-  const spinRotation = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
-  return { ballX, ballY, spinRotation };
-}
-
 export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
-  const { ballX, ballY, spinRotation } = useOrbitAnimation();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.bg }]}>
@@ -202,7 +120,7 @@ export default function LandingScreen() {
           </Text>
         </View>
 
-        <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
+        <BasketballField />
 
         <View style={styles.centerSection}>
           <Text style={[styles.welcome, { color: colors.textPrimary }]}>Benvenuto</Text>
