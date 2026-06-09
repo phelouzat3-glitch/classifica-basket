@@ -44,8 +44,12 @@ function useClickSound() {
 
   useEffect(() => {
     Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => {});
-    Audio.Sound.createAsync(require("../assets/sounds/pop.wav"))
+    Audio.Sound.createAsync(require("../assets/sounds/pop.wav"), {
+      shouldPlay: false,
+      volume: 1,
+    })
       .then(({ sound }) => {
+        sound.setVolumeAsync(1);
         soundRef.current = sound;
       })
       .catch(() => {});
