@@ -1,8 +1,7 @@
-import { Audio } from "expo-av";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   Animated,
   Easing,
@@ -38,37 +37,6 @@ const MENU_ITEMS = [
   { icon: "📊", label: "Statistiche", route: ROUTES.statistiche },
   { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
-
-function useClickSound() {
-  const soundRef = useRef<Audio.Sound | null>(null);
-
-  useEffect(() => {
-    Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => {});
-    Audio.Sound.createAsync(require("../assets/sounds/pop.wav"), {
-      shouldPlay: false,
-      volume: 1,
-    })
-      .then(({ sound }) => {
-        sound.setVolumeAsync(1);
-        soundRef.current = sound;
-      })
-      .catch(() => {});
-    return () => {
-      soundRef.current?.unloadAsync();
-    };
-  }, []);
-
-  const play = useCallback(async () => {
-    try {
-      await soundRef.current?.setPositionAsync(0);
-      await soundRef.current?.playAsync();
-    } catch {
-      // sound not ready yet
-    }
-  }, []);
-
-  return play;
-}
 
 const ORBIT_RADIUS = Platform.select({ web: 28, default: 20 });
 const CIRCLE_POINTS = 16;
@@ -166,12 +134,10 @@ function MenuCard({
   icon,
   label,
   onPress,
-  playSound,
 }: {
   icon: string;
   label: string;
   onPress: () => void;
-  playSound: () => Promise<void>;
 }) {
   const colors = useColors();
   return (
@@ -183,10 +149,7 @@ function MenuCard({
           shadowColor: colors.textPrimary,
         },
       ]}
-      onPress={() => {
-        playSound();
-        onPress();
-      }}
+      onPress={onPress}
     >
       <Text style={styles.menuIcon}>{icon}</Text>
       <Text
@@ -206,7 +169,6 @@ export default function LandingScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const { ballX, ballY, spinRotation } = useOrbitAnimation();
-  const playSound = useClickSound();
 
   return (
     <View
@@ -261,7 +223,6 @@ export default function LandingScreen() {
                   icon={MENU_ITEMS[0].icon}
                   label={MENU_ITEMS[0].label}
                   onPress={() => router.replace(MENU_ITEMS[0].route)}
-                  playSound={playSound}
                 />
               </View>
               <View style={styles.menuCol}>
@@ -269,7 +230,6 @@ export default function LandingScreen() {
                   icon={MENU_ITEMS[1].icon}
                   label={MENU_ITEMS[1].label}
                   onPress={() => router.replace(MENU_ITEMS[1].route)}
-                  playSound={playSound}
                 />
               </View>
             </View>
@@ -279,7 +239,6 @@ export default function LandingScreen() {
                   icon={MENU_ITEMS[2].icon}
                   label={MENU_ITEMS[2].label}
                   onPress={() => router.replace(MENU_ITEMS[2].route)}
-                  playSound={playSound}
                 />
               </View>
               <View style={styles.menuCol}>
@@ -287,7 +246,6 @@ export default function LandingScreen() {
                   icon={MENU_ITEMS[3].icon}
                   label={MENU_ITEMS[3].label}
                   onPress={() => router.replace(MENU_ITEMS[3].route)}
-                  playSound={playSound}
                 />
               </View>
             </View>
@@ -299,10 +257,7 @@ export default function LandingScreen() {
               { backgroundColor: colors.accent },
               pressed && styles.buttonPressed,
             ]}
-            onPress={() => {
-              playSound();
-              router.replace(ROUTES.home);
-            }}
+            onPress={() => router.replace(ROUTES.home)}
           >
             <Text style={styles.buttonText}>Entra</Text>
           </Pressable>
