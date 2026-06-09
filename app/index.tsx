@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "space-between",
-    paddingBottom: 12,
+    paddingTop: Platform.select({ web: 16, default: 8 }),
+    paddingBottom: Platform.select({ web: 20, default: 12 }),
     maxWidth: Platform.select({ web: 700, default: 500 }),
     alignSelf: "center",
     width: "100%",
   },
   header: {
     alignItems: "center",
-    paddingTop: Platform.select({ web: 20, default: 8 }),
   },
   badge: {
     paddingHorizontal: 10,
@@ -388,19 +388,23 @@ const styles = StyleSheet.create({
     fontSize: Platform.select({ web: 28, default: 18 }),
   },
   bottomSection: {
-    gap: Platform.select({ web: 20, default: 14 }),
+    gap: Platform.select({ web: 24, default: 16 }),
   },
   menuGrid: {
-    gap: 10,
+    gap: 12,
   },
   menuRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
   },
   menuCol: {
     flex: 1,
+    maxWidth: Platform.select({ web: 200, default: 999 }),
+    alignItems: "center",
   },
   menuCard: {
+    width: "100%",
+    maxWidth: Platform.select({ web: 180, default: 130 }),
     aspectRatio: 1,
     borderRadius: 14,
     justifyContent: "center",
