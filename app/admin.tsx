@@ -1101,16 +1101,20 @@ const styles = StyleSheet.create({
 
   matchActionsRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginTop: 16,
   },
   actionBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    justifyContent: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 10,
+    flex: 1,
+    minWidth: 90,
   },
   actionBtnText: {
     fontSize: 13,
