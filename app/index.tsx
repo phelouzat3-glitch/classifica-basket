@@ -16,40 +16,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const COURT_COLOR = "#C8955A";
 const LINE_COLOR = "#FFFFFF";
 
-// ─── Route constants ────────────────────────────────────────────────────────
 const ROUTES = {
-  home: "/(tabs)/home" as const,
+  home: "/(tabs)/home",
+  classifica: "/(tabs)/classifica",
+  calendario: "/(tabs)/calendario",
+  statistiche: "/(tabs)/statistiche",
+  rosa: "/(tabs)/rosa",
 } as const;
 
-// ─── Team config ─────────────────────────────────────────────────────────────
 const TEAM_CONFIG = {
   name: "ABC Castelfiorentino",
   division: "Serie C · Girone B",
   season: "Stagione 2025/26",
 } as const;
 
-const FEATURES = [
-  { icon: "🏆", text: "Classifica aggiornata" },
-  { icon: "📅", text: "Calendario partite" },
-  { icon: "📊", text: "Statistiche e marcatori" },
-  { icon: "👥", text: "Rosa e dettagli giocatori" },
+const MENU_ITEMS = [
+  { icon: "🏆", label: "Classifica", route: ROUTES.classifica },
+  { icon: "📅", label: "Calendario", route: ROUTES.calendario },
+  { icon: "📊", label: "Statistiche", route: ROUTES.statistiche },
+  { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
-
-// ─── Sub-components ──────────────────────────────────────────────────────────
-interface FeatureRowProps {
-  icon: string;
-  text: string;
-  textColor: string;
-}
-
-function FeatureRow({ icon, text, textColor }: FeatureRowProps) {
-  return (
-    <View style={styles.featureRow}>
-      <Text style={styles.featureIcon}>{icon}</Text>
-      <Text style={[styles.featureText, { color: textColor }]}>{text}</Text>
-    </View>
-  );
-}
 
 function BasketballField({ rotate }: { rotate: Animated.AnimatedInterpolation<string> }) {
   return (
@@ -69,7 +55,34 @@ function BasketballField({ rotate }: { rotate: Animated.AnimatedInterpolation<st
   );
 }
 
-// ─── Animation hook ──────────────────────────────────────────────────────────
+function MenuCard({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+}) {
+  const colors = useColors();
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.menuCard,
+        {
+          backgroundColor: colors.bgCard,
+          shadowColor: colors.textPrimary,
+          opacity: pressed ? 0.85 : 1,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <Text style={styles.menuIcon}>{icon}</Text>
+      <Text style={[styles.menuLabel, { color: colors.textPrimary }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function useSpinAnimation() {
   const spinAnim = useRef(new Animated.Value(0)).current;
 
@@ -95,22 +108,14 @@ function useSpinAnimation() {
   return rotate;
 }
 
-// ─── Screen ──────────────────────────────────────────────────────────────────
 export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const rotate = useSpinAnimation();
 
-  const handleEnter = () => router.replace(ROUTES.home);
-
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, backgroundColor: colors.bg },
-      ]}
-    >
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.bg }]}>
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={[
@@ -149,23 +154,21 @@ export default function LandingScreen() {
         <BasketballField rotate={rotate} />
 
         <View style={styles.centerSection}>
-          <Text style={[styles.welcome, { color: colors.textPrimary }]}>
-            Benvenuto
-          </Text>
+          <Text style={[styles.welcome, { color: colors.textPrimary }]}>Benvenuto</Text>
           <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Segui in tempo reale risultati, classifica e statistiche della tua
-            squadra del cuore.
+            Segui risultati, classifica e statistiche della tua squadra del cuore.
           </Text>
-          <View style={styles.featuresGrid}>
-            {FEATURES.map((feature) => (
-              <FeatureRow
-                key={feature.text}
-                icon={feature.icon}
-                text={feature.text}
-                textColor={colors.textSecondary}
-              />
-            ))}
-          </View>
+        </View>
+
+        <View style={styles.menuGrid}>
+          {MENU_ITEMS.map((item) => (
+            <MenuCard
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              onPress={() => router.replace(item.route)}
+            />
+          ))}
         </View>
 
         <Pressable
@@ -174,7 +177,7 @@ export default function LandingScreen() {
             { backgroundColor: colors.accent },
             pressed && styles.buttonPressed,
           ]}
-          onPress={handleEnter}
+          onPress={() => router.replace(ROUTES.home)}
         >
           <Text style={styles.buttonText}>Entra</Text>
         </Pressable>
@@ -183,7 +186,6 @@ export default function LandingScreen() {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -202,6 +204,7 @@ const styles = StyleSheet.create({
   topSection: {
     alignItems: "center",
     marginTop: 40,
+    marginBottom: 8,
   },
   badge: {
     paddingHorizontal: 14,
@@ -228,14 +231,13 @@ const styles = StyleSheet.create({
   },
   field: {
     alignItems: "center",
-    marginTop: 28,
-    marginBottom: 12,
+    marginVertical: 24,
   },
   fieldBorder: {
-    width: 240,
-    height: 340,
+    width: 220,
+    height: 300,
     backgroundColor: COURT_COLOR,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 3,
     borderColor: LINE_COLOR,
     overflow: "hidden",
@@ -252,20 +254,20 @@ const styles = StyleSheet.create({
   },
   centerCircle: {
     position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     borderWidth: 3,
     borderColor: LINE_COLOR,
     top: "50%",
     left: "50%",
-    marginLeft: -30,
-    marginTop: -30,
+    marginLeft: -28,
+    marginTop: -28,
   },
   keyBase: {
     position: "absolute",
-    width: 80,
-    height: 52,
+    width: 72,
+    height: 48,
     borderWidth: 3,
     borderColor: LINE_COLOR,
   },
@@ -273,7 +275,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: "50%",
-    marginLeft: -40,
+    marginLeft: -36,
     borderTopWidth: 0,
     borderBottomLeftRadius: 6,
     borderBottomRightRadius: 6,
@@ -282,27 +284,27 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     left: "50%",
-    marginLeft: -40,
+    marginLeft: -36,
     borderBottomWidth: 0,
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
   },
   topFreeThrow: {
     position: "absolute",
-    top: 52,
+    top: 48,
     left: "50%",
     marginLeft: -1,
     width: 2,
-    height: 40,
+    height: 36,
     backgroundColor: LINE_COLOR,
   },
   bottomFreeThrow: {
     position: "absolute",
-    bottom: 52,
+    bottom: 48,
     left: "50%",
     marginLeft: -1,
     width: 2,
-    height: 40,
+    height: 36,
     backgroundColor: LINE_COLOR,
   },
   fieldBall: {
@@ -315,47 +317,51 @@ const styles = StyleSheet.create({
   },
   centerSection: {
     alignItems: "center",
+    marginBottom: 20,
   },
   welcome: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 28,
     paddingHorizontal: 10,
-    maxWidth: 420,
+    maxWidth: 400,
   },
-  featuresGrid: {
+  menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 10,
-    maxWidth: 360,
+    gap: 14,
+    marginBottom: 28,
   },
-  featureRow: {
-    flexDirection: "row",
+  menuCard: {
+    width: "46%",
+    maxWidth: 160,
+    aspectRatio: 1,
+    borderRadius: 18,
+    justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    flexBasis: "45%",
-    minWidth: 140,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  featureIcon: {
-    fontSize: 18,
-    width: 28,
-    textAlign: "center",
+  menuIcon: {
+    fontSize: 32,
   },
-  featureText: {
-    fontSize: 15,
-    fontWeight: "500",
+  menuLabel: {
+    fontSize: 14,
+    fontWeight: "600",
   },
   button: {
     width: "100%",
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -365,7 +371,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
