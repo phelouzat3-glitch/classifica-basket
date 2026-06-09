@@ -284,10 +284,17 @@ export default function AdminScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            await fetch(`${API_URL}/matches/${m.id}`, {
+            const res = await fetch(`${API_URL}/matches/${m.id}`, {
               method: "DELETE",
               headers: { Authorization: `Bearer ${savedKey}` },
             });
+            if (!res.ok) {
+              const txt = await res.text();
+              let msg = "Errore durante l'eliminazione";
+              try { const j = JSON.parse(txt); msg = j.message || msg; } catch {}
+              Alert.alert("Errore", msg);
+              return;
+            }
             setSuccess(null);
             if (matchId === m.id) {
               setMatchId(0);
@@ -295,7 +302,9 @@ export default function AdminScreen() {
               setAwayScore("");
             }
             await fetchMatches();
-          } catch {}
+          } catch {
+            Alert.alert("Errore", "Errore di connessione al server");
+          }
         },
       },
     ]);
