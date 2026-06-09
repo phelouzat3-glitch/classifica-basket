@@ -1,7 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "@/src/config/api";
+import { Text } from "@/src/theme";
 import { useColors } from "@/src/theme/ThemeContext";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,11 +15,12 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function getStorage() {
-  return import("@react-native-async-storage/async-storage").then((m) => m.default);
+  return import("@react-native-async-storage/async-storage").then(
+    (m) => m.default,
+  );
 }
 
 const STORAGE_KEY = "@admin_key";
@@ -95,8 +97,16 @@ export default function AdminScreen() {
     fadeAnim.setValue(0);
     slideAnim.setValue(12);
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 380, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 380, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, [fadeAnim, slideAnim]);
 
@@ -231,7 +241,9 @@ export default function AdminScreen() {
         }),
       });
       if (!res.ok) throw new Error("");
-      setSuccess(`Partita creata! ${createHomeTeam.trim()} ${h} - ${a} ${createAwayTeam.trim()}`);
+      setSuccess(
+        `Partita creata! ${createHomeTeam.trim()} ${h} - ${a} ${createAwayTeam.trim()}`,
+      );
       setCreateRound("");
       setCreateDate("");
       setCreateTime("");
@@ -248,32 +260,28 @@ export default function AdminScreen() {
   };
 
   const handleDelete = (m: MatchOption) => {
-    Alert.alert(
-      `Eliminare G.${m.round}?`,
-      `${m.home_team} - ${m.away_team}`,
-      [
-        { text: "Annulla", style: "cancel" },
-        {
-          text: "Elimina",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await fetch(`${API_URL}/matches/${m.id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${savedKey}` },
-              });
-              setSuccess(null);
-              if (matchId === m.id) {
-                setMatchId(0);
-                setHomeScore("");
-                setAwayScore("");
-              }
-              await fetchMatches();
-            } catch {}
-          },
+    Alert.alert(`Eliminare G.${m.round}?`, `${m.home_team} - ${m.away_team}`, [
+      { text: "Annulla", style: "cancel" },
+      {
+        text: "Elimina",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await fetch(`${API_URL}/matches/${m.id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${savedKey}` },
+            });
+            setSuccess(null);
+            if (matchId === m.id) {
+              setMatchId(0);
+              setHomeScore("");
+              setAwayScore("");
+            }
+            await fetchMatches();
+          } catch {}
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const handleUpdateMatch = async () => {
@@ -289,10 +297,16 @@ export default function AdminScreen() {
 
     const hs = editHomeScore ? parseInt(editHomeScore, 10) : null;
     const as = editAwayScore ? parseInt(editAwayScore, 10) : null;
-    if (hs !== null && !isNaN(hs) && hs >= 0) { body.homeScore = hs; }
-    else { body.homeScore = null; }
-    if (as !== null && !isNaN(as) && as >= 0) { body.awayScore = as; }
-    else { body.awayScore = null; }
+    if (hs !== null && !isNaN(hs) && hs >= 0) {
+      body.homeScore = hs;
+    } else {
+      body.homeScore = null;
+    }
+    if (as !== null && !isNaN(as) && as >= 0) {
+      body.awayScore = as;
+    } else {
+      body.awayScore = null;
+    }
 
     if (Object.keys(body).length === 0) return;
 
@@ -357,64 +371,98 @@ export default function AdminScreen() {
   };
 
   const handleDeleteUser = (user: AdminUser) => {
-    Alert.alert(
-      `Eliminare ${user.name}?`,
-      `${user.email}`,
-      [
-        { text: "Annulla", style: "cancel" },
-        {
-          text: "Elimina",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const res = await fetch(`${API_URL}/admin/users/${user.id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${savedKey}` },
-              });
-              if (!res.ok) throw new Error("");
-              await fetchUsers();
-            } catch {}
-          },
+    Alert.alert(`Eliminare ${user.name}?`, `${user.email}`, [
+      { text: "Annulla", style: "cancel" },
+      {
+        text: "Elimina",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await fetch(`${API_URL}/admin/users/${user.id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${savedKey}` },
+            });
+            if (!res.ok) throw new Error("");
+            await fetchUsers();
+          } catch {}
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const selectedMatch = matches.find((m) => m.id === matchId);
 
   if (keyLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: c.bg, paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: c.bg, paddingTop: insets.top },
+        ]}
+      >
         <ActivityIndicator size="large" color={ORANGE} />
       </View>
     );
   }
 
   return (
-    <Animated.View style={[styles.root, { backgroundColor: c.bg, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]} keyboardShouldPersistTaps="handled">
+    <Animated.View
+      style={[
+        styles.root,
+        {
+          backgroundColor: c.bg,
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 12 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={[styles.header, { backgroundColor: c.bg }]}>
             {savedKey && (
-              <Pressable style={[styles.logoutBtn, { backgroundColor: c.lossBg }]} onPress={handleLogout}>
+              <Pressable
+                style={[styles.logoutBtn, { backgroundColor: c.lossBg }]}
+                onPress={handleLogout}
+              >
                 <Ionicons name="log-out-outline" size={16} color={c.loss} />
                 <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
               </Pressable>
             )}
-            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>👤 Admin</Text>
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
+              👤 Admin
+            </Text>
           </View>
 
           {!savedKey ? (
             <View style={styles.loginSection}>
-              <View style={[styles.iconCircle, { backgroundColor: c.accentBg }]}>
+              <View
+                style={[styles.iconCircle, { backgroundColor: c.accentBg }]}
+              >
                 <Ionicons name="shield-checkmark" size={28} color={ORANGE} />
               </View>
               <Text style={[styles.subtitle, { color: c.textSecondary }]}>
-                Inserisci la chiave API per accedere al pannello di amministrazione
+                Inserisci la chiave API per accedere al pannello di
+                amministrazione
               </Text>
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                 <TextInput
-                  style={[styles.input, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: c.bg,
+                      color: c.textPrimary,
+                      borderColor: c.border,
+                    },
+                  ]}
                   placeholder="API Key"
                   placeholderTextColor={c.textMuted}
                   value={apiKey}
@@ -423,11 +471,22 @@ export default function AdminScreen() {
                   autoCapitalize="none"
                 />
                 <Pressable
-                  style={[styles.btn, { backgroundColor: ORANGE, opacity: apiKey.trim() ? 1 : 0.5 }]}
+                  style={[
+                    styles.btn,
+                    {
+                      backgroundColor: ORANGE,
+                      opacity: apiKey.trim() ? 1 : 0.5,
+                    },
+                  ]}
                   onPress={handleLogin}
                   disabled={!apiKey.trim()}
                 >
-                  <Ionicons name="lock-open-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                  <Ionicons
+                    name="lock-open-outline"
+                    size={18}
+                    color="#FFF"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.btnText}>Accedi</Text>
                 </Pressable>
               </View>
@@ -439,31 +498,71 @@ export default function AdminScreen() {
               </Text>
 
               {success && (
-                <View style={[styles.feedbackCard, { backgroundColor: c.winBg, borderColor: c.win }]}>
-                  <Ionicons name="checkmark-circle" size={18} color={c.win} style={{ marginRight: 8 }} />
-                  <Text style={[styles.feedbackText, { color: c.win }]}>{success}</Text>
+                <View
+                  style={[
+                    styles.feedbackCard,
+                    { backgroundColor: c.winBg, borderColor: c.win },
+                  ]}
+                >
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={18}
+                    color={c.win}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={[styles.feedbackText, { color: c.win }]}>
+                    {success}
+                  </Text>
                 </View>
               )}
 
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
-                <Text style={[styles.label, { color: c.textMuted }]}>PARTITA</Text>
+                <Text style={[styles.label, { color: c.textMuted }]}>
+                  PARTITA
+                </Text>
 
                 <Pressable
-                  style={[styles.pickerBtn, { backgroundColor: c.bg, borderColor: c.border }]}
+                  style={[
+                    styles.pickerBtn,
+                    { backgroundColor: c.bg, borderColor: c.border },
+                  ]}
                   onPress={() => setDropdownOpen(!dropdownOpen)}
                 >
-                  <Ionicons name="football" size={18} color={ORANGE} style={{ marginRight: 10 }} />
-                  <Text style={[styles.pickerText, { color: selectedMatch ? c.textPrimary : c.textMuted }]} numberOfLines={1}>
+                  <Ionicons
+                    name="football"
+                    size={18}
+                    color={ORANGE}
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text
+                    style={[
+                      styles.pickerText,
+                      { color: selectedMatch ? c.textPrimary : c.textMuted },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {selectedMatch
                       ? `G.${selectedMatch.round}  ${selectedMatch.home_team} - ${selectedMatch.away_team}`
                       : "Seleziona una partita"}
                   </Text>
-                  <Ionicons name={dropdownOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                  <Ionicons
+                    name={dropdownOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={c.textMuted}
+                  />
                 </Pressable>
 
                 {dropdownOpen && (
-                  <View style={[styles.dropdown, { backgroundColor: c.bg, borderColor: c.border }]}>
-                    <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
+                  <View
+                    style={[
+                      styles.dropdown,
+                      { backgroundColor: c.bg, borderColor: c.border },
+                    ]}
+                  >
+                    <ScrollView
+                      style={styles.dropdownScroll}
+                      nestedScrollEnabled
+                    >
                       {matches.map((m) => {
                         const hasScore = m.home_score != null;
                         const sel = matchId === m.id;
@@ -473,7 +572,11 @@ export default function AdminScreen() {
                             style={[
                               styles.dropdownItem,
                               sel && { backgroundColor: c.accentBg },
-                              !hasScore && !sel && { borderLeftWidth: 3, borderLeftColor: ORANGE },
+                              !hasScore &&
+                                !sel && {
+                                  borderLeftWidth: 3,
+                                  borderLeftColor: ORANGE,
+                                },
                             ]}
                             onPress={() => {
                               setMatchId(m.id);
@@ -485,8 +588,24 @@ export default function AdminScreen() {
                           >
                             <View style={styles.dropdownContent}>
                               <View style={styles.dropdownLeft}>
-                                <View style={[styles.roundBadgeMini, { backgroundColor: hasScore ? c.border : ORANGE }]}>
-                                  <Text style={[styles.roundBadgeMiniText, { color: hasScore ? c.textMuted : "#FFF" }]}>
+                                <View
+                                  style={[
+                                    styles.roundBadgeMini,
+                                    {
+                                      backgroundColor: hasScore
+                                        ? c.border
+                                        : ORANGE,
+                                    },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.roundBadgeMiniText,
+                                      {
+                                        color: hasScore ? c.textMuted : "#FFF",
+                                      },
+                                    ]}
+                                  >
                                     {m.round}
                                   </Text>
                                 </View>
@@ -494,7 +613,11 @@ export default function AdminScreen() {
                                   <Text
                                     style={[
                                       styles.dropdownTeam,
-                                      { color: hasScore ? c.textMuted : c.textPrimary },
+                                      {
+                                        color: hasScore
+                                          ? c.textMuted
+                                          : c.textPrimary,
+                                      },
                                     ]}
                                     numberOfLines={1}
                                   >
@@ -503,14 +626,36 @@ export default function AdminScreen() {
                                 </View>
                               </View>
                               {hasScore ? (
-                                <View style={[styles.scoreBadge, { backgroundColor: c.bgCardAlt }]}>
-                                  <Text style={[styles.scoreBadgeText, { color: c.textSecondary }]}>
+                                <View
+                                  style={[
+                                    styles.scoreBadge,
+                                    { backgroundColor: c.bgCardAlt },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.scoreBadgeText,
+                                      { color: c.textSecondary },
+                                    ]}
+                                  >
                                     {m.home_score}-{m.away_score}
                                   </Text>
                                 </View>
                               ) : (
-                                <View style={[styles.insertBadge, { backgroundColor: c.accentBg }]}>
-                                  <Text style={[styles.insertBadgeText, { color: ORANGE }]}>DA INSERIRE</Text>
+                                <View
+                                  style={[
+                                    styles.insertBadge,
+                                    { backgroundColor: c.accentBg },
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.insertBadgeText,
+                                      { color: ORANGE },
+                                    ]}
+                                  >
+                                    DA INSERIRE
+                                  </Text>
                                 </View>
                               )}
                             </View>
@@ -523,11 +668,20 @@ export default function AdminScreen() {
 
                 {matchId !== 0 && (
                   <View style={styles.scoreSection}>
-                    <View style={[styles.divider, { backgroundColor: c.border }]} />
+                    <View
+                      style={[styles.divider, { backgroundColor: c.border }]}
+                    />
                     <View>
                       <View style={styles.matchActionsRow}>
                         <Pressable
-                          style={[styles.actionBtn, { backgroundColor: editOpen ? c.accentBg : c.bgCardAlt }]}
+                          style={[
+                            styles.actionBtn,
+                            {
+                              backgroundColor: editOpen
+                                ? c.accentBg
+                                : c.bgCardAlt,
+                            },
+                          ]}
                           onPress={() => {
                             if (!editOpen && selectedMatch) {
                               setEditRound(String(selectedMatch.round));
@@ -535,26 +689,59 @@ export default function AdminScreen() {
                               setEditTime("");
                               setEditHomeTeam(selectedMatch.home_team);
                               setEditAwayTeam(selectedMatch.away_team);
-                              setEditHomeScore(selectedMatch.home_score != null ? String(selectedMatch.home_score) : "");
-                              setEditAwayScore(selectedMatch.away_score != null ? String(selectedMatch.away_score) : "");
+                              setEditHomeScore(
+                                selectedMatch.home_score != null
+                                  ? String(selectedMatch.home_score)
+                                  : "",
+                              );
+                              setEditAwayScore(
+                                selectedMatch.away_score != null
+                                  ? String(selectedMatch.away_score)
+                                  : "",
+                              );
                             }
                             setEditOpen(!editOpen);
                           }}
                         >
-                          <Ionicons name="create-outline" size={16} color={editOpen ? ORANGE : c.textMuted} />
-                          <Text style={[styles.actionBtnText, { color: editOpen ? ORANGE : c.textMuted }]}>
+                          <Ionicons
+                            name="create-outline"
+                            size={16}
+                            color={editOpen ? ORANGE : c.textMuted}
+                          />
+                          <Text
+                            style={[
+                              styles.actionBtnText,
+                              { color: editOpen ? ORANGE : c.textMuted },
+                            ]}
+                          >
                             {editOpen ? "Chiudi" : "Modifica"}
                           </Text>
                         </Pressable>
                         <Pressable
-                          style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
-                          onPress={() => selectedMatch && handleDelete(selectedMatch)}
+                          style={[
+                            styles.actionBtn,
+                            { backgroundColor: c.lossBg },
+                          ]}
+                          onPress={() =>
+                            selectedMatch && handleDelete(selectedMatch)
+                          }
                         >
-                          <Ionicons name="trash-outline" size={16} color={c.loss} />
-                          <Text style={[styles.actionBtnText, { color: c.loss }]}>Cancella</Text>
+                          <Ionicons
+                            name="trash-outline"
+                            size={16}
+                            color={c.loss}
+                          />
+                          <Text
+                            style={[styles.actionBtnText, { color: c.loss }]}
+                          >
+                            Cancella
+                          </Text>
                         </Pressable>
                         <Pressable
-                          style={[styles.actionBtn, { backgroundColor: c.bgCardAlt }]}
+                          style={[
+                            styles.actionBtn,
+                            { backgroundColor: c.bgCardAlt },
+                          ]}
                           onPress={() => {
                             setMatchId(0);
                             setHomeScore("");
@@ -563,17 +750,42 @@ export default function AdminScreen() {
                             setSuccess(null);
                           }}
                         >
-                          <Ionicons name="close-outline" size={16} color={c.textMuted} />
-                          <Text style={[styles.actionBtnText, { color: c.textMuted }]}>Esci</Text>
+                          <Ionicons
+                            name="close-outline"
+                            size={16}
+                            color={c.textMuted}
+                          />
+                          <Text
+                            style={[
+                              styles.actionBtnText,
+                              { color: c.textMuted },
+                            ]}
+                          >
+                            Esci
+                          </Text>
                         </Pressable>
                       </View>
                     </View>
 
                     {editOpen && (
                       <>
-                        <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>GIORNATA</Text>
+                        <Text
+                          style={[
+                            styles.label,
+                            { color: c.textMuted, marginTop: 12 },
+                          ]}
+                        >
+                          GIORNATA
+                        </Text>
                         <TextInput
-                          style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                          style={[
+                            styles.createInput,
+                            {
+                              backgroundColor: c.bg,
+                              color: c.textPrimary,
+                              borderColor: c.border,
+                            },
+                          ]}
                           value={editRound}
                           onChangeText={setEditRound}
                           keyboardType="number-pad"
@@ -582,9 +794,23 @@ export default function AdminScreen() {
 
                         <View style={styles.editRow}>
                           <View style={{ flex: 1 }}>
-                            <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>DATA</Text>
+                            <Text
+                              style={[
+                                styles.label,
+                                { color: c.textMuted, marginTop: 12 },
+                              ]}
+                            >
+                              DATA
+                            </Text>
                             <TextInput
-                              style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.createInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editDate}
                               onChangeText={setEditDate}
                               placeholder="AAAA-MM-GG"
@@ -593,9 +819,23 @@ export default function AdminScreen() {
                             />
                           </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>ORARIO</Text>
+                            <Text
+                              style={[
+                                styles.label,
+                                { color: c.textMuted, marginTop: 12 },
+                              ]}
+                            >
+                              ORARIO
+                            </Text>
                             <TextInput
-                              style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.createInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editTime}
                               onChangeText={setEditTime}
                               placeholder="21:00"
@@ -607,20 +847,53 @@ export default function AdminScreen() {
 
                         <View style={styles.createTeamRow}>
                           <View style={{ flex: 1 }}>
-                            <Text style={[styles.label, { color: c.textMuted }]}>CASA</Text>
+                            <Text
+                              style={[styles.label, { color: c.textMuted }]}
+                            >
+                              CASA
+                            </Text>
                             <TextInput
-                              style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.createInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editHomeTeam}
                               onChangeText={setEditHomeTeam}
                               placeholderTextColor={c.textMuted}
                               autoCapitalize="words"
                             />
                           </View>
-                          <Text style={[styles.scoreDash, { color: c.textMuted, paddingBottom: 0, marginTop: 24 }]}>:</Text>
+                          <Text
+                            style={[
+                              styles.scoreDash,
+                              {
+                                color: c.textMuted,
+                                paddingBottom: 0,
+                                marginTop: 24,
+                              },
+                            ]}
+                          >
+                            :
+                          </Text>
                           <View style={{ flex: 1 }}>
-                            <Text style={[styles.label, { color: c.textMuted }]}>OSPITE</Text>
+                            <Text
+                              style={[styles.label, { color: c.textMuted }]}
+                            >
+                              OSPITE
+                            </Text>
                             <TextInput
-                              style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.createInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editAwayTeam}
                               onChangeText={setEditAwayTeam}
                               placeholderTextColor={c.textMuted}
@@ -629,13 +902,31 @@ export default function AdminScreen() {
                           </View>
                         </View>
 
-                        <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+                        <View
+                          style={[
+                            styles.divider,
+                            {
+                              backgroundColor: c.border,
+                              marginTop: 16,
+                              marginBottom: 16,
+                            },
+                          ]}
+                        />
 
-                        <Text style={[styles.label, { color: c.textMuted }]}>PUNTEGGIO</Text>
+                        <Text style={[styles.label, { color: c.textMuted }]}>
+                          PUNTEGGIO
+                        </Text>
                         <View style={styles.scoreRow}>
                           <View style={styles.scoreField}>
                             <TextInput
-                              style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.scoreInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editHomeScore}
                               onChangeText={setEditHomeScore}
                               keyboardType="number-pad"
@@ -644,10 +935,21 @@ export default function AdminScreen() {
                               maxLength={3}
                             />
                           </View>
-                          <Text style={[styles.scoreDash, { color: c.textMuted }]}>—</Text>
+                          <Text
+                            style={[styles.scoreDash, { color: c.textMuted }]}
+                          >
+                            —
+                          </Text>
                           <View style={styles.scoreField}>
                             <TextInput
-                              style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.scoreInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={editAwayScore}
                               onChangeText={setEditAwayScore}
                               keyboardType="number-pad"
@@ -659,7 +961,14 @@ export default function AdminScreen() {
                         </View>
 
                         <Pressable
-                          style={[styles.btn, { backgroundColor: ORANGE, opacity: editing ? 0.6 : 1, marginTop: 8 }]}
+                          style={[
+                            styles.btn,
+                            {
+                              backgroundColor: ORANGE,
+                              opacity: editing ? 0.6 : 1,
+                              marginTop: 8,
+                            },
+                          ]}
                           onPress={handleUpdateMatch}
                           disabled={editing}
                         >
@@ -667,8 +976,15 @@ export default function AdminScreen() {
                             <ActivityIndicator size="small" color="#FFF" />
                           ) : (
                             <>
-                              <Ionicons name="save" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                              <Text style={styles.btnText}>Salva modifiche</Text>
+                              <Ionicons
+                                name="save"
+                                size={18}
+                                color="#FFF"
+                                style={{ marginRight: 8 }}
+                              />
+                              <Text style={styles.btnText}>
+                                Salva modifiche
+                              </Text>
                             </>
                           )}
                         </Pressable>
@@ -677,12 +993,33 @@ export default function AdminScreen() {
 
                     {!editOpen && (
                       <>
-                        <Text style={[styles.label, { color: c.textMuted, marginTop: 16 }]}>PUNTEGGIO</Text>
+                        <Text
+                          style={[
+                            styles.label,
+                            { color: c.textMuted, marginTop: 16 },
+                          ]}
+                        >
+                          PUNTEGGIO
+                        </Text>
                         <View style={styles.scoreRow}>
                           <View style={styles.scoreField}>
-                            <Text style={[styles.teamLabel, { color: c.textSecondary }]}>{selectedMatch?.home_team}</Text>
+                            <Text
+                              style={[
+                                styles.teamLabel,
+                                { color: c.textSecondary },
+                              ]}
+                            >
+                              {selectedMatch?.home_team}
+                            </Text>
                             <TextInput
-                              style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.scoreInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={homeScore}
                               onChangeText={setHomeScore}
                               keyboardType="number-pad"
@@ -691,11 +1028,29 @@ export default function AdminScreen() {
                               maxLength={3}
                             />
                           </View>
-                          <Text style={[styles.scoreDash, { color: c.textMuted }]}>—</Text>
+                          <Text
+                            style={[styles.scoreDash, { color: c.textMuted }]}
+                          >
+                            —
+                          </Text>
                           <View style={styles.scoreField}>
-                            <Text style={[styles.teamLabel, { color: c.textSecondary }]}>{selectedMatch?.away_team}</Text>
+                            <Text
+                              style={[
+                                styles.teamLabel,
+                                { color: c.textSecondary },
+                              ]}
+                            >
+                              {selectedMatch?.away_team}
+                            </Text>
                             <TextInput
-                              style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                              style={[
+                                styles.scoreInput,
+                                {
+                                  backgroundColor: c.bg,
+                                  color: c.textPrimary,
+                                  borderColor: c.border,
+                                },
+                              ]}
                               value={awayScore}
                               onChangeText={setAwayScore}
                               keyboardType="number-pad"
@@ -707,7 +1062,14 @@ export default function AdminScreen() {
                         </View>
 
                         <Pressable
-                          style={[styles.btn, { backgroundColor: ORANGE, opacity: submitting ? 0.6 : 1, marginTop: 8 }]}
+                          style={[
+                            styles.btn,
+                            {
+                              backgroundColor: ORANGE,
+                              opacity: submitting ? 0.6 : 1,
+                              marginTop: 8,
+                            },
+                          ]}
                           onPress={handleSubmit}
                           disabled={submitting}
                         >
@@ -715,8 +1077,15 @@ export default function AdminScreen() {
                             <ActivityIndicator size="small" color="#FFF" />
                           ) : (
                             <>
-                              <Ionicons name="save-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                              <Text style={styles.btnText}>Salva risultato</Text>
+                              <Ionicons
+                                name="save-outline"
+                                size={18}
+                                color="#FFF"
+                                style={{ marginRight: 8 }}
+                              />
+                              <Text style={styles.btnText}>
+                                Salva risultato
+                              </Text>
                             </>
                           )}
                         </Pressable>
@@ -731,20 +1100,49 @@ export default function AdminScreen() {
                   style={styles.createHeader}
                   onPress={() => setCreateOpen(!createOpen)}
                 >
-                  <Ionicons name="add-circle-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
                     Crea nuova partita
                   </Text>
-                  <Ionicons name={createOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                  <Ionicons
+                    name={createOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={c.textMuted}
+                  />
                 </Pressable>
 
                 {createOpen && (
                   <>
-                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        {
+                          backgroundColor: c.border,
+                          marginTop: 16,
+                          marginBottom: 16,
+                        },
+                      ]}
+                    />
 
-                    <Text style={[styles.label, { color: c.textMuted }]}>GIORNATA</Text>
+                    <Text style={[styles.label, { color: c.textMuted }]}>
+                      GIORNATA
+                    </Text>
                     <TextInput
-                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      style={[
+                        styles.createInput,
+                        {
+                          backgroundColor: c.bg,
+                          color: c.textPrimary,
+                          borderColor: c.border,
+                        },
+                      ]}
                       value={createRound}
                       onChangeText={setCreateRound}
                       keyboardType="number-pad"
@@ -752,9 +1150,23 @@ export default function AdminScreen() {
                       placeholderTextColor={c.textMuted}
                     />
 
-                    <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>DATA</Text>
+                    <Text
+                      style={[
+                        styles.label,
+                        { color: c.textMuted, marginTop: 12 },
+                      ]}
+                    >
+                      DATA
+                    </Text>
                     <TextInput
-                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      style={[
+                        styles.createInput,
+                        {
+                          backgroundColor: c.bg,
+                          color: c.textPrimary,
+                          borderColor: c.border,
+                        },
+                      ]}
                       value={createDate}
                       onChangeText={setCreateDate}
                       placeholder="AAAA-MM-GG"
@@ -762,9 +1174,23 @@ export default function AdminScreen() {
                       autoCapitalize="none"
                     />
 
-                    <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>ORARIO (opzionale)</Text>
+                    <Text
+                      style={[
+                        styles.label,
+                        { color: c.textMuted, marginTop: 12 },
+                      ]}
+                    >
+                      ORARIO (opzionale)
+                    </Text>
                     <TextInput
-                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      style={[
+                        styles.createInput,
+                        {
+                          backgroundColor: c.bg,
+                          color: c.textPrimary,
+                          borderColor: c.border,
+                        },
+                      ]}
                       value={createTime}
                       onChangeText={setCreateTime}
                       placeholder="es. 21:00"
@@ -774,9 +1200,18 @@ export default function AdminScreen() {
 
                     <View style={styles.createTeamRow}>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.label, { color: c.textMuted }]}>SQUADRA CASA</Text>
+                        <Text style={[styles.label, { color: c.textMuted }]}>
+                          SQUADRA CASA
+                        </Text>
                         <TextInput
-                          style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                          style={[
+                            styles.createInput,
+                            {
+                              backgroundColor: c.bg,
+                              color: c.textPrimary,
+                              borderColor: c.border,
+                            },
+                          ]}
                           value={createHomeTeam}
                           onChangeText={setCreateHomeTeam}
                           placeholder="es. ABC Castelfiorentino"
@@ -784,11 +1219,31 @@ export default function AdminScreen() {
                           autoCapitalize="words"
                         />
                       </View>
-                      <Text style={[styles.scoreDash, { color: c.textMuted, paddingBottom: 0, marginTop: 24 }]}>:</Text>
+                      <Text
+                        style={[
+                          styles.scoreDash,
+                          {
+                            color: c.textMuted,
+                            paddingBottom: 0,
+                            marginTop: 24,
+                          },
+                        ]}
+                      >
+                        :
+                      </Text>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.label, { color: c.textMuted }]}>SQUADRA OSPITE</Text>
+                        <Text style={[styles.label, { color: c.textMuted }]}>
+                          SQUADRA OSPITE
+                        </Text>
                         <TextInput
-                          style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                          style={[
+                            styles.createInput,
+                            {
+                              backgroundColor: c.bg,
+                              color: c.textPrimary,
+                              borderColor: c.border,
+                            },
+                          ]}
                           value={createAwayTeam}
                           onChangeText={setCreateAwayTeam}
                           placeholder="es. Union Basket Prato"
@@ -798,13 +1253,31 @@ export default function AdminScreen() {
                       </View>
                     </View>
 
-                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        {
+                          backgroundColor: c.border,
+                          marginTop: 16,
+                          marginBottom: 16,
+                        },
+                      ]}
+                    />
 
-                    <Text style={[styles.label, { color: c.textMuted }]}>PUNTEGGIO</Text>
+                    <Text style={[styles.label, { color: c.textMuted }]}>
+                      PUNTEGGIO
+                    </Text>
                     <View style={styles.scoreRow}>
                       <View style={styles.scoreField}>
                         <TextInput
-                          style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                          style={[
+                            styles.scoreInput,
+                            {
+                              backgroundColor: c.bg,
+                              color: c.textPrimary,
+                              borderColor: c.border,
+                            },
+                          ]}
                           value={createHomeScore}
                           onChangeText={setCreateHomeScore}
                           keyboardType="number-pad"
@@ -813,10 +1286,19 @@ export default function AdminScreen() {
                           maxLength={3}
                         />
                       </View>
-                      <Text style={[styles.scoreDash, { color: c.textMuted }]}>—</Text>
+                      <Text style={[styles.scoreDash, { color: c.textMuted }]}>
+                        —
+                      </Text>
                       <View style={styles.scoreField}>
                         <TextInput
-                          style={[styles.scoreInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                          style={[
+                            styles.scoreInput,
+                            {
+                              backgroundColor: c.bg,
+                              color: c.textPrimary,
+                              borderColor: c.border,
+                            },
+                          ]}
                           value={createAwayScore}
                           onChangeText={setCreateAwayScore}
                           keyboardType="number-pad"
@@ -828,7 +1310,14 @@ export default function AdminScreen() {
                     </View>
 
                     <Pressable
-                      style={[styles.btn, { backgroundColor: ORANGE, opacity: creating ? 0.6 : 1, marginTop: 8 }]}
+                      style={[
+                        styles.btn,
+                        {
+                          backgroundColor: ORANGE,
+                          opacity: creating ? 0.6 : 1,
+                          marginTop: 8,
+                        },
+                      ]}
                       onPress={handleCreate}
                       disabled={creating}
                     >
@@ -836,7 +1325,12 @@ export default function AdminScreen() {
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
                         <>
-                          <Ionicons name="add-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                          <Ionicons
+                            name="add-circle"
+                            size={18}
+                            color="#FFF"
+                            style={{ marginRight: 8 }}
+                          />
                           <Text style={styles.btnText}>Crea partita</Text>
                         </>
                       )}
@@ -848,56 +1342,152 @@ export default function AdminScreen() {
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                 <Pressable
                   style={styles.createHeader}
-                  onPress={() => { setChangeKeyOpen(!changeKeyOpen); setKeyChangeMsg(null); }}
+                  onPress={() => {
+                    setChangeKeyOpen(!changeKeyOpen);
+                    setKeyChangeMsg(null);
+                  }}
                 >
-                  <Ionicons name="key-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                  <Ionicons
+                    name="key-outline"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
                     Cambia chiave API
                   </Text>
-                  <Ionicons name={changeKeyOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                  <Ionicons
+                    name={changeKeyOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={c.textMuted}
+                  />
                 </Pressable>
 
                 {changeKeyOpen && (
                   <>
-                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        {
+                          backgroundColor: c.border,
+                          marginTop: 16,
+                          marginBottom: 16,
+                        },
+                      ]}
+                    />
 
                     {keyChangeMsg && (
-                      <View style={[styles.feedbackCard, { backgroundColor: keyChangeOk ? c.winBg : c.lossBg, borderColor: keyChangeOk ? c.win : c.loss, marginBottom: 16 }]}>
-                        <Ionicons name={keyChangeOk ? "checkmark-circle" : "alert-circle"} size={18} color={keyChangeOk ? c.win : c.loss} style={{ marginRight: 8 }} />
-                        <Text style={[styles.feedbackText, { color: keyChangeOk ? c.win : c.loss }]}>{keyChangeMsg}</Text>
+                      <View
+                        style={[
+                          styles.feedbackCard,
+                          {
+                            backgroundColor: keyChangeOk ? c.winBg : c.lossBg,
+                            borderColor: keyChangeOk ? c.win : c.loss,
+                            marginBottom: 16,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          name={
+                            keyChangeOk ? "checkmark-circle" : "alert-circle"
+                          }
+                          size={18}
+                          color={keyChangeOk ? c.win : c.loss}
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text
+                          style={[
+                            styles.feedbackText,
+                            { color: keyChangeOk ? c.win : c.loss },
+                          ]}
+                        >
+                          {keyChangeMsg}
+                        </Text>
                       </View>
                     )}
 
-                    <Text style={[styles.label, { color: c.textMuted }]}>NUOVA CHIAVE</Text>
+                    <Text style={[styles.label, { color: c.textMuted }]}>
+                      NUOVA CHIAVE
+                    </Text>
                     <TextInput
-                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      style={[
+                        styles.createInput,
+                        {
+                          backgroundColor: c.bg,
+                          color: c.textPrimary,
+                          borderColor: c.border,
+                        },
+                      ]}
                       value={newKey}
-                      onChangeText={(t) => { setNewKey(t); setKeyChangeMsg(null); }}
+                      onChangeText={(t) => {
+                        setNewKey(t);
+                        setKeyChangeMsg(null);
+                      }}
                       placeholder="Inserisci nuova chiave"
                       placeholderTextColor={c.textMuted}
                       autoCapitalize="none"
                     />
 
-                    <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>CONFERMA CHIAVE</Text>
+                    <Text
+                      style={[
+                        styles.label,
+                        { color: c.textMuted, marginTop: 12 },
+                      ]}
+                    >
+                      CONFERMA CHIAVE
+                    </Text>
                     <TextInput
-                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      style={[
+                        styles.createInput,
+                        {
+                          backgroundColor: c.bg,
+                          color: c.textPrimary,
+                          borderColor: c.border,
+                        },
+                      ]}
                       value={confirmNewKey}
-                      onChangeText={(t) => { setConfirmNewKey(t); setKeyChangeMsg(null); }}
+                      onChangeText={(t) => {
+                        setConfirmNewKey(t);
+                        setKeyChangeMsg(null);
+                      }}
                       placeholder="Riscrivi la nuova chiave"
                       placeholderTextColor={c.textMuted}
                       autoCapitalize="none"
                     />
 
                     <Pressable
-                      style={[styles.btn, { backgroundColor: ORANGE, opacity: (newKey.trim() && newKey === confirmNewKey && !changingKey) ? 1 : 0.5, marginTop: 12 }]}
+                      style={[
+                        styles.btn,
+                        {
+                          backgroundColor: ORANGE,
+                          opacity:
+                            newKey.trim() &&
+                            newKey === confirmNewKey &&
+                            !changingKey
+                              ? 1
+                              : 0.5,
+                          marginTop: 12,
+                        },
+                      ]}
                       onPress={handleChangeKey}
-                      disabled={!newKey.trim() || newKey !== confirmNewKey || changingKey}
+                      disabled={
+                        !newKey.trim() ||
+                        newKey !== confirmNewKey ||
+                        changingKey
+                      }
                     >
                       {changingKey ? (
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
                         <>
-                          <Ionicons name="refresh" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                          <Ionicons
+                            name="refresh"
+                            size={18}
+                            color="#FFF"
+                            style={{ marginRight: 8 }}
+                          />
                           <Text style={styles.btnText}>Aggiorna chiave</Text>
                         </>
                       )}
@@ -914,44 +1504,138 @@ export default function AdminScreen() {
                     if (!usersOpen) fetchUsers();
                   }}
                 >
-                  <Ionicons name="people-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                  <Ionicons
+                    name="people-outline"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
                     Utenti registrati
                   </Text>
-                  <Ionicons name={usersOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                  <Ionicons
+                    name={usersOpen ? "chevron-up" : "chevron-down"}
+                    size={16}
+                    color={c.textMuted}
+                  />
                 </Pressable>
 
                 {usersOpen && (
                   <>
-                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+                    <View
+                      style={[
+                        styles.divider,
+                        {
+                          backgroundColor: c.border,
+                          marginTop: 16,
+                          marginBottom: 16,
+                        },
+                      ]}
+                    />
 
                     {usersLoading ? (
                       <ActivityIndicator size="small" color={ORANGE} />
                     ) : users.length === 0 ? (
-                      <Text style={[styles.emptyText, { color: c.textMuted }]}>Nessun utente registrato</Text>
+                      <Text style={[styles.emptyText, { color: c.textMuted }]}>
+                        Nessun utente registrato
+                      </Text>
                     ) : (
-                      <ScrollView style={styles.usersTableScroll} nestedScrollEnabled>
+                      <ScrollView
+                        style={styles.usersTableScroll}
+                        nestedScrollEnabled
+                      >
                         <View style={styles.usersTable}>
-                          <View style={[styles.usersHeaderRow, { borderBottomColor: c.border }]}>
-                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>NOME</Text>
-                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>EMAIL</Text>
-                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>DATA</Text>
-                            <Text style={[styles.usersHeaderCell, { color: c.textMuted, width: 50 }]} />
+                          <View
+                            style={[
+                              styles.usersHeaderRow,
+                              { borderBottomColor: c.border },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.usersHeaderCell,
+                                { color: c.textMuted },
+                              ]}
+                            >
+                              NOME
+                            </Text>
+                            <Text
+                              style={[
+                                styles.usersHeaderCell,
+                                { color: c.textMuted },
+                              ]}
+                            >
+                              EMAIL
+                            </Text>
+                            <Text
+                              style={[
+                                styles.usersHeaderCell,
+                                { color: c.textMuted },
+                              ]}
+                            >
+                              DATA
+                            </Text>
+                            <Text
+                              style={[
+                                styles.usersHeaderCell,
+                                { color: c.textMuted, width: 50 },
+                              ]}
+                            />
                           </View>
                           {users.map((u) => {
                             const d = new Date(u.createdAt);
                             const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
                             return (
-                              <View key={u.id} style={[styles.usersRow, { borderBottomColor: c.border }]}>
-                                <Text style={[styles.usersCell, { color: c.textPrimary }]} numberOfLines={1}>{u.name}</Text>
-                                <Text style={[styles.usersCell, { color: c.textSecondary }]} numberOfLines={1}>{u.email}</Text>
-                                <Text style={[styles.usersCellDate, { color: c.textMuted }]}>{dateStr}</Text>
-                                <View style={{ width: 50, alignItems: "center" }}>
+                              <View
+                                key={u.id}
+                                style={[
+                                  styles.usersRow,
+                                  { borderBottomColor: c.border },
+                                ]}
+                              >
+                                <Text
+                                  style={[
+                                    styles.usersCell,
+                                    { color: c.textPrimary },
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {u.name}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.usersCell,
+                                    { color: c.textSecondary },
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {u.email}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.usersCellDate,
+                                    { color: c.textMuted },
+                                  ]}
+                                >
+                                  {dateStr}
+                                </Text>
+                                <View
+                                  style={{ width: 50, alignItems: "center" }}
+                                >
                                   <Pressable
-                                    style={[styles.usersDeleteBtn, { backgroundColor: c.lossBg }]}
+                                    style={[
+                                      styles.usersDeleteBtn,
+                                      { backgroundColor: c.lossBg },
+                                    ]}
                                     onPress={() => handleDeleteUser(u)}
                                   >
-                                    <Ionicons name="trash-outline" size={14} color={c.loss} />
+                                    <Ionicons
+                                      name="trash-outline"
+                                      size={14}
+                                      color={c.loss}
+                                    />
                                   </Pressable>
                                 </View>
                               </View>

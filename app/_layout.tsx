@@ -1,62 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform, Pressable, StyleSheet, View } from "react-native";
-import { Text } from "@/src/theme";
-import { ThemeProvider, useColors, useFontScaleControls, useTheme, useToggleTheme } from "@/src/theme/ThemeContext";
+import { Platform, StyleSheet, View } from "react-native";
+import { ThemeProvider, useColors, useTheme } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
-
-function ThemeToggle() {
-  const theme = useTheme();
-  const toggle = useToggleTheme();
-  const c = useColors();
-  return (
-    <Pressable
-      onPress={toggle}
-      style={({ pressed }) => [
-        styles.toggleBtn,
-        { backgroundColor: c.bgCard, borderColor: c.border },
-        pressed && { opacity: 0.7 },
-      ]}
-    >
-      <Ionicons
-        name={theme === "dark" ? "sunny" : "moon"}
-        size={20}
-        color={c.accent}
-      />
-    </Pressable>
-  );
-}
-
-function FontScaleControl() {
-  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
-  const c = useColors();
-  return (
-    <View
-      style={[
-        styles.fontScaleRow,
-        { backgroundColor: c.bgCard, borderColor: c.border },
-      ]}
-    >
-      <Pressable
-        onPress={decreaseFontScale}
-        style={({ pressed }) => [styles.fontScaleBtn, pressed && { opacity: 0.6 }]}
-      >
-        <Text style={[styles.fontScaleBtnText, { color: c.accent }]}>A–</Text>
-      </Pressable>
-      <Text style={[styles.fontScaleValue, { color: c.textSecondary }]}>
-        {Math.round(fontScale * 100)}%
-      </Text>
-      <Pressable
-        onPress={increaseFontScale}
-        style={({ pressed }) => [styles.fontScaleBtn, pressed && { opacity: 0.6 }]}
-      >
-        <Text style={[styles.fontScaleBtnText, { color: c.accent }]}>A+</Text>
-      </Pressable>
-    </View>
-  );
-}
+import DraggableControlPanel from "@/src/components/DraggableControlPanel";
 
 function LayoutContent() {
   const c = useColors();
@@ -78,7 +26,7 @@ function LayoutContent() {
 
         const { granted, status } = await getPermissionsAsync();
         const canRequest = status === "undetermined";
-        if (!granted && !canRequest) return; // già negato, non insistere
+        if (!granted && !canRequest) return;
         if (!granted && canRequest) {
           const result = await requestPermissionsAsync();
           if (!result.granted || cancelled) return;
@@ -99,7 +47,6 @@ function LayoutContent() {
           body: JSON.stringify({ expoPushToken: tokenData.data }),
         });
       } catch {
-        // Silenzioso — non blocca l'app
       }
     })();
     return () => { cancelled = true; };
@@ -129,8 +76,7 @@ function LayoutContent() {
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
         </Stack>
       </View>
-      <ThemeToggle />
-      <FontScaleControl />
+      <DraggableControlPanel />
     </View>
   );
 }
@@ -152,55 +98,5 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     width: "100%",
     alignSelf: "center",
-  },
-  toggleBtn: {
-    position: Platform.OS === "web" ? "fixed" : "absolute",
-    bottom: 80,
-    right: 12,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 999,
-  },
-  fontScaleRow: {
-    position: Platform.OS === "web" ? "fixed" : "absolute",
-    bottom: 130,
-    right: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    borderRadius: 21,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 999,
-  },
-  fontScaleBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fontScaleBtnText: {
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  fontScaleValue: {
-    fontSize: 10,
-    fontWeight: "600",
-    minWidth: 32,
-    textAlign: "center",
   },
 });
