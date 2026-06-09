@@ -276,38 +276,30 @@ export default function AdminScreen() {
     }
   };
 
-  const handleDelete = (m: MatchOption) => {
-    Alert.alert(`Eliminare G.${m.round}?`, `${m.home_team} - ${m.away_team}`, [
-      { text: "Annulla", style: "cancel" },
-      {
-        text: "Elimina",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const res = await fetch(`${API_URL}/matches/${m.id}`, {
-              method: "DELETE",
-              headers: { Authorization: `Bearer ${savedKey}` },
-            });
-            if (!res.ok) {
-              const txt = await res.text();
-              let msg = "Errore durante l'eliminazione";
-              try { const j = JSON.parse(txt); msg = j.message || msg; } catch {}
-              Alert.alert("Errore", msg);
-              return;
-            }
-            setSuccess(null);
-            if (matchId === m.id) {
-              setMatchId(0);
-              setHomeScore("");
-              setAwayScore("");
-            }
-            await fetchMatches();
-          } catch {
-            Alert.alert("Errore", "Errore di connessione al server");
-          }
-        },
-      },
-    ]);
+  const handleDelete = async (m: MatchOption) => {
+    if (!window.confirm(`Eliminare G.${m.round}: ${m.home_team} - ${m.away_team}?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/matches/${m.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${savedKey}` },
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        let msg = "Errore durante l'eliminazione";
+        try { const j = JSON.parse(txt); msg = j.message || msg; } catch {}
+        window.alert(msg);
+        return;
+      }
+      setSuccess(null);
+      if (matchId === m.id) {
+        setMatchId(0);
+        setHomeScore("");
+        setAwayScore("");
+      }
+      await fetchMatches();
+    } catch {
+      window.alert("Errore di connessione al server");
+    }
   };
 
   const handleUpdateMatch = async () => {
