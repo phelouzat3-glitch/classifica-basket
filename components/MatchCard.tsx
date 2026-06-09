@@ -1,7 +1,8 @@
 // src/components/MatchCard.tsx
 import { TeamLogo } from "@/components/TeamLogo";
 import { useColors } from "@/src/theme/ThemeContext";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "@/src/theme";
 
 type Match = {
   id: number;

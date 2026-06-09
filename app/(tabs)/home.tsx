@@ -1,5 +1,6 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -12,9 +13,9 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 Dimensions.get("window");
@@ -103,6 +104,7 @@ export default function HomeTabScreen() {
   }, [fadeAnim, slideAnim]);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const load = useCallback(
     async (isRefresh = false) => {
@@ -175,6 +177,7 @@ export default function HomeTabScreen() {
           transform: [{ translateY: slideAnim }],
         },
       ]}
+      {...panHandlers}
     >
       <ScrollView
         contentContainerStyle={[
@@ -200,20 +203,32 @@ export default function HomeTabScreen() {
               Stagione {myTeam?.season ?? "2025/26"}
             </Text>
           </View>
-          <Pressable
-            style={({ pressed }) => [
-              styles.notifBtn,
-              { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-              pressed && { opacity: 0.6 },
-            ]}
-            onPress={() => router.push("/notifiche" as any)}
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={c.accent}
-            />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.notifBtn,
+                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() => router.push("/register" as any)}
+            >
+              <Ionicons name="person-add" size={18} color={c.accent} />
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.notifBtn,
+                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+                pressed && { opacity: 0.6 },
+              ]}
+              onPress={() => router.push("/notifiche" as any)}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={c.accent}
+              />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.summaryRow}>
@@ -601,6 +616,7 @@ const styles = StyleSheet.create({
   },
   headerSub: { fontSize: 12, marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: "700" },
+  headerActions: { flexDirection: "row", gap: 8 },
   notifBtn: {
     width: 36,
     height: 36,

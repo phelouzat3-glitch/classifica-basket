@@ -8,10 +8,10 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Struttura dati identica a quella restituita dall'interfaccia NestJS

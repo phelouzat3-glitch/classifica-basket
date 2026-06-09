@@ -5,11 +5,11 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { PositionBadge } from "./PositionBadge";
 import { useColors } from "@/src/theme/ThemeContext";
 

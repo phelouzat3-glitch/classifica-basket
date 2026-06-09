@@ -11,10 +11,10 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function getStorage() {
@@ -31,6 +31,13 @@ type MatchOption = {
   away_team: string;
   home_score: number | null;
   away_score: number | null;
+};
+
+type AdminUser = {
+  id: number;
+  email: string;
+  name: string;
+  createdAt: string;
 };
 
 const ORANGE = "#E8600A";
@@ -80,6 +87,10 @@ export default function AdminScreen() {
   const [keyChangeMsg, setKeyChangeMsg] = useState<string | null>(null);
   const [keyChangeOk, setKeyChangeOk] = useState(false);
 
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersOpen, setUsersOpen] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(false);
+
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
     slideAnim.setValue(12);
@@ -98,6 +109,23 @@ export default function AdminScreen() {
       animateIn();
     } catch {}
   }, [animateIn]);
+
+  const fetchUsers = useCallback(async () => {
+    if (!savedKey) return;
+    setUsersLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${savedKey}` },
+      });
+      if (!res.ok) throw new Error("");
+      const data = (await res.json()) as AdminUser[];
+      setUsers(data);
+    } catch {
+      setUsers([]);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, [savedKey]);
 
   useEffect(() => {
     (async () => {
@@ -326,6 +354,30 @@ export default function AdminScreen() {
     } finally {
       setChangingKey(false);
     }
+  };
+
+  const handleDeleteUser = (user: AdminUser) => {
+    Alert.alert(
+      `Eliminare ${user.name}?`,
+      `${user.email}`,
+      [
+        { text: "Annulla", style: "cancel" },
+        {
+          text: "Elimina",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const res = await fetch(`${API_URL}/admin/users/${user.id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${savedKey}` },
+              });
+              if (!res.ok) throw new Error("");
+              await fetchUsers();
+            } catch {}
+          },
+        },
+      ],
+    );
   };
 
   const selectedMatch = matches.find((m) => m.id === matchId);
@@ -853,6 +905,64 @@ export default function AdminScreen() {
                   </>
                 )}
               </View>
+
+              <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+                <Pressable
+                  style={styles.createHeader}
+                  onPress={() => {
+                    setUsersOpen(!usersOpen);
+                    if (!usersOpen) fetchUsers();
+                  }}
+                >
+                  <Ionicons name="people-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
+                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                    Utenti registrati
+                  </Text>
+                  <Ionicons name={usersOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                </Pressable>
+
+                {usersOpen && (
+                  <>
+                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+
+                    {usersLoading ? (
+                      <ActivityIndicator size="small" color={ORANGE} />
+                    ) : users.length === 0 ? (
+                      <Text style={[styles.emptyText, { color: c.textMuted }]}>Nessun utente registrato</Text>
+                    ) : (
+                      <ScrollView style={styles.usersTableScroll} nestedScrollEnabled>
+                        <View style={styles.usersTable}>
+                          <View style={[styles.usersHeaderRow, { borderBottomColor: c.border }]}>
+                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>NOME</Text>
+                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>EMAIL</Text>
+                            <Text style={[styles.usersHeaderCell, { color: c.textMuted }]}>DATA</Text>
+                            <Text style={[styles.usersHeaderCell, { color: c.textMuted, width: 50 }]} />
+                          </View>
+                          {users.map((u) => {
+                            const d = new Date(u.createdAt);
+                            const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+                            return (
+                              <View key={u.id} style={[styles.usersRow, { borderBottomColor: c.border }]}>
+                                <Text style={[styles.usersCell, { color: c.textPrimary }]} numberOfLines={1}>{u.name}</Text>
+                                <Text style={[styles.usersCell, { color: c.textSecondary }]} numberOfLines={1}>{u.email}</Text>
+                                <Text style={[styles.usersCellDate, { color: c.textMuted }]}>{dateStr}</Text>
+                                <View style={{ width: 50, alignItems: "center" }}>
+                                  <Pressable
+                                    style={[styles.usersDeleteBtn, { backgroundColor: c.lossBg }]}
+                                    onPress={() => handleDeleteUser(u)}
+                                  >
+                                    <Ionicons name="trash-outline" size={14} color={c.loss} />
+                                  </Pressable>
+                                </View>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      </ScrollView>
+                    )}
+                  </>
+                )}
+              </View>
             </>
           )}
         </ScrollView>
@@ -1123,5 +1233,53 @@ const styles = StyleSheet.create({
   editRow: {
     flexDirection: "row",
     gap: 8,
+  },
+
+  emptyText: {
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
+    paddingVertical: 20,
+  },
+  usersTableScroll: {
+    maxHeight: 400,
+  },
+  usersTable: {},
+  usersHeaderRow: {
+    flexDirection: "row",
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    gap: 8,
+  },
+  usersHeaderCell: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    flex: 1,
+    textTransform: "uppercase",
+  },
+  usersRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    gap: 8,
+  },
+  usersCell: {
+    fontSize: 13,
+    fontWeight: "500",
+    flex: 1,
+  },
+  usersCellDate: {
+    fontSize: 11,
+    fontWeight: "500",
+    flex: 1,
+  },
+  usersDeleteBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

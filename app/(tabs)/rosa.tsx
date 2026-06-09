@@ -1,3 +1,4 @@
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
 import { getPlayerImage } from "@/src/config/playerImages";
@@ -19,11 +20,11 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type PlayerFromApi = {
@@ -132,6 +133,7 @@ export default function RosaScreen() {
   }, [fadeAnim, slideAnim]);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const fetchPlayers = useCallback(
     async (isRefresh = false) => {
@@ -325,6 +327,7 @@ export default function RosaScreen() {
         styles.root,
         { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg },
       ]}
+      {...panHandlers}
     >
       <StatusBar barStyle="light-content" />
 

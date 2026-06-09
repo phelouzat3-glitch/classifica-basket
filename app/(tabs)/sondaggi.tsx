@@ -1,4 +1,5 @@
 import { API_URL } from "@/src/config/api";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,9 +10,9 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const STORAGE_KEY = "sondaggi_votati";
@@ -71,6 +72,7 @@ export default function SondaggiScreen() {
   const [votingPollId, setVotingPollId] = useState<number | null>(null);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
   const insets = useSafeAreaInsets();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -161,6 +163,7 @@ export default function SondaggiScreen() {
           transform: [{ translateY: slideAnim }],
         },
       ]}
+      {...panHandlers}
     >
       <ScrollView
         contentContainerStyle={styles.scroll}

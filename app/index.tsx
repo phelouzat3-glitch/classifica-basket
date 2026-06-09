@@ -1,3 +1,4 @@
+import { Text } from "@/src/theme";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -9,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,7 +38,7 @@ const MENU_ITEMS = [
   { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
 
-const ORBIT_RADIUS = Platform.select({ web: 28, default: 20 });
+const ORBIT_RADIUS = Platform.select({ web: 28, default: 24 });
 const CIRCLE_POINTS = 16;
 
 const inputRange = Array.from({ length: CIRCLE_POINTS + 1 }, (_, i) => i / CIRCLE_POINTS);
@@ -295,24 +295,24 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: Platform.select({ web: 11, default: 11 }),
     fontWeight: "700",
     letterSpacing: 0.5,
   },
   teamName: {
-    fontSize: Platform.select({ web: 22, default: 20 }),
+    fontSize: Platform.select({ web: 22, default: 22 }),
     fontWeight: "800",
     textAlign: "center",
     letterSpacing: -0.5,
   },
   season: {
-    fontSize: Platform.select({ web: 12, default: 11 }),
+    fontSize: Platform.select({ web: 13, default: 13 }),
     fontWeight: "500",
     marginTop: 2,
   },
   fieldBorder: {
-    width: Platform.select({ web: 400, default: 260 }),
-    height: Platform.select({ web: 200, default: 140 }),
+    width: Platform.select({ web: 400, default: 320 }),
+    height: Platform.select({ web: 200, default: 180 }),
     backgroundColor: COURT_COLOR,
     borderRadius: 10,
     borderWidth: 2,
@@ -332,20 +332,20 @@ const styles = StyleSheet.create({
   },
   centerCircle: {
     position: "absolute",
-    width: Platform.select({ web: 52, default: 36 }),
-    height: Platform.select({ web: 52, default: 36 }),
-    borderRadius: Platform.select({ web: 26, default: 18 }),
+    width: Platform.select({ web: 52, default: 44 }),
+    height: Platform.select({ web: 52, default: 44 }),
+    borderRadius: Platform.select({ web: 26, default: 22 }),
     borderWidth: 2,
     borderColor: LINE_COLOR,
     top: "50%",
     left: "50%",
-    marginLeft: Platform.select({ web: -26, default: -18 }),
-    marginTop: Platform.select({ web: -26, default: -18 }),
+    marginLeft: Platform.select({ web: -26, default: -22 }),
+    marginTop: Platform.select({ web: -26, default: -22 }),
   },
   keyBase: {
     position: "absolute",
-    width: Platform.select({ web: 48, default: 32 }),
-    height: Platform.select({ web: 64, default: 46 }),
+    width: Platform.select({ web: 48, default: 38 }),
+    height: Platform.select({ web: 64, default: 56 }),
     borderWidth: 2,
     borderColor: LINE_COLOR,
   },
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: "50%",
-    marginTop: Platform.select({ web: -32, default: -23 }),
+    marginTop: Platform.select({ web: -32, default: -28 }),
     borderLeftWidth: 0,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
@@ -362,23 +362,23 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     top: "50%",
-    marginTop: Platform.select({ web: -32, default: -23 }),
+    marginTop: Platform.select({ web: -32, default: -28 }),
     borderRightWidth: 0,
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
   },
   leftFreeThrow: {
     position: "absolute",
-    left: Platform.select({ web: 48, default: 32 }),
+    left: Platform.select({ web: 48, default: 38 }),
     top: "50%",
     marginTop: -1,
-    width: Platform.select({ web: 30, default: 20 }),
+    width: Platform.select({ web: 30, default: 24 }),
     height: 2,
     backgroundColor: LINE_COLOR,
   },
   rightFreeThrow: {
     position: "absolute",
-    right: Platform.select({ web: 48, default: 32 }),
+    right: Platform.select({ web: 48, default: 38 }),
     top: "50%",
     marginTop: -1,
     width: Platform.select({ web: 30, default: 20 }),
@@ -389,19 +389,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginLeft: Platform.select({ web: -14, default: -9 }),
-    marginTop: Platform.select({ web: -14, default: -9 }),
-    fontSize: Platform.select({ web: 28, default: 18 }),
+    marginLeft: Platform.select({ web: -14, default: -11 }),
+    marginTop: Platform.select({ web: -14, default: -11 }),
+    fontSize: Platform.select({ web: 28, default: 22 }),
   },
   bottomSection: {
-    gap: Platform.select({ web: 24, default: 16 }),
+    gap: Platform.select({ web: 24, default: 20 }),
   },
   menuGrid: {
-    gap: 12,
+    gap: 14,
   },
   menuRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 14,
     justifyContent: "center",
   },
   menuCol: {
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   },
   menuCard: {
     width: "100%",
-    maxWidth: Platform.select({ web: 180, default: 130 }),
+    maxWidth: Platform.select({ web: 180, default: 145 }),
     aspectRatio: 1,
     borderRadius: 14,
     justifyContent: "center",
@@ -423,10 +423,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   menuIcon: {
-    fontSize: Platform.select({ web: 28, default: 24 }),
+    fontSize: Platform.select({ web: 30, default: 28 }),
   },
   menuLabel: {
-    fontSize: Platform.select({ web: 13, default: 12 }),
+    fontSize: Platform.select({ web: 14, default: 14 }),
     fontWeight: "600",
   },
   button: {
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "700",
     letterSpacing: 0.5,
   },

@@ -12,9 +12,9 @@ import {
   Share,
   StatusBar,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/src/theme/ThemeContext";
 

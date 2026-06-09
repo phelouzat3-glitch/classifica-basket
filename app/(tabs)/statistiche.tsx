@@ -1,5 +1,6 @@
 import { API_URL } from "@/src/config/api";
 import { getPlayerImage } from "@/src/config/playerImages";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -11,9 +12,9 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Standing = {
@@ -70,6 +71,7 @@ export default function StatisticheScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -172,6 +174,7 @@ export default function StatisticheScreen() {
           transform: [{ translateY: slideAnim }],
         },
       ]}
+      {...panHandlers}
     >
       <ScrollView
         contentContainerStyle={styles.scroll}

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -10,11 +11,11 @@ import {
   Pressable,
   SectionList,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -121,6 +122,7 @@ export default function CalendarioScreen() {
 
   const router = useRouter();
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const fetchMatches = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -210,7 +212,7 @@ export default function CalendarioScreen() {
   }
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]} {...panHandlers}>
       <View style={[styles.header, { backgroundColor: c.bg }]}>
         <Text style={styles.headerSmall}>ABC CASTELFIORENTINO</Text>
         <View style={styles.headerRow}>

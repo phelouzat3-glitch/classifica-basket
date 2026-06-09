@@ -6,12 +6,13 @@ import {
   Animated,
   StatusBar,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "@/src/theme";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export default function ClassificaScreen() {
   }, [fadeAnim, slideAnim]);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const fetchStandings = useCallback(
     async (isRefresh = false) => {
@@ -228,6 +230,7 @@ export default function ClassificaScreen() {
         styles.root,
         { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
+      {...panHandlers}
     >
       <StatusBar barStyle="light-content" />
 

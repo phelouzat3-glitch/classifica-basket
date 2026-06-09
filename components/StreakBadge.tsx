@@ -1,4 +1,5 @@
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
+import { Text } from "@/src/theme";
 
 type Props = {
   streak: string; // es. "W3" o "L6"

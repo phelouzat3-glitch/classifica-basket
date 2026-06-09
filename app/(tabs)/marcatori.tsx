@@ -10,11 +10,12 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 
 type Player = {
@@ -41,6 +42,7 @@ export default function MarcatoriScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const c = useColors();
+  const { panHandlers } = useHorizontalSwipe();
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -130,6 +132,7 @@ export default function MarcatoriScreen() {
           backgroundColor: c.bg,
         },
       ]}
+      {...panHandlers}
     >
       <Text style={[styles.title, { color: c.textPrimary }]}>Classifica Marcatori</Text>
 

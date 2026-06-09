@@ -1,5 +1,6 @@
 import { getTeamLogo } from "@/src/config/teamImages";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
+import { Text } from "@/src/theme";
 
 function getInitials(name: string): string {
   const clean = name

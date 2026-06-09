@@ -12,11 +12,11 @@ import {
   RefreshControl,
   Share,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type MatchFromApi = {

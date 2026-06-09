@@ -3,7 +3,8 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
-import { ThemeProvider, useColors, useTheme, useToggleTheme } from "@/src/theme/ThemeContext";
+import { Text } from "@/src/theme";
+import { ThemeProvider, useColors, useFontScaleControls, useTheme, useToggleTheme } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
 
 function ThemeToggle() {
@@ -25,6 +26,35 @@ function ThemeToggle() {
         color={c.accent}
       />
     </Pressable>
+  );
+}
+
+function FontScaleControl() {
+  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
+  const c = useColors();
+  return (
+    <View
+      style={[
+        styles.fontScaleRow,
+        { backgroundColor: c.bgCard, borderColor: c.border },
+      ]}
+    >
+      <Pressable
+        onPress={decreaseFontScale}
+        style={({ pressed }) => [styles.fontScaleBtn, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={[styles.fontScaleBtnText, { color: c.accent }]}>A–</Text>
+      </Pressable>
+      <Text style={[styles.fontScaleValue, { color: c.textSecondary }]}>
+        {Math.round(fontScale * 100)}%
+      </Text>
+      <Pressable
+        onPress={increaseFontScale}
+        style={({ pressed }) => [styles.fontScaleBtn, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={[styles.fontScaleBtnText, { color: c.accent }]}>A+</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -95,10 +125,12 @@ function LayoutContent() {
           />
           <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
+          <Stack.Screen name="register" options={{ headerShown: true, title: "Registrati", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
         </Stack>
       </View>
       <ThemeToggle />
+      <FontScaleControl />
     </View>
   );
 }
@@ -137,5 +169,38 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
     zIndex: 999,
+  },
+  fontScaleRow: {
+    position: Platform.OS === "web" ? "fixed" : "absolute",
+    bottom: 130,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    borderRadius: 21,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 999,
+  },
+  fontScaleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fontScaleBtnText: {
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  fontScaleValue: {
+    fontSize: 10,
+    fontWeight: "600",
+    minWidth: 32,
+    textAlign: "center",
   },
 });

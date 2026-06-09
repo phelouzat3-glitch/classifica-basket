@@ -1,5 +1,6 @@
 import { PLAYOFF_CUTOFF, RETRO_FROM } from "@/src/data/standings";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "@/src/theme";
 
 type Props = {
   position: number;
