@@ -6,6 +6,7 @@ import {
   Animated,
   Easing,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -167,64 +168,69 @@ export default function LandingScreen() {
         styles.root,
         {
           paddingTop: insets.top,
-          paddingBottom: insets.bottom + 12,
           backgroundColor: colors.bg,
         },
       ]}
     >
       <StatusBar style="light" />
-
-      <View style={styles.header}>
-        <View
-          style={[
-            styles.badge,
-            {
-              backgroundColor: colors.accent + "18",
-              borderColor: colors.accent + "30",
-            },
-          ]}
-        >
-          <Text style={[styles.badgeText, { color: colors.accent }]}>
-            {TEAM_CONFIG.division}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: colors.accent + "18",
+                borderColor: colors.accent + "30",
+              },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: colors.accent }]}>
+              {TEAM_CONFIG.division}
+            </Text>
+          </View>
+          <Text
+            style={[styles.teamName, { color: colors.textPrimary }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {TEAM_CONFIG.name}
+          </Text>
+          <Text style={[styles.season, { color: colors.textSecondary }]}>
+            {TEAM_CONFIG.season}
           </Text>
         </View>
-        <Text
-          style={[styles.teamName, { color: colors.textPrimary }]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
-          {TEAM_CONFIG.name}
-        </Text>
-        <Text style={[styles.season, { color: colors.textSecondary }]}>
-          {TEAM_CONFIG.season}
-        </Text>
-      </View>
 
-      <View style={styles.body}>
-        <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
+        <View style={styles.body}>
+          <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
 
-        <View style={styles.menuGrid}>
-          {MENU_ITEMS.map((item) => (
-            <MenuCard
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              onPress={() => router.replace(item.route)}
-            />
-          ))}
+          <View style={styles.menuGrid}>
+            {MENU_ITEMS.map((item) => (
+              <MenuCard
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                onPress={() => router.replace(item.route)}
+              />
+            ))}
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              { backgroundColor: colors.accent },
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => router.replace(ROUTES.home)}
+          >
+            <Text style={styles.buttonText}>Entra</Text>
+          </Pressable>
         </View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            { backgroundColor: colors.accent },
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={() => router.replace(ROUTES.home)}
-        >
-          <Text style={styles.buttonText}>Entra</Text>
-        </Pressable>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -237,9 +243,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingHorizontal: 24,
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
   header: {
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: 10,
   },
   badge: {
     paddingHorizontal: 10,
@@ -265,9 +275,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   body: {
-    flex: 1,
-    justifyContent: "center",
-    gap: 16,
+    gap: 14,
   },
   fieldBorder: {
     width: 260,
