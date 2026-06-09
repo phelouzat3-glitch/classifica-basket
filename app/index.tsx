@@ -1,17 +1,58 @@
+import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef } from "react";
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors } from "@/src/theme/ThemeContext";
 
-const ORANGE = "#E8600A";
+// ─── Route constants ────────────────────────────────────────────────────────
+const ROUTES = {
+  home: "/(tabs)/home" as const,
+} as const;
 
-export default function LandingScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+// ─── Team config ─────────────────────────────────────────────────────────────
+// Sposta questi valori in un file di config (es. src/config/team.ts)
+// o recuperali da uno store/API per rendere il componente riutilizzabile.
+const TEAM_CONFIG = {
+  name: "ABC Castelfiorentino",
+  division: "Serie C · Girone B",
+  season: "Stagione 2025/26",
+} as const;
+
+const FEATURES = [
+  "Classifica aggiornata",
+  "Calendario partite",
+  "Statistiche e marcatori",
+  "Rosa e dettagli giocatori",
+] as const;
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+interface FeatureRowProps {
+  text: string;
+  dotColor: string;
+  textColor: string;
+}
+
+function FeatureRow({ text, dotColor, textColor }: FeatureRowProps) {
+  return (
+    <View style={styles.featureRow}>
+      <Text style={[styles.featureDot, { color: dotColor }]}>●</Text>
+      <Text style={[styles.featureText, { color: textColor }]}>{text}</Text>
+    </View>
+  );
+}
+
+// ─── Animation hook ──────────────────────────────────────────────────────────
+function useSpinAnimation() {
   const spinAnim = useRef(new Animated.Value(0)).current;
-  const c = useColors();
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -27,56 +68,97 @@ export default function LandingScreen() {
     return () => loop.stop();
   }, [spinAnim]);
 
-  const spin = spinAnim.interpolate({
+  const rotate = spinAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "360deg"],
   });
 
+  return rotate;
+}
+
+// ─── Screen ──────────────────────────────────────────────────────────────────
+export default function LandingScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const rotate = useSpinAnimation();
+
+  const handleEnter = () => router.replace(ROUTES.home);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: c.bg }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.bg },
+      ]}
+    >
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 20 },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.topSection}>
-          <View style={[styles.badge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
-            <Text style={[styles.badgeText, { color: c.accent }]}>Serie C · Girone B</Text>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: colors.accent + "18",
+                borderColor: colors.accent + "30",
+              },
+            ]}
+          >
+            <Text style={[styles.badgeText, { color: colors.accent }]}>
+              {TEAM_CONFIG.division}
+            </Text>
           </View>
-          <Text style={[styles.teamName, { color: c.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>ABC Castelfiorentino</Text>
-          <Text style={[styles.division, { color: c.textSecondary }]}>Stagione 2025/26</Text>
+          <Text
+            style={[styles.teamName, { color: colors.textPrimary }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {TEAM_CONFIG.name}
+          </Text>
+          <Text style={[styles.division, { color: colors.textSecondary }]}>
+            {TEAM_CONFIG.season}
+          </Text>
         </View>
 
         <View style={styles.centerSection}>
-          <Animated.Text style={[styles.ballEmoji, { transform: [{ rotate: spin }] }]}>🏀</Animated.Text>
-          <Text style={[styles.welcome, { color: c.textPrimary }]}>Benvenuto</Text>
-          <Text style={[styles.subtitle, { color: c.textMuted }]}>
-            Segui in tempo reale risultati, classifica e statistiche della tua squadra del cuore.
+          <Animated.Text
+            style={[styles.ballEmoji, { transform: [{ rotate }] }]}
+          >
+            🏀
+          </Animated.Text>
+          <Text style={[styles.welcome, { color: colors.textPrimary }]}>
+            Benvenuto
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+            Segui in tempo reale risultati, classifica e statistiche della tua
+            squadra del cuore.
           </Text>
           <View style={styles.features}>
-            <View style={styles.featureRow}>
-              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
-              <Text style={[styles.featureText, { color: c.textSecondary }]}>Classifica aggiornata</Text>
-            </View>
-            <View style={styles.featureRow}>
-              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
-              <Text style={[styles.featureText, { color: c.textSecondary }]}>Calendario partite</Text>
-            </View>
-            <View style={styles.featureRow}>
-              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
-              <Text style={[styles.featureText, { color: c.textSecondary }]}>Statistiche e marcatori</Text>
-            </View>
-            <View style={styles.featureRow}>
-              <Text style={[styles.featureDot, { color: c.accent }]}>●</Text>
-              <Text style={[styles.featureText, { color: c.textSecondary }]}>Rosa e dettagli giocatori</Text>
-            </View>
+            {FEATURES.map((feature) => (
+              <FeatureRow
+                key={feature}
+                text={feature}
+                dotColor={colors.accent}
+                textColor={colors.textSecondary}
+              />
+            ))}
           </View>
         </View>
 
         <Pressable
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-          onPress={() => router.replace("/(tabs)/home" as any)}
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: colors.accent },
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={handleEnter}
         >
           <Text style={styles.buttonText}>Entra</Text>
         </Pressable>
@@ -85,6 +167,7 @@ export default function LandingScreen() {
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -161,7 +244,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   button: {
-    backgroundColor: ORANGE,
     width: "100%",
     paddingVertical: 16,
     borderRadius: 12,
