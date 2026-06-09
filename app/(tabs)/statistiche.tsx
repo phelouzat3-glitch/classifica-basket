@@ -1,5 +1,7 @@
 import { API_URL } from "@/src/config/api";
+import { getPlayerImage } from "@/src/config/playerImages";
 import { useColors } from "@/src/theme/ThemeContext";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -40,6 +42,8 @@ type Analytics = {
 type PlayerStat = {
   id: number;
   name: string;
+  jerseyNumber: number;
+  photoUrl: string | null;
   pointsPerGame: number;
   reboundsPerGame: number;
   assistsPerGame: number;
@@ -241,9 +245,14 @@ export default function StatisticheScreen() {
               { backgroundColor: c.bgCard, borderColor: c.accent },
             ]}
           >
-            <Text style={[styles.quickValue, { color: c.accent }]}>
-              {myTeam ? Math.round((myTeam.wins / total) * 100) : 0}%
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "baseline" }}>
+              <Text style={[styles.quickValue, { color: c.accent }]}>
+                {myTeam ? Math.round((myTeam.wins / total) * 100) : 0}
+              </Text>
+              <Text style={[styles.quickValue, { color: c.accent, fontSize: 16 }]}>
+                %
+              </Text>
+            </View>
             <Text style={[styles.quickLabel, { color: c.textMuted }]}>
               Vittorie
             </Text>
@@ -281,7 +290,7 @@ export default function StatisticheScreen() {
                 />
               </View>
               <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
-                {homeRec.wins}V / {homeRec.losses}S
+                {homeRec.wins}V/{homeRec.losses}S
               </Text>
             </View>
           )}
@@ -307,7 +316,7 @@ export default function StatisticheScreen() {
                 />
               </View>
               <Text style={[styles.recordNumbers, { color: c.textMuted }]}>
-                {awayRec.wins}V / {awayRec.losses}S
+                {awayRec.wins}V/{awayRec.losses}S
               </Text>
             </View>
           )}
@@ -410,11 +419,16 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                <View style={[styles.topDot, { backgroundColor: c.accent }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
-                    P
-                  </Text>
-                </View>
+                {(() => {
+                  const img = getPlayerImage(topScorer.name);
+                  return img ? (
+                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
+                  ) : (
+                    <View style={[styles.topJerseyBadge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
+                      <Text style={[styles.topJerseyText, { color: c.accent }]}>{topScorer.jerseyNumber}</Text>
+                    </View>
+                  );
+                })()}
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topScorer.name}
                 </Text>
@@ -436,11 +450,16 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                <View style={[styles.topDot, { backgroundColor: "#22C55E" }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
-                    R
-                  </Text>
-                </View>
+                {(() => {
+                  const img = getPlayerImage(topRebounder.name);
+                  return img ? (
+                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
+                  ) : (
+                    <View style={[styles.topJerseyBadge, { backgroundColor: "#22C55E" + "18", borderColor: "#22C55E" + "30" }]}>
+                      <Text style={[styles.topJerseyText, { color: "#22C55E" }]}>{topRebounder.jerseyNumber}</Text>
+                    </View>
+                  );
+                })()}
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topRebounder.name}
                 </Text>
@@ -462,11 +481,16 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                <View style={[styles.topDot, { backgroundColor: "#3B82F6" }]}>
-                  <Text style={[styles.topDotText, { color: c.textPrimary }]}>
-                    A
-                  </Text>
-                </View>
+                {(() => {
+                  const img = getPlayerImage(topAssist.name);
+                  return img ? (
+                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
+                  ) : (
+                    <View style={[styles.topJerseyBadge, { backgroundColor: "#3B82F6" + "18", borderColor: "#3B82F6" + "30" }]}>
+                      <Text style={[styles.topJerseyText, { color: "#3B82F6" }]}>{topAssist.jerseyNumber}</Text>
+                    </View>
+                  );
+                })()}
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topAssist.name}
                 </Text>
@@ -584,7 +608,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 0.5,
   },
-  recordLabel: { width: 60, fontSize: 13, fontWeight: "600" },
+  recordLabel: { width: 76, fontSize: 13, fontWeight: "600" },
   barTrack: {
     flex: 1,
     height: 8,
@@ -611,14 +635,20 @@ const styles = StyleSheet.create({
     gap: 10,
     flex: 1,
   },
-  topDot: {
-    width: 24,
-    height: 24,
+  topPlayerThumb: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  topJerseyBadge: {
+    width: 28,
+    height: 28,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
-  topDotText: { fontSize: 11, fontWeight: "800" },
+  topJerseyText: { fontSize: 12, fontWeight: "900" },
   topName: { fontSize: 14, fontWeight: "600" },
   topStat: { fontSize: 14, fontWeight: "700" },
   topDivider: { height: 0.5 },

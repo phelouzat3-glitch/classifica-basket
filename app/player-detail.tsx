@@ -1,9 +1,12 @@
 import { API_URL } from "@/src/config/api";
+import { getPlayerImage } from "@/src/config/playerImages";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -47,6 +50,7 @@ export default function PlayerDetailScreen() {
   const [player, setPlayer] = useState<PlayerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [photoViewer, setPhotoViewer] = useState(false);
 
   const fetchPlayer = useCallback(async () => {
     if (!id) return;
@@ -130,16 +134,49 @@ export default function PlayerDetailScreen() {
         </Pressable>
 
         <View style={styles.heroSection}>
-          <View
-            style={[
-              styles.bigJersey,
-              { backgroundColor: `${roleColor}15`, borderColor: `${roleColor}30` },
-            ]}
-          >
-            <Text style={[styles.bigJerseyText, { color: roleColor }]}>
-              {player.jerseyNumber}
-            </Text>
+          <View style={styles.photoWrap}>
+            {(() => {
+              const localImg = getPlayerImage(player.name);
+              return localImg ? (
+                <Pressable onPress={() => setPhotoViewer(true)}>
+                  <Image
+                    source={localImg}
+                    style={styles.playerPhoto}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                </Pressable>
+              ) : (
+                <View
+                  style={[
+                    styles.bigJersey,
+                    { backgroundColor: `${roleColor}15`, borderColor: `${roleColor}30` },
+                  ]}
+                >
+                  <Text style={[styles.bigJerseyText, { color: roleColor }]}>
+                    {player.jerseyNumber}
+                  </Text>
+                </View>
+              );
+            })()}
+            <Text style={[styles.jerseyLabel, { color: c.textMuted }]}>#{player.jerseyNumber}</Text>
           </View>
+
+          <Modal visible={photoViewer} transparent animationType="fade" onRequestClose={() => setPhotoViewer(false)}>
+            <Pressable style={styles.photoViewerOverlay} onPress={() => setPhotoViewer(false)}>
+              <Pressable onPress={() => {}}>
+                {(() => {
+                  const img = getPlayerImage(player.name);
+                  return img ? (
+                    <Image source={img} style={styles.photoViewerImage} contentFit="contain" transition={300} />
+                  ) : null;
+                })()}
+                <Text style={[styles.photoViewerLabel, { color: "#fff" }]}>
+                  {player.name} · #{player.jerseyNumber}
+                </Text>
+              </Pressable>
+            </Pressable>
+          </Modal>
 
           <Text style={[styles.playerName, { color: c.textPrimary }]}>{player.name}</Text>
           <View
@@ -224,6 +261,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 20,
     gap: 12,
+  },
+  photoWrap: {
+    alignItems: "center",
+    gap: 6,
+  },
+  jerseyLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  playerPhoto: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   bigJersey: {
     width: 100,
@@ -324,5 +374,24 @@ const styles = StyleSheet.create({
   shareBtnText: {
     fontWeight: "700",
     fontSize: 15,
+  },
+
+  photoViewerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  photoViewerImage: {
+    width: Dimensions.get("window").width - 48,
+    height: Dimensions.get("window").height * 0.7,
+    borderRadius: 16,
+  },
+  photoViewerLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 16,
   },
 });

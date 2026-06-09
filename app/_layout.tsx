@@ -93,6 +93,8 @@ function LayoutContent() {
             name="match-detail"
             options={{ headerShown: true, title: "Dettaglio Partita", animation: "slide_from_right", animationDuration: 300 }}
           />
+          <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
+          <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
         </Stack>
       </View>

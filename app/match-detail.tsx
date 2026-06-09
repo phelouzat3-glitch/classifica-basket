@@ -79,6 +79,10 @@ export default function MatchDetailScreen() {
     await Share.share({ message: msg });
   };
 
+  const handleGoHome = () => {
+    router.push("/");
+  };
+
   if (loading && !refreshing) {
     return (
       <View style={[styles.root, styles.centered, { backgroundColor: c.bg }]}>
@@ -179,12 +183,28 @@ export default function MatchDetailScreen() {
           </View>
         </View>
 
-        <Pressable
-          style={[styles.shareBtn, { backgroundColor: c.accent }]}
-          onPress={handleShare}
-        >
-          <Text style={styles.shareBtnText}>Condividi risultato</Text>
-        </Pressable>
+        {!isPlayed ? (
+          <View style={[styles.unavailableCard, { backgroundColor: c.bgCardAlt, borderColor: c.border }]}>
+            <Text style={[styles.unavailableIcon]}>⏳</Text>
+            <Text style={[styles.unavailableTitle, { color: c.textPrimary }]}>Non ancora disponibile</Text>
+            <Text style={[styles.unavailableDesc, { color: c.textMuted }]}>
+              I risultati di questa partita non sono ancora disponibili
+            </Text>
+            <Pressable
+              style={[styles.goHomeBtn, { backgroundColor: c.accent }]}
+              onPress={handleGoHome}
+            >
+              <Text style={styles.goHomeBtnText}>Vai alla Home</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.shareBtn, { backgroundColor: c.accent }]}
+            onPress={handleShare}
+          >
+            <Text style={styles.shareBtnText}>Condividi risultato</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </View>
   );
@@ -247,4 +267,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   shareBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+
+  unavailableCard: {
+    borderRadius: 14,
+    padding: 24,
+    borderWidth: 1,
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 8,
+  },
+  unavailableIcon: { fontSize: 40, marginBottom: 4 },
+  unavailableTitle: { fontSize: 17, fontWeight: "700", textAlign: "center" },
+  unavailableDesc: { fontSize: 13, textAlign: "center", lineHeight: 18, marginBottom: 4 },
+  goHomeBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  goHomeBtnText: { color: "#fff", fontSize: 14, fontWeight: "700" },
 });

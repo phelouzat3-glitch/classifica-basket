@@ -130,13 +130,12 @@ export default function HomeTabScreen() {
   }, [load]);
 
   const myTeam = standings.find((s) => s.is_my_team);
-  const top5 = standings
-    .filter((s) => !s.is_my_team)
+  const topStandings = standings
     .sort((a, b) => a.position - b.position)
     .slice(0, 5);
 
   const myMatches = matches
-    .filter((m) => m.is_my_team)
+    .filter((m) => m.is_my_team && m.home_score != null && m.away_score != null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
@@ -146,7 +145,7 @@ export default function HomeTabScreen() {
   const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
 
   const nextMatch = matches
-    .filter((m) => m.home_score === null)
+    .filter((m) => new Date(m.date) > new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] ?? null;
 
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
@@ -159,10 +158,7 @@ export default function HomeTabScreen() {
       const diff = matchDate.getTime() - now.getTime();
       if (diff <= 0) { setTimeLeft(null); return; }
       const days = Math.floor(diff / 86400000);
-      const hours = Math.floor((diff % 86400000) / 3600000);
-      const minutes = Math.floor((diff % 3600000) / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      setTimeLeft(`${days}g ${hours}h ${minutes}m ${seconds}s`);
+      setTimeLeft(days > 0 ? `${days}g` : "Oggi");
     };
     update();
     const id = setInterval(update, 1000);
@@ -204,35 +200,20 @@ export default function HomeTabScreen() {
               Stagione {myTeam?.season ?? "2025/26"}
             </Text>
           </View>
-          <View style={styles.headerRight}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.notifBtn,
-                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() => router.push("/notifiche" as any)}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={22}
-                color={c.accent}
-              />
-            </Pressable>
-            <View
-              style={[
-                styles.posBadge,
-                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-              ]}
-            >
-              <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>
-                Classifica
-              </Text>
-              <Text style={[styles.posBadgeValue, { color: c.accent }]}>
-                {myTeam?.position ?? "-"}°
-              </Text>
-            </View>
-          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.notifBtn,
+              { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+              pressed && { opacity: 0.6 },
+            ]}
+            onPress={() => router.push("/notifiche" as any)}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={c.accent}
+            />
+          </Pressable>
         </View>
 
         <View style={styles.summaryRow}>
@@ -269,9 +250,14 @@ export default function HomeTabScreen() {
               { backgroundColor: c.accentBg, borderColor: c.accentBorder },
             ]}
           >
+          <View style={{ flexDirection: "row", alignItems: "baseline" }}>
             <Text style={[styles.summaryValue, { color: c.accent }]}>
-              {winPct}%
+              {winPct}
             </Text>
+            <Text style={[styles.summaryValue, { color: c.accent, fontSize: 14 }]}>
+              %
+            </Text>
+          </View>
             <Text style={[styles.summaryLabel, { color: c.textMuted }]}>
               Vittorie
             </Text>
@@ -392,130 +378,75 @@ export default function HomeTabScreen() {
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.myTeamRow,
-            { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-          ]}
-        >
-          <Text
-            style={[
-              styles.tableCell,
-              styles.colPos,
-              styles.myTeamText,
-              { color: c.accent },
-            ]}
-          >
-            {myTeam?.position ?? "-"}
-          </Text>
-          <View style={styles.standNameRow}>
-            <TeamLogo teamName="ABC Castelfiorentino" size={18} />
-            <Text
+        {topStandings.map((t) => {
+          const isMyTeam = t.is_my_team;
+          return (
+            <View
+              key={t.team_id}
               style={[
-                styles.tableCell,
-                styles.colName,
-                styles.myTeamText,
-                { color: c.accent },
+                isMyTeam ? styles.myTeamRow : styles.standRow,
+                isMyTeam
+                  ? { backgroundColor: c.accentBg, borderColor: c.accentBorder }
+                  : { backgroundColor: c.bg, borderBottomColor: c.bgOverlay },
               ]}
             >
-              ABC Castelfiorentino
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.colW,
-              styles.myTeamText,
-              { color: c.accent },
-            ]}
-          >
-            {myTeam?.wins ?? 0}
-          </Text>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.colL,
-              styles.myTeamText,
-              { color: c.accent },
-            ]}
-          >
-            {myTeam?.losses ?? 0}
-          </Text>
-          <Text
-            style={[
-              styles.tableCell,
-              styles.colPct,
-              styles.myTeamText,
-              { color: c.accent },
-            ]}
-          >
-            {(myTeam?.pct ?? 0 * 100).toString().replace(".", ",").slice(0, 4)}
-          </Text>
-        </View>
-
-        {top5.map((t) => (
-          <View
-            key={t.team_id}
-            style={[
-              styles.standRow,
-              { backgroundColor: c.bg, borderBottomColor: c.bgOverlay },
-            ]}
-          >
-            <Text
-              style={[
-                styles.tableCell,
-                styles.colPos,
-                styles.standText,
-                { color: c.textSecondary },
-              ]}
-            >
-              {t.position}
-            </Text>
-            <View style={styles.standNameRow}>
-              <TeamLogo teamName={t.name} size={18} />
               <Text
                 style={[
                   styles.tableCell,
-                  styles.colName,
-                  styles.standText,
-                  { color: c.textSecondary },
+                  styles.colPos,
+                  isMyTeam ? styles.myTeamText : styles.standText,
+                  { color: isMyTeam ? c.accent : c.textSecondary },
                 ]}
               >
-                {t.name}
+                {t.position}
+              </Text>
+              <View style={styles.standNameRow}>
+                <TeamLogo teamName={t.name} size={18} />
+                <Text
+                  style={[
+                    styles.tableCell,
+                    styles.colName,
+                    isMyTeam ? styles.myTeamText : styles.standText,
+                    { color: isMyTeam ? c.accent : c.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {t.name}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.tableCell,
+                  styles.colW,
+                  isMyTeam ? styles.myTeamText : styles.standText,
+                  { color: isMyTeam ? c.accent : c.textSecondary },
+                ]}
+              >
+                {t.wins}
+              </Text>
+              <Text
+                style={[
+                  styles.tableCell,
+                  styles.colL,
+                  isMyTeam ? styles.myTeamText : styles.standText,
+                  { color: isMyTeam ? c.accent : c.textSecondary },
+                ]}
+              >
+                {t.losses}
+              </Text>
+              <Text
+                style={[
+                  styles.tableCell,
+                  styles.colPct,
+                  isMyTeam ? styles.myTeamText : styles.standText,
+                  { color: isMyTeam ? c.accent : c.textSecondary },
+                ]}
+              >
+                {(t.pct * 100).toFixed(1).replace(".", ",")}
               </Text>
             </View>
-            <Text
-              style={[
-                styles.tableCell,
-                styles.colW,
-                styles.standText,
-                { color: c.textSecondary },
-              ]}
-            >
-              {t.wins}
-            </Text>
-            <Text
-              style={[
-                styles.tableCell,
-                styles.colL,
-                styles.standText,
-                { color: c.textSecondary },
-              ]}
-            >
-              {t.losses}
-            </Text>
-            <Text
-              style={[
-                styles.tableCell,
-                styles.colPct,
-                styles.standText,
-                { color: c.textSecondary },
-              ]}
-            >
-              {(t.pct * 100).toFixed(1).replace(".", ",")}
-            </Text>
-          </View>
-        ))}
+          );
+        })}
 
         <Pressable
           style={({ pressed }) => [
@@ -670,7 +601,6 @@ const styles = StyleSheet.create({
   },
   headerSub: { fontSize: 12, marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: "700" },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   notifBtn: {
     width: 36,
     height: 36,
@@ -679,20 +609,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 0.5,
   },
-  posBadge: {
-    borderWidth: 0.5,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  posBadgeLabel: {
-    fontSize: 9,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  posBadgeValue: { fontSize: 18, fontWeight: "800" },
 
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   summaryCard: {

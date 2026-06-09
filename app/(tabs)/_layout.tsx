@@ -70,7 +70,18 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 6. Sesta Scheda: Calendario */}
+      {/* 6. Sesta Scheda: Sondaggi */}
+      <Tabs.Screen
+        name="sondaggi"
+        options={{
+          title: "Sondaggi",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubbles" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* 7. Settima Scheda: Calendario */}
       <Tabs.Screen
         name="calendario"
         options={{

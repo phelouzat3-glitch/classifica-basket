@@ -1,12 +1,13 @@
 import { StandingsTable } from "@/components/StandingsTable";
 import { API_URL } from "@/src/config/api";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -75,12 +76,17 @@ export default function ClassificaScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [liveEnabled, setLiveEnabled] = useState(true);
+  const [now, setNow] = useState(Date.now());
+  const [classificaExpanded, setClassificaExpanded] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const insets = useSafeAreaInsets();
 
   // Fade-in animation for content
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
@@ -127,7 +133,42 @@ export default function ClassificaScreen() {
     fetchStandings();
   }, [fetchStandings]);
 
+  // Pulse animation for live dot
+  useEffect(() => {
+    if (liveEnabled) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [liveEnabled, pulseAnim]);
+
+  // Update `now` every second for live clock
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const d = new Date(now);
+  const liveTimeLabel = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+
   const onRefresh = useCallback(() => fetchStandings(true), [fetchStandings]);
+
+  const filteredTeams = useMemo(() => {
+    if (!searchText.trim()) return teams;
+    const q = searchText.trim();
+    return teams.filter(
+      (t) =>
+        t.position.toString().includes(q) ||
+        t.name.toLowerCase().includes(q.toLowerCase()),
+    );
+  }, [teams, searchText]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
 
@@ -197,20 +238,47 @@ export default function ClassificaScreen() {
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-        <View style={styles.headerTop}>
-          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Stagione Regolare 2025 · 26</Text>
-          <View style={styles.headerTitleRow}>
-            <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Classifica</Text>
-            <View style={[styles.livePill, { backgroundColor: "rgba(240, 83, 58, 0.15)", borderColor: "rgba(240, 83, 58, 0.25)" }]}>
-              <View style={[styles.liveDot, { backgroundColor: "#F0533A" }]} />
-              <Text style={[styles.liveText, { color: "#F0533A" }]}>LIVE</Text>
+          <View style={styles.headerTop}>
+            <View style={styles.liveRow}>
+              <View style={{ flex: 1 }} />
+              <TouchableOpacity
+                onPress={() => setLiveEnabled((p) => !p)}
+                activeOpacity={0.7}
+                style={[
+                  styles.livePill,
+                  {
+                    backgroundColor: liveEnabled ? "rgba(34, 197, 94, 0.15)" : "rgba(240, 83, 58, 0.15)",
+                    borderColor: liveEnabled ? "rgba(34, 197, 94, 0.25)" : "rgba(240, 83, 58, 0.25)",
+                  },
+                ]}
+              >
+                <Animated.View style={[styles.liveDot, { backgroundColor: liveEnabled ? "#22C55E" : "#F0533A", opacity: liveEnabled ? pulseAnim : 1 }]} />
+                <Text style={[styles.liveText, { color: liveEnabled ? "#22C55E" : "#F0533A" }]}>
+                  {liveEnabled ? `LIVE ${liveTimeLabel}` : "OFF"}
+                </Text>
+              </TouchableOpacity>
             </View>
+            <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Stagione Regolare 2025 · 26</Text>
+            <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Classifica</Text>
           </View>
-        </View>
 
         {/* Thin accent rule */}
         <View style={[styles.headerRule, { backgroundColor: c.border }]} />
       </Animated.View>
+
+      {/* Search */}
+      <View style={{ paddingHorizontal: 22, marginTop: 14, marginBottom: 4 }}>
+        <TextInput
+          style={[styles.searchInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholder="Cerca posizione o squadra..."
+          placeholderTextColor={c.textMuted}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="default"
+        />
+      </View>
 
       {/* Table */}
       <Animated.View
@@ -220,10 +288,21 @@ export default function ClassificaScreen() {
         ]}
       >
         <StandingsTable
-          teams={teams}
+          teams={classificaExpanded ? filteredTeams : filteredTeams.slice(0, 5)}
           refreshing={refreshing}
           onRefresh={onRefresh}
         />
+        {filteredTeams.length > 5 && !searchText.trim() && (
+          <TouchableOpacity
+            style={[styles.expandBtn, { borderTopColor: c.border }]}
+            onPress={() => setClassificaExpanded(!classificaExpanded)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.expandBtnText, { color: c.accent }]}>
+              {classificaExpanded ? "Mostra meno" : `Mostra tutte (${filteredTeams.length})`}
+            </Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
     </View>
   );
@@ -246,12 +325,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     marginBottom: 18,
   },
-  headerTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flexWrap: "nowrap",
-  },
   eyebrow: {
     fontSize: 11,
     fontWeight: "600",
@@ -264,6 +337,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.5,
     lineHeight: 38,
+    textAlign: "center",
     flexShrink: 1,
   },
   headerRule: {
@@ -271,6 +345,11 @@ const styles = StyleSheet.create({
   },
 
   // ── Live pill ─────────────────────────────────────────────────────────────
+  liveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   livePill: {
     flexDirection: "row",
     alignItems: "center",
@@ -279,12 +358,14 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
+    minWidth: 90,
+    justifyContent: "center",
   },
   liveDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    marginRight: 5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 7,
   },
   liveText: {
     fontSize: 10,
@@ -301,6 +382,23 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
+  },
+  searchInput: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+
+  expandBtn: {
+    paddingVertical: 12,
+    alignItems: "center",
+    borderTopWidth: 1,
+  },
+  expandBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
   },
 
   // ── Centered states ───────────────────────────────────────────────────────

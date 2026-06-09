@@ -1,4 +1,6 @@
 import { API_URL } from "@/src/config/api";
+import { getPlayerImage } from "@/src/config/playerImages";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -20,6 +22,7 @@ type Player = {
   name: string;
   jerseyNumber: number;
   role: string;
+  photoUrl: string | null;
   pointsPerGame: number;
   reboundsPerGame: number;
   assistsPerGame: number;
@@ -73,6 +76,7 @@ export default function MarcatoriScreen() {
           name: p.name,
           jerseyNumber: p.jerseyNumber ?? p.jersey_number ?? 0,
           role: p.role,
+          photoUrl: p.photoUrl ?? null,
           pointsPerGame: Number(p.pointsPerGame ?? p.points_per_game ?? 0),
           reboundsPerGame: Number(p.reboundsPerGame ?? p.rebounds_per_game ?? 0),
           assistsPerGame: Number(p.assistsPerGame ?? p.assists_per_game ?? 0),
@@ -200,6 +204,16 @@ export default function MarcatoriScreen() {
                   {pos}
                 </Text>
               </View>
+              {(() => {
+                const img = getPlayerImage(item.name);
+                return img ? (
+                  <Image source={img} style={styles.playerThumbMarc} contentFit="cover" transition={200} />
+                ) : (
+                  <View style={[styles.marcJerseyBadge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
+                    <Text style={[styles.marcJerseyText, { color: c.accent }]}>{item.jerseyNumber}</Text>
+                  </View>
+                );
+              })()}
               <View style={styles.playerInfo}>
                 <Text style={[styles.playerName, { color: c.textPrimary }]}>
                   {item.name}
@@ -235,6 +249,9 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1 },
   rowPressed: { opacity: 0.7 },
   posBadge: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", marginRight: 12 },
+  playerThumbMarc: { width: 32, height: 32, borderRadius: 16, marginRight: 10 },
+  marcJerseyBadge: { width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", borderWidth: 1, marginRight: 10 },
+  marcJerseyText: { fontSize: 14, fontWeight: "900" },
   posText: { fontSize: 15, fontWeight: "700" },
   playerInfo: { flex: 1 },
   playerName: { fontSize: 15, fontWeight: "700" },

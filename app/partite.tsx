@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useRouter } from "expo-router";
@@ -12,6 +13,7 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -39,8 +41,12 @@ export default function PartiteScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [partiteExpanded, setPartiteExpanded] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const insets = useSafeAreaInsets();
+
+  const monthsFull = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
   const router = useRouter();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -66,18 +72,24 @@ export default function PartiteScreen() {
   const c = useColors();
 
   const filtered = useMemo(() => {
+    let result = matches;
     if (activeFilter === "Giocate") {
-      return matches.filter(
-        (m) => m.home_score != null && m.away_score != null,
-      );
+      result = result.filter((m) => m.home_score != null && m.away_score != null);
+    } else if (activeFilter === "Da giocare") {
+      result = result.filter((m) => m.home_score == null && m.away_score == null);
     }
-    if (activeFilter === "Da giocare") {
-      return matches.filter(
-        (m) => m.home_score == null && m.away_score == null,
-      );
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase();
+      const monthIdx = monthsFull.findIndex((m) => m.startsWith(q));
+      if (monthIdx !== -1) {
+        result = result.filter((m) => {
+          const d = new Date(m.date + "T00:00:00");
+          return d.getMonth() === monthIdx;
+        });
+      }
     }
-    return matches;
-  }, [matches, activeFilter]);
+    return result;
+  }, [matches, activeFilter, searchText]);
 
   const fetchMatches = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -144,13 +156,16 @@ export default function PartiteScreen() {
 
   return (
     <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.replace("/(tabs)/home" as any)}
-          style={styles.backBtn}
-        >
-          <Text style={[styles.backBtnText, { color: c.accent }]}>← Home</Text>
-        </TouchableOpacity>
+      <View style={[styles.header, { backgroundColor: c.bg, borderBottomColor: c.border }]}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            onPress={() => router.replace("/(tabs)/calendario" as any)}
+            style={[styles.backBtn, { backgroundColor: c.bgCard, borderColor: c.border }]}
+          >
+            <Ionicons name="chevron-back" size={18} color={c.accent} />
+            <Text style={[styles.backBtnText, { color: c.accent }]}>Calendario</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.title, { color: c.textPrimary }]}>Tutte le partite</Text>
       </View>
 
@@ -178,8 +193,18 @@ export default function PartiteScreen() {
         ))}
       </View>
 
+      <TextInput
+        style={[styles.searchInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+        value={searchText}
+        onChangeText={setSearchText}
+        placeholder="Cerca mese (es. giugno)"
+        placeholderTextColor={c.textMuted}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+
       <FlatList
-        data={filtered}
+        data={partiteExpanded ? filtered : filtered.slice(0, 5)}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.list}
         refreshControl={
@@ -194,6 +219,20 @@ export default function PartiteScreen() {
           <View style={styles.emptyBox}>
             <Text style={[styles.emptyText, { color: c.textSecondary }]}>Nessuna partita.</Text>
           </View>
+        }
+        ListFooterComponent={
+          filtered.length > 5 ? (
+            <TouchableOpacity
+              style={[styles.expandBtn, { backgroundColor: c.bgCard, borderColor: c.border }]}
+              onPress={() => setPartiteExpanded(!partiteExpanded)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={partiteExpanded ? "chevron-up" : "chevron-down"} size={16} color={c.accent} />
+              <Text style={[styles.expandBtnText, { color: c.accent }]}>
+                {partiteExpanded ? "Mostra meno" : `Mostra tutte (${filtered.length})`}
+              </Text>
+            </TouchableOpacity>
+          ) : null
         }
         renderItem={({ item }) => {
           const homeName = item.homeTeam || item.home_team || "";
@@ -287,13 +326,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryBtnText: { fontWeight: "bold" },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 8 },
-  backBtn: { padding: 8 },
-  backBtnText: { fontSize: 15, fontWeight: "600" },
+  header: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 4,
+    alignSelf: "flex-start",
+  },
+  backBtnText: { fontSize: 15, fontWeight: "700" },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    paddingLeft: 8,
+    textAlign: "center",
     paddingVertical: 8,
   },
   filterRow: {
@@ -343,4 +399,29 @@ const styles = StyleSheet.create({
   scoreWon: {},
   scoreDash: { fontSize: 16, fontWeight: "600" },
   vsCol: { fontSize: 14, fontWeight: "800" },
+
+  searchInput: {
+    marginHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    marginBottom: 10,
+  },
+
+  expandBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 4,
+    borderWidth: 1,
+    gap: 6,
+  },
+  expandBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
 });

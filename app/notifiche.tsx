@@ -1,7 +1,8 @@
 import { API_URL } from "@/src/config/api";
+import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,11 +14,12 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors } from "@/src/theme/ThemeContext";
 
 export default function NotificheScreen() {
   const c = useColors();
-  const [status, setStatus] = useState<"idle" | "loading" | "registered" | "error" | "unavailable">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "registered" | "error" | "unavailable"
+  >("idle");
   const [token, setToken] = useState<string | null>(null);
 
   const insets = useSafeAreaInsets();
@@ -31,27 +33,40 @@ export default function NotificheScreen() {
     setStatus("loading");
     try {
       const { default: Constants } = await import("expo-constants");
-      const { getPermissionsAsync, requestPermissionsAsync, getExpoPushTokenAsync } = await import("expo-notifications");
+      const {
+        getPermissionsAsync,
+        requestPermissionsAsync,
+        getExpoPushTokenAsync,
+      } = await import("expo-notifications");
 
       const { status: existing, granted } = await getPermissionsAsync();
       if (!granted && existing !== "undetermined") {
-        throw new Error("Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.");
+        throw new Error(
+          "Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.",
+        );
       }
       if (!granted) {
         const result = await requestPermissionsAsync();
         if (!result.granted) {
-          throw new Error("Permesso notifiche non concesso. Vai nelle Impostazioni del telefono > Expo Go > Notifiche e attivale.");
+          throw new Error(
+            "Permesso notifiche non concesso. Vai nelle Impostazioni del telefono > Expo Go > Notifiche e attivale.",
+          );
         }
       }
 
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.expoConfig?.extra?.projectId ?? "";
+      const projectId =
+        Constants.expoConfig?.extra?.eas?.projectId ??
+        Constants.expoConfig?.extra?.projectId ??
+        "";
       if (!projectId) {
         throw new Error("Project ID non trovato");
       }
 
       const { granted: finalGranted } = await getPermissionsAsync();
       if (!finalGranted) {
-        throw new Error("Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.");
+        throw new Error(
+          "Permesso notifiche negato. Vai nelle Impostazioni del telefono, cerca l'app Expo Go e attiva le Notifiche.",
+        );
       }
 
       let tokenData;
@@ -82,88 +97,149 @@ export default function NotificheScreen() {
   }, [register]);
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: c.bg }]}>
+    <View
+      style={[
+        styles.root,
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          backgroundColor: c.bg,
+        },
+      ]}
+    >
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={[styles.backBtnText, { color: c.accent }]}>← Indietro</Text>
+          <Text style={[styles.backBtnText, { color: c.accent }]}>
+            ← Indietro
+          </Text>
         </Pressable>
 
-        <Text style={[styles.title, { color: c.textPrimary }]}>Notifiche Push</Text>
-        <Text style={[styles.subtitle, { color: c.textMuted }]}>Ricevi aggiornamenti su partite e risultati</Text>
+        <Text style={[styles.title, { color: c.textPrimary }]}>
+          Notifiche Push
+        </Text>
+        <Text style={[styles.subtitle, { color: c.textMuted }]}>
+          Ricevi aggiornamenti su partite e risultati
+        </Text>
 
         <View style={[styles.card, { backgroundColor: c.bgCard }]}>
           {Platform.OS === "web" ? (
             <>
               <Text style={styles.icon}>📱</Text>
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Non disponibile sul web</Text>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Non disponibile sul web
+              </Text>
               <Text style={[styles.cardBody, { color: c.textSecondary }]}>
-                Le notifiche push funzionano sull'app mobile nativa. Scarica l'app sul tuo
-                telefono per attivarle.
+                Le notifiche push funzionano sull'app mobile nativa. Scarica
+                l'app sul tuo telefono per attivarle.
               </Text>
             </>
           ) : status === "loading" ? (
             <>
               <ActivityIndicator size="large" color={c.accent} />
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Attivazione...</Text>
-              <Text style={[styles.cardBody, { color: c.textSecondary }]}>Richiesta autorizzazione notifiche</Text>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Attivazione...
+              </Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
+                Richiesta autorizzazione notifiche
+              </Text>
             </>
           ) : status === "registered" ? (
             <>
               <Text style={styles.icon}>✅</Text>
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Notifiche attive</Text>
-              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
-                Riceverai aggiornamenti su risultati e partite dell'ABC Castelfiorentino.
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Notifiche attive
               </Text>
-              {token && <Text style={[styles.tokenText, { color: c.textMuted }]}>Token: {token.slice(0, 20)}...</Text>}
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
+                Riceverai aggiornamenti su risultati e partite dell'ABC
+                Castelfiorentino.
+              </Text>
+              {token && (
+                <Text style={[styles.tokenText, { color: c.textMuted }]}>
+                  Token: {token.slice(0, 20)}...
+                </Text>
+              )}
             </>
           ) : status === "unavailable" ? (
             <>
               <Text style={styles.icon}>⚠️</Text>
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Registrazione fallita</Text>
-              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
-                Il dispositivo non ha potuto ottenere il token push. Questo può succedere su
-                iOS in Expo Go. Prova a riavviare l'app o usa una development build.
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Registrazione fallita
               </Text>
-              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
-                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Riprova</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
+                Il dispositivo non ha potuto ottenere il token push. Questo può
+                succedere su iOS in Expo Go. Prova a riavviare l'app o usa una
+                development build.
+              </Text>
+              <Pressable
+                style={[styles.retryBtn, { backgroundColor: c.accent }]}
+                onPress={register}
+              >
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>
+                  Riprova
+                </Text>
               </Pressable>
             </>
           ) : status === "error" ? (
             <>
               <Text style={styles.icon}>❌</Text>
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Errore</Text>
-              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
-                Non è stato possibile attivare le notifiche. Controlla le impostazioni del
-                telefono.
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Errore
               </Text>
-              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
-                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Riprova</Text>
+              <Text style={[styles.cardBody, { color: c.textSecondary }]}>
+                Non è stato possibile attivare le notifiche. Controlla le
+                impostazioni del telefono.
+              </Text>
+              <Pressable
+                style={[styles.retryBtn, { backgroundColor: c.accent }]}
+                onPress={register}
+              >
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>
+                  Riprova
+                </Text>
               </Pressable>
             </>
           ) : (
             <>
               <Text style={styles.icon}>🔔</Text>
-              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>Pronto</Text>
-              <Pressable style={[styles.retryBtn, { backgroundColor: c.accent }]} onPress={register}>
-                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>Attiva notifiche</Text>
+              <Text style={[styles.cardTitle, { color: c.textPrimary }]}>
+                Pronto
+              </Text>
+              <Pressable
+                style={[styles.retryBtn, { backgroundColor: c.accent }]}
+                onPress={register}
+              >
+                <Text style={[styles.retryBtnText, { color: c.textPrimary }]}>
+                  Attiva notifiche
+                </Text>
               </Pressable>
             </>
           )}
         </View>
 
-        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>Cosa riceverai</Text>
+        <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
+          Cosa riceverai
+        </Text>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>🏀</Text>
-          <Text style={[styles.featureText, { color: c.textPrimary }]}>Risultato finale delle partite</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>
+            Risultato finale delle partite
+          </Text>
         </View>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>📅</Text>
-          <Text style={[styles.featureText, { color: c.textPrimary }]}>Promemoria prossima partita</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>
+            Promemoria prossima partita
+          </Text>
         </View>
         <View style={styles.featureRow}>
           <Text style={styles.featureIcon}>📊</Text>
-          <Text style={[styles.featureText, { color: c.textPrimary }]}>Aggiornamenti classifica</Text>
+          <Text style={[styles.featureText, { color: c.textPrimary }]}>
+            Aggiornamenti classifica
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -189,8 +265,18 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.06)",
   },
   icon: { fontSize: 40, marginBottom: 12 },
-  cardTitle: { fontSize: 17, fontWeight: "700", marginBottom: 8, textAlign: "center" },
-  cardBody: { fontSize: 13, textAlign: "center", lineHeight: 19, marginBottom: 6 },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  cardBody: {
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 19,
+    marginBottom: 6,
+  },
   tokenText: { fontSize: 10, marginTop: 8 },
 
   retryBtn: {
