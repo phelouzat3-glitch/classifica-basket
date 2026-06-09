@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -49,12 +50,13 @@ function useOrbitAnimation() {
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    const driver = Platform.OS !== "web";
     const orbitLoop = Animated.loop(
       Animated.timing(orbitAnim, {
         toValue: 1,
         duration: 3000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: driver,
       }),
       { iterations: -1 },
     );
@@ -63,7 +65,7 @@ function useOrbitAnimation() {
         toValue: 1,
         duration: 2000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: driver,
       }),
       { iterations: -1 },
     );
@@ -275,7 +277,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   body: {
-    gap: 14,
+    gap: 16,
   },
   fieldBorder: {
     width: 260,
@@ -388,6 +390,8 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
+    maxWidth: 300,
+    alignSelf: "center",
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",
