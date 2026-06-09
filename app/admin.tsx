@@ -73,6 +73,13 @@ export default function AdminScreen() {
   const [editAwayScore, setEditAwayScore] = useState("");
   const [editing, setEditing] = useState(false);
 
+  const [changeKeyOpen, setChangeKeyOpen] = useState(false);
+  const [newKey, setNewKey] = useState("");
+  const [confirmNewKey, setConfirmNewKey] = useState("");
+  const [changingKey, setChangingKey] = useState(false);
+  const [keyChangeMsg, setKeyChangeMsg] = useState<string | null>(null);
+  const [keyChangeOk, setKeyChangeOk] = useState(false);
+
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
     slideAnim.setValue(12);
@@ -282,6 +289,42 @@ export default function AdminScreen() {
       setSuccess(null);
     } finally {
       setEditing(false);
+    }
+  };
+
+  const handleChangeKey = async () => {
+    if (!newKey.trim() || newKey !== confirmNewKey) return;
+    if (newKey.trim().length < 3) {
+      setKeyChangeMsg("La chiave deve essere di almeno 3 caratteri");
+      setKeyChangeOk(false);
+      return;
+    }
+    setChangingKey(true);
+    setKeyChangeMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/api-key`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${savedKey}`,
+        },
+        body: JSON.stringify({ newKey: newKey.trim() }),
+      });
+      if (!res.ok) throw new Error("");
+      setKeyChangeMsg("Chiave aggiornata con successo!");
+      setKeyChangeOk(true);
+      setSavedKey(newKey.trim());
+      setApiKey(newKey.trim());
+      setNewKey("");
+      setConfirmNewKey("");
+      setChangeKeyOpen(false);
+      const storage = await getStorage();
+      await storage.setItem(STORAGE_KEY, newKey.trim());
+    } catch {
+      setKeyChangeMsg("Errore: chiave non valida o già in uso");
+      setKeyChangeOk(false);
+    } finally {
+      setChangingKey(false);
     }
   };
 
@@ -731,6 +774,67 @@ export default function AdminScreen() {
                         <>
                           <Ionicons name="add-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
                           <Text style={styles.btnText}>Crea partita</Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </>
+                )}
+              </View>
+
+              <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+                <Pressable
+                  style={styles.createHeader}
+                  onPress={() => { setChangeKeyOpen(!changeKeyOpen); setKeyChangeMsg(null); }}
+                >
+                  <Ionicons name="key-outline" size={20} color={ORANGE} style={{ marginRight: 8 }} />
+                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                    Cambia chiave API
+                  </Text>
+                  <Ionicons name={changeKeyOpen ? "chevron-up" : "chevron-down"} size={16} color={c.textMuted} />
+                </Pressable>
+
+                {changeKeyOpen && (
+                  <>
+                    <View style={[styles.divider, { backgroundColor: c.border, marginTop: 16, marginBottom: 16 }]} />
+
+                    {keyChangeMsg && (
+                      <View style={[styles.feedbackCard, { backgroundColor: keyChangeOk ? c.winBg : c.lossBg, borderColor: keyChangeOk ? c.win : c.loss, marginBottom: 16 }]}>
+                        <Ionicons name={keyChangeOk ? "checkmark-circle" : "alert-circle"} size={18} color={keyChangeOk ? c.win : c.loss} style={{ marginRight: 8 }} />
+                        <Text style={[styles.feedbackText, { color: keyChangeOk ? c.win : c.loss }]}>{keyChangeMsg}</Text>
+                      </View>
+                    )}
+
+                    <Text style={[styles.label, { color: c.textMuted }]}>NUOVA CHIAVE</Text>
+                    <TextInput
+                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      value={newKey}
+                      onChangeText={(t) => { setNewKey(t); setKeyChangeMsg(null); }}
+                      placeholder="Inserisci nuova chiave"
+                      placeholderTextColor={c.textMuted}
+                      autoCapitalize="none"
+                    />
+
+                    <Text style={[styles.label, { color: c.textMuted, marginTop: 12 }]}>CONFERMA CHIAVE</Text>
+                    <TextInput
+                      style={[styles.createInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+                      value={confirmNewKey}
+                      onChangeText={(t) => { setConfirmNewKey(t); setKeyChangeMsg(null); }}
+                      placeholder="Riscrivi la nuova chiave"
+                      placeholderTextColor={c.textMuted}
+                      autoCapitalize="none"
+                    />
+
+                    <Pressable
+                      style={[styles.btn, { backgroundColor: ORANGE, opacity: (newKey.trim() && newKey === confirmNewKey && !changingKey) ? 1 : 0.5, marginTop: 12 }]}
+                      onPress={handleChangeKey}
+                      disabled={!newKey.trim() || newKey !== confirmNewKey || changingKey}
+                    >
+                      {changingKey ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <>
+                          <Ionicons name="refresh" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                          <Text style={styles.btnText}>Aggiorna chiave</Text>
                         </>
                       )}
                     </Pressable>
