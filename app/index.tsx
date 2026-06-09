@@ -51,7 +51,7 @@ function FeatureRow({ icon, text, textColor }: FeatureRowProps) {
   );
 }
 
-function BasketballField() {
+function BasketballField({ rotate }: { rotate: Animated.AnimatedInterpolation<string> }) {
   return (
     <View style={styles.field}>
       <View style={styles.fieldBorder}>
@@ -61,6 +61,9 @@ function BasketballField() {
         <View style={[styles.bottomKey, styles.keyBase]} />
         <View style={styles.topFreeThrow} />
         <View style={styles.bottomFreeThrow} />
+        <Animated.Text style={[styles.fieldBall, { transform: [{ rotate }] }]}>
+          🏀
+        </Animated.Text>
       </View>
     </View>
   );
@@ -143,14 +146,9 @@ export default function LandingScreen() {
           </Text>
         </View>
 
-        <BasketballField />
+        <BasketballField rotate={rotate} />
 
         <View style={styles.centerSection}>
-          <Animated.Text
-            style={[styles.ballEmoji, { transform: [{ rotate }] }]}
-          >
-            🏀
-          </Animated.Text>
           <Text style={[styles.welcome, { color: colors.textPrimary }]}>
             Benvenuto
           </Text>
@@ -158,7 +156,7 @@ export default function LandingScreen() {
             Segui in tempo reale risultati, classifica e statistiche della tua
             squadra del cuore.
           </Text>
-          <View style={styles.features}>
+          <View style={styles.featuresGrid}>
             {FEATURES.map((feature) => (
               <FeatureRow
                 key={feature.text}
@@ -230,7 +228,8 @@ const styles = StyleSheet.create({
   },
   field: {
     alignItems: "center",
-    marginVertical: 28,
+    marginTop: 28,
+    marginBottom: 12,
   },
   fieldBorder: {
     width: 240,
@@ -306,13 +305,16 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: LINE_COLOR,
   },
+  fieldBall: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginLeft: -18,
+    marginTop: -18,
+    fontSize: 36,
+  },
   centerSection: {
     alignItems: "center",
-  },
-  ballEmoji: {
-    fontSize: 64,
-    textAlign: "center",
-    marginBottom: 16,
   },
   welcome: {
     fontSize: 20,
@@ -327,15 +329,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     maxWidth: 420,
   },
-  features: {
-    gap: 12,
-    width: "100%",
+  featuresGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 10,
     maxWidth: 360,
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
+    flexBasis: "45%",
+    minWidth: 140,
   },
   featureIcon: {
     fontSize: 18,
