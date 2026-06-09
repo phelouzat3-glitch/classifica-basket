@@ -28,23 +28,23 @@ const TEAM_CONFIG = {
 } as const;
 
 const FEATURES = [
-  "Classifica aggiornata",
-  "Calendario partite",
-  "Statistiche e marcatori",
-  "Rosa e dettagli giocatori",
+  { icon: "🏆", text: "Classifica aggiornata" },
+  { icon: "📅", text: "Calendario partite" },
+  { icon: "📊", text: "Statistiche e marcatori" },
+  { icon: "👥", text: "Rosa e dettagli giocatori" },
 ] as const;
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 interface FeatureRowProps {
+  icon: string;
   text: string;
-  dotColor: string;
   textColor: string;
 }
 
-function FeatureRow({ text, dotColor, textColor }: FeatureRowProps) {
+function FeatureRow({ icon, text, textColor }: FeatureRowProps) {
   return (
     <View style={styles.featureRow}>
-      <Text style={[styles.featureDot, { color: dotColor }]}>●</Text>
+      <Text style={styles.featureIcon}>{icon}</Text>
       <Text style={[styles.featureText, { color: textColor }]}>{text}</Text>
     </View>
   );
@@ -143,9 +143,9 @@ export default function LandingScreen() {
           <View style={styles.features}>
             {FEATURES.map((feature) => (
               <FeatureRow
-                key={feature}
-                text={feature}
-                dotColor={colors.accent}
+                key={feature.text}
+                icon={feature.icon}
+                text={feature.text}
                 textColor={colors.textSecondary}
               />
             ))}
@@ -236,8 +236,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-  featureDot: {
-    fontSize: 10,
+  featureIcon: {
+    fontSize: 18,
+    width: 28,
+    textAlign: "center",
   },
   featureText: {
     fontSize: 15,
