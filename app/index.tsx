@@ -43,20 +43,22 @@ function useClickSound() {
   const soundRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
-    Audio.Sound.createAsync(require("../assets/sounds/pop.wav")).then(
-      ({ sound }) => {
+    Audio.Sound.createAsync(require("../assets/sounds/pop.wav"))
+      .then(({ sound }) => {
         soundRef.current = sound;
-      },
-    );
+      })
+      .catch(() => {});
     return () => {
       soundRef.current?.unloadAsync();
     };
   }, []);
 
   const play = useCallback(async () => {
-    if (soundRef.current) {
-      await soundRef.current.setPositionAsync(0);
-      await soundRef.current.playAsync();
+    try {
+      await soundRef.current?.setPositionAsync(0);
+      await soundRef.current?.playAsync();
+    } catch {
+      // sound not ready yet
     }
   }, []);
 
