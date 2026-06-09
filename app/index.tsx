@@ -179,6 +179,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 32,
     justifyContent: "space-between",
+    maxWidth: 600,
+    alignSelf: "center",
+    width: "100%",
   },
   topSection: {
     alignItems: "center",
@@ -226,10 +229,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 28,
     paddingHorizontal: 10,
+    maxWidth: 420,
   },
   features: {
     gap: 12,
     width: "100%",
+    maxWidth: 360,
   },
   featureRow: {
     flexDirection: "row",
