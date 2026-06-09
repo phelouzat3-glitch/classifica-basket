@@ -6,7 +6,6 @@ import {
   Animated,
   Easing,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -103,29 +102,27 @@ function BasketballField({
   spinRotation: Animated.AnimatedInterpolation<string>;
 }) {
   return (
-    <View style={styles.field}>
-      <View style={styles.fieldBorder}>
-        <View style={styles.centerLine} />
-        <View style={styles.centerCircle} />
-        <View style={[styles.leftKey, styles.keyBase]} />
-        <View style={[styles.rightKey, styles.keyBase]} />
-        <View style={styles.leftFreeThrow} />
-        <View style={styles.rightFreeThrow} />
-        <Animated.Text
-          style={[
-            styles.fieldBall,
-            {
-              transform: [
-                { translateX: ballX },
-                { translateY: ballY },
-                { rotate: spinRotation },
-              ],
-            },
-          ]}
-        >
-          🏀
-        </Animated.Text>
-      </View>
+    <View style={styles.fieldBorder}>
+      <View style={styles.centerLine} />
+      <View style={styles.centerCircle} />
+      <View style={[styles.leftKey, styles.keyBase]} />
+      <View style={[styles.rightKey, styles.keyBase]} />
+      <View style={styles.leftFreeThrow} />
+      <View style={styles.rightFreeThrow} />
+      <Animated.Text
+        style={[
+          styles.fieldBall,
+          {
+            transform: [
+              { translateX: ballX },
+              { translateY: ballY },
+              { rotate: spinRotation },
+            ],
+          },
+        ]}
+      >
+        🏀
+      </Animated.Text>
     </View>
   );
 }
@@ -165,50 +162,46 @@ export default function LandingScreen() {
   const { ballX, ballY, spinRotation } = useOrbitAnimation();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.bg }]}>
+    <View
+      style={[
+        styles.root,
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + 12,
+          backgroundColor: colors.bg,
+        },
+      ]}
+    >
       <StatusBar style="light" />
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 20 },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.topSection}>
-          <View
-            style={[
-              styles.badge,
-              {
-                backgroundColor: colors.accent + "18",
-                borderColor: colors.accent + "30",
-              },
-            ]}
-          >
-            <Text style={[styles.badgeText, { color: colors.accent }]}>
-              {TEAM_CONFIG.division}
-            </Text>
-          </View>
-          <Text
-            style={[styles.teamName, { color: colors.textPrimary }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {TEAM_CONFIG.name}
-          </Text>
-          <Text style={[styles.division, { color: colors.textSecondary }]}>
-            {TEAM_CONFIG.season}
+
+      <View style={styles.header}>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: colors.accent + "18",
+              borderColor: colors.accent + "30",
+            },
+          ]}
+        >
+          <Text style={[styles.badgeText, { color: colors.accent }]}>
+            {TEAM_CONFIG.division}
           </Text>
         </View>
+        <Text
+          style={[styles.teamName, { color: colors.textPrimary }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {TEAM_CONFIG.name}
+        </Text>
+        <Text style={[styles.season, { color: colors.textSecondary }]}>
+          {TEAM_CONFIG.season}
+        </Text>
+      </View>
 
+      <View style={styles.body}>
         <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
-
-        <View style={styles.centerSection}>
-          <Text style={[styles.welcome, { color: colors.textPrimary }]}>Benvenuto</Text>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-            Segui risultati, classifica e statistiche della tua squadra del cuore.
-          </Text>
-        </View>
 
         <View style={styles.menuGrid}>
           {MENU_ITEMS.map((item) => (
@@ -231,36 +224,29 @@ export default function LandingScreen() {
         >
           <Text style={styles.buttonText}>Entra</Text>
         </Pressable>
-      </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     maxWidth: 900,
     width: "100%",
     alignSelf: "center",
-  },
-  scrollContent: {
-    flexGrow: 1,
     paddingHorizontal: 24,
-    maxWidth: 500,
-    alignSelf: "center",
-    width: "100%",
   },
-  topSection: {
+  header: {
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   badge: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+    paddingVertical: 3,
+    borderRadius: 12,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 6,
   },
   badgeText: {
     fontSize: 10,
@@ -273,24 +259,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: -0.5,
   },
-  division: {
-    fontSize: 12,
+  season: {
+    fontSize: 11,
     fontWeight: "500",
     marginTop: 2,
   },
-  field: {
-    alignItems: "center",
-    marginVertical: 8,
+  body: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 16,
   },
   fieldBorder: {
-    width: 280,
-    height: 160,
+    width: 260,
+    height: 140,
     backgroundColor: COURT_COLOR,
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: LINE_COLOR,
     overflow: "hidden",
     position: "relative",
+    alignSelf: "center",
   },
   centerLine: {
     position: "absolute",
@@ -303,20 +291,20 @@ const styles = StyleSheet.create({
   },
   centerCircle: {
     position: "absolute",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 2,
     borderColor: LINE_COLOR,
     top: "50%",
     left: "50%",
-    marginLeft: -20,
-    marginTop: -20,
+    marginLeft: -18,
+    marginTop: -18,
   },
   keyBase: {
     position: "absolute",
-    width: 36,
-    height: 52,
+    width: 32,
+    height: 46,
     borderWidth: 2,
     borderColor: LINE_COLOR,
   },
@@ -324,7 +312,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: "50%",
-    marginTop: -26,
+    marginTop: -23,
     borderLeftWidth: 0,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
@@ -333,26 +321,26 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     top: "50%",
-    marginTop: -26,
+    marginTop: -23,
     borderRightWidth: 0,
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
   },
   leftFreeThrow: {
     position: "absolute",
-    left: 36,
+    left: 32,
     top: "50%",
     marginTop: -1,
-    width: 24,
+    width: 20,
     height: 2,
     backgroundColor: LINE_COLOR,
   },
   rightFreeThrow: {
     position: "absolute",
-    right: 36,
+    right: 32,
     top: "50%",
     marginTop: -1,
-    width: 24,
+    width: 20,
     height: 2,
     backgroundColor: LINE_COLOR,
   },
@@ -360,48 +348,31 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginLeft: -10,
-    marginTop: -10,
-    fontSize: 20,
-  },
-  centerSection: {
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  welcome: {
+    marginLeft: -9,
+    marginTop: -9,
     fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 18,
-    paddingHorizontal: 8,
-    maxWidth: 360,
   },
   menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 8,
-    marginBottom: 12,
   },
   menuCard: {
     width: "46%",
-    maxWidth: 130,
+    maxWidth: 120,
     aspectRatio: 1,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
   },
   menuIcon: {
-    fontSize: 26,
+    fontSize: 24,
   },
   menuLabel: {
     fontSize: 12,
