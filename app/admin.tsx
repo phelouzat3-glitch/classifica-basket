@@ -463,12 +463,6 @@ export default function AdminScreen() {
                                 </View>
                               )}
                             </View>
-                            <Pressable
-                              style={[styles.deleteBtn, { backgroundColor: c.lossBg }]}
-                              onPress={() => handleDelete(m)}
-                            >
-                              <Ionicons name="trash-outline" size={14} color={c.loss} />
-                            </Pressable>
                           </Pressable>
                         );
                       })}
@@ -479,28 +473,49 @@ export default function AdminScreen() {
                 {matchId !== 0 && (
                   <View style={styles.scoreSection}>
                     <View style={[styles.divider, { backgroundColor: c.border }]} />
-                    <View style={styles.scoreHeaderRow}>
-                      <Text style={[styles.label, { color: c.textMuted, marginTop: 16 }]}>PUNTEGGIO</Text>
-                      <Pressable
-                        style={[styles.editToggleBtn, { backgroundColor: editOpen ? c.accentBg : c.bgCardAlt }]}
-                        onPress={() => {
-                          if (!editOpen && selectedMatch) {
-                            setEditRound(String(selectedMatch.round));
-                            setEditDate(selectedMatch.date);
-                            setEditTime("");
-                            setEditHomeTeam(selectedMatch.home_team);
-                            setEditAwayTeam(selectedMatch.away_team);
-                            setEditHomeScore(selectedMatch.home_score != null ? String(selectedMatch.home_score) : "");
-                            setEditAwayScore(selectedMatch.away_score != null ? String(selectedMatch.away_score) : "");
-                          }
-                          setEditOpen(!editOpen);
-                        }}
-                      >
-                        <Ionicons name="create-outline" size={15} color={editOpen ? ORANGE : c.textMuted} />
-                        <Text style={[styles.editToggleText, { color: editOpen ? ORANGE : c.textMuted }]}>
-                          {editOpen ? "Chiudi" : "Modifica"}
-                        </Text>
-                      </Pressable>
+                    <View>
+                      <View style={styles.matchActionsRow}>
+                        <Pressable
+                          style={[styles.actionBtn, { backgroundColor: editOpen ? c.accentBg : c.bgCardAlt }]}
+                          onPress={() => {
+                            if (!editOpen && selectedMatch) {
+                              setEditRound(String(selectedMatch.round));
+                              setEditDate(selectedMatch.date);
+                              setEditTime("");
+                              setEditHomeTeam(selectedMatch.home_team);
+                              setEditAwayTeam(selectedMatch.away_team);
+                              setEditHomeScore(selectedMatch.home_score != null ? String(selectedMatch.home_score) : "");
+                              setEditAwayScore(selectedMatch.away_score != null ? String(selectedMatch.away_score) : "");
+                            }
+                            setEditOpen(!editOpen);
+                          }}
+                        >
+                          <Ionicons name="create-outline" size={16} color={editOpen ? ORANGE : c.textMuted} />
+                          <Text style={[styles.actionBtnText, { color: editOpen ? ORANGE : c.textMuted }]}>
+                            {editOpen ? "Chiudi" : "Modifica"}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
+                          onPress={() => selectedMatch && handleDelete(selectedMatch)}
+                        >
+                          <Ionicons name="trash-outline" size={16} color={c.loss} />
+                          <Text style={[styles.actionBtnText, { color: c.loss }]}>Cancella</Text>
+                        </Pressable>
+                        <Pressable
+                          style={[styles.actionBtn, { backgroundColor: c.bgCardAlt }]}
+                          onPress={() => {
+                            setMatchId(0);
+                            setHomeScore("");
+                            setAwayScore("");
+                            setEditOpen(false);
+                            setSuccess(null);
+                          }}
+                        >
+                          <Ionicons name="close-outline" size={16} color={c.textMuted} />
+                          <Text style={[styles.actionBtnText, { color: c.textMuted }]}>Esci</Text>
+                        </Pressable>
+                      </View>
                     </View>
 
                     {editOpen && (
@@ -611,6 +626,7 @@ export default function AdminScreen() {
 
                     {!editOpen && (
                       <>
+                        <Text style={[styles.label, { color: c.textMuted, marginTop: 16 }]}>PUNTEGGIO</Text>
                         <View style={styles.scoreRow}>
                           <View style={styles.scoreField}>
                             <Text style={[styles.teamLabel, { color: c.textSecondary }]}>{selectedMatch?.home_team}</Text>
@@ -1084,31 +1100,21 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
-  deleteBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 7,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 6,
-  },
-
-  scoreHeaderRow: {
+  matchActionsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  editToggleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    gap: 8,
     marginTop: 16,
   },
-  editToggleText: {
-    fontSize: 12,
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  actionBtnText: {
+    fontSize: 13,
     fontWeight: "600",
   },
   editRow: {
