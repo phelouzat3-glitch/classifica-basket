@@ -276,18 +276,20 @@ export default function AdminScreen() {
     }
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState<MatchOption | null>(null);
+
   const handleDelete = async (m: MatchOption) => {
-    if (!window.confirm(`Eliminare G.${m.round}: ${m.home_team} - ${m.away_team}?`)) return;
     try {
       const res = await fetch(`${API_URL}/matches/${m.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${savedKey}` },
       });
+      setDeleteConfirm(null);
       if (!res.ok) {
         const txt = await res.text();
         let msg = "Errore durante l'eliminazione";
         try { const j = JSON.parse(txt); msg = j.message || msg; } catch {}
-        window.alert(msg);
+        setSuccess(msg);
         return;
       }
       setSuccess(null);
@@ -298,7 +300,8 @@ export default function AdminScreen() {
       }
       await fetchMatches();
     } catch {
-      window.alert("Errore di connessione al server");
+      setDeleteConfirm(null);
+      setSuccess("Errore di connessione al server");
     }
   };
 
@@ -771,26 +774,30 @@ export default function AdminScreen() {
                             {editOpen ? "Chiudi" : "Modifica"}
                           </Text>
                         </Pressable>
-                        <Pressable
-                          style={[
-                            styles.actionBtn,
-                            { backgroundColor: c.lossBg },
-                          ]}
-                          onPress={() =>
-                            selectedMatch && handleDelete(selectedMatch)
-                          }
-                        >
-                          <Ionicons
-                            name="trash-outline"
-                            size={16}
-                            color={c.loss}
-                          />
-                          <Text
-                            style={[styles.actionBtnText, { color: c.loss }]}
+                        {deleteConfirm?.id === selectedMatch?.id ? (
+                          <View style={{ flexDirection: "row", gap: 8 }}>
+                            <Pressable
+                              style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
+                              onPress={() => selectedMatch && handleDelete(selectedMatch)}
+                            >
+                              <Text style={[styles.actionBtnText, { color: c.loss }]}>Conferma</Text>
+                            </Pressable>
+                            <Pressable
+                              style={[styles.actionBtn, { backgroundColor: c.bgCardAlt }]}
+                              onPress={() => setDeleteConfirm(null)}
+                            >
+                              <Text style={[styles.actionBtnText, { color: c.textMuted }]}>Annulla</Text>
+                            </Pressable>
+                          </View>
+                        ) : (
+                          <Pressable
+                            style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
+                            onPress={() => selectedMatch && setDeleteConfirm(selectedMatch)}
                           >
-                            Cancella
-                          </Text>
-                        </Pressable>
+                            <Ionicons name="trash-outline" size={16} color={c.loss} />
+                            <Text style={[styles.actionBtnText, { color: c.loss }]}>Cancella</Text>
+                          </Pressable>
+                        )}
                         <Pressable
                           style={[
                             styles.actionBtn,
