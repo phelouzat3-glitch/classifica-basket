@@ -38,7 +38,7 @@ const MENU_ITEMS = [
   { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
 
-const ORBIT_RADIUS = Platform.select({ web: 26, default: 20 });
+const ORBIT_RADIUS = Platform.select({ web: 28, default: 20 });
 const CIRCLE_POINTS = 16;
 
 const inputRange = Array.from({ length: CIRCLE_POINTS + 1 }, (_, i) => i / CIRCLE_POINTS);
@@ -207,9 +207,9 @@ export default function LandingScreen() {
           </Text>
         </View>
 
-        <View style={styles.body}>
-          <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
+        <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
 
+        <View style={styles.bottomSection}>
           <View style={styles.menuGrid}>
             {MENU_ITEMS.map((item) => (
               <MenuCard
@@ -247,14 +247,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: "space-between",
+    paddingBottom: 12,
     maxWidth: Platform.select({ web: 700, default: 500 }),
     alignSelf: "center",
     width: "100%",
   },
   header: {
     alignItems: "center",
-    marginBottom: Platform.select({ web: 18, default: 10 }),
+    paddingTop: Platform.select({ web: 20, default: 8 }),
   },
   badge: {
     paddingHorizontal: 10,
@@ -269,22 +270,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   teamName: {
-    fontSize: 20,
+    fontSize: Platform.select({ web: 22, default: 20 }),
     fontWeight: "800",
     textAlign: "center",
     letterSpacing: -0.5,
   },
   season: {
-    fontSize: 11,
+    fontSize: Platform.select({ web: 12, default: 11 }),
     fontWeight: "500",
     marginTop: 2,
   },
-  body: {
-    gap: Platform.select({ web: 22, default: 16 }),
-  },
   fieldBorder: {
-    width: Platform.select({ web: 350, default: 260 }),
-    height: Platform.select({ web: 180, default: 140 }),
+    width: Platform.select({ web: 400, default: 260 }),
+    height: Platform.select({ web: 200, default: 140 }),
     backgroundColor: COURT_COLOR,
     borderRadius: 10,
     borderWidth: 2,
@@ -304,20 +302,20 @@ const styles = StyleSheet.create({
   },
   centerCircle: {
     position: "absolute",
-    width: Platform.select({ web: 48, default: 36 }),
-    height: Platform.select({ web: 48, default: 36 }),
-    borderRadius: Platform.select({ web: 24, default: 18 }),
+    width: Platform.select({ web: 52, default: 36 }),
+    height: Platform.select({ web: 52, default: 36 }),
+    borderRadius: Platform.select({ web: 26, default: 18 }),
     borderWidth: 2,
     borderColor: LINE_COLOR,
     top: "50%",
     left: "50%",
-    marginLeft: Platform.select({ web: -24, default: -18 }),
-    marginTop: Platform.select({ web: -24, default: -18 }),
+    marginLeft: Platform.select({ web: -26, default: -18 }),
+    marginTop: Platform.select({ web: -26, default: -18 }),
   },
   keyBase: {
     position: "absolute",
-    width: Platform.select({ web: 42, default: 32 }),
-    height: Platform.select({ web: 60, default: 46 }),
+    width: Platform.select({ web: 48, default: 32 }),
+    height: Platform.select({ web: 64, default: 46 }),
     borderWidth: 2,
     borderColor: LINE_COLOR,
   },
@@ -325,7 +323,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: "50%",
-    marginTop: Platform.select({ web: -30, default: -23 }),
+    marginTop: Platform.select({ web: -32, default: -23 }),
     borderLeftWidth: 0,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
@@ -334,26 +332,26 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     top: "50%",
-    marginTop: Platform.select({ web: -30, default: -23 }),
+    marginTop: Platform.select({ web: -32, default: -23 }),
     borderRightWidth: 0,
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
   },
   leftFreeThrow: {
     position: "absolute",
-    left: Platform.select({ web: 42, default: 32 }),
+    left: Platform.select({ web: 48, default: 32 }),
     top: "50%",
     marginTop: -1,
-    width: Platform.select({ web: 28, default: 20 }),
+    width: Platform.select({ web: 30, default: 20 }),
     height: 2,
     backgroundColor: LINE_COLOR,
   },
   rightFreeThrow: {
     position: "absolute",
-    right: Platform.select({ web: 42, default: 32 }),
+    right: Platform.select({ web: 48, default: 32 }),
     top: "50%",
     marginTop: -1,
-    width: Platform.select({ web: 28, default: 20 }),
+    width: Platform.select({ web: 30, default: 20 }),
     height: 2,
     backgroundColor: LINE_COLOR,
   },
@@ -361,9 +359,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginLeft: Platform.select({ web: -12, default: -9 }),
-    marginTop: Platform.select({ web: -12, default: -9 }),
-    fontSize: Platform.select({ web: 24, default: 18 }),
+    marginLeft: Platform.select({ web: -14, default: -9 }),
+    marginTop: Platform.select({ web: -14, default: -9 }),
+    fontSize: Platform.select({ web: 28, default: 18 }),
+  },
+  bottomSection: {
+    gap: Platform.select({ web: 20, default: 14 }),
   },
   menuGrid: {
     flexDirection: "row",
