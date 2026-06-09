@@ -396,6 +396,7 @@ const styles = StyleSheet.create({
   menuRow: {
     flexDirection: "row",
     gap: 12,
+    justifyContent: "center",
   },
   menuCol: {
     flex: 1,
