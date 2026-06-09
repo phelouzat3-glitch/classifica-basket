@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   PanResponder,
@@ -34,13 +34,14 @@ export default function DraggableControlPanel() {
     useFontScaleControls();
 
   const [moveMode, setMoveMode] = useState(false);
+  const moveModeRef = useRef(false);
   const posRef = useRef<Pos>({ x: 0, y: 0 });
 
   const pan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
 
   const [loaded, setLoaded] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     (async () => {
       try {
         const storage = await getStorage();
@@ -56,7 +57,11 @@ export default function DraggableControlPanel() {
         setLoaded(true);
       }
     })();
-  });
+  }, []);
+
+  useEffect(() => {
+    moveModeRef.current = moveMode;
+  }, [moveMode]);
 
   const savePosition = useCallback(async (pos: Pos) => {
     try {
@@ -67,8 +72,8 @@ export default function DraggableControlPanel() {
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => moveMode,
-      onMoveShouldSetPanResponder: () => moveMode,
+      onStartShouldSetPanResponder: () => moveModeRef.current,
+      onMoveShouldSetPanResponder: () => moveModeRef.current,
       onPanResponderGrant: () => {
         pan.setOffset({
           x: posRef.current.x,
@@ -85,6 +90,7 @@ export default function DraggableControlPanel() {
           Math.abs(gesture.dx) < 5 && Math.abs(gesture.dy) < 5;
         if (isTap) {
           setMoveMode(false);
+          moveModeRef.current = false;
           return;
         }
         const newX = posRef.current.x + gesture.dx;
@@ -101,7 +107,11 @@ export default function DraggableControlPanel() {
   ).current;
 
   const toggleMoveMode = () => {
-    setMoveMode((v) => !v);
+    setMoveMode((v) => {
+      const next = !v;
+      moveModeRef.current = next;
+      return next;
+    });
   };
 
   if (!loaded) return null;
