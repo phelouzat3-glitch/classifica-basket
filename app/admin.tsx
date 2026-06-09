@@ -343,16 +343,13 @@ export default function AdminScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]} keyboardShouldPersistTaps="handled">
           <View style={[styles.header, { backgroundColor: c.bg }]}>
-            <Text style={styles.headerSmall}>ABC CASTELFIORENTINO</Text>
-            <View style={styles.headerRow}>
-              <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Admin</Text>
-              {savedKey && (
-                <Pressable style={[styles.logoutBtn, { backgroundColor: c.lossBg }]} onPress={handleLogout}>
-                  <Ionicons name="log-out-outline" size={16} color={c.loss} />
-                  <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
-                </Pressable>
-              )}
-            </View>
+            {savedKey && (
+              <Pressable style={[styles.logoutBtn, { backgroundColor: c.lossBg }]} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={16} color={c.loss} />
+                <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
+              </Pressable>
+            )}
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Admin</Text>
           </View>
 
           {!savedKey ? (
@@ -857,31 +854,24 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 16,
-  },
-  headerSmall: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: ORANGE,
-    letterSpacing: 1.5,
-    marginBottom: 2,
-  },
-  headerRow: {
-    flexDirection: "row",
+    paddingBottom: 20,
     alignItems: "center",
-    justifyContent: "space-between",
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: 30,
+    fontWeight: "900",
+    letterSpacing: 1.5,
+    marginTop: 8,
   },
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-end",
     gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10,
+    marginBottom: 4,
   },
   logoutText: {
     fontSize: 13,
