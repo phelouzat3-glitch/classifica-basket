@@ -93,6 +93,9 @@ export default function AdminScreen() {
   const [usersOpen, setUsersOpen] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
 
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
     slideAnim.setValue(12);
@@ -387,7 +390,25 @@ export default function AdminScreen() {
           } catch {}
         },
       },
-    ]);
+    ]    );
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/sync`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${savedKey}` },
+      });
+      if (!res.ok) throw new Error("");
+      const data = await res.json();
+      setSyncMsg(`✅ ${data.message}`);
+    } catch {
+      setSyncMsg("❌ Errore durante la sincronizzazione");
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const selectedMatch = matches.find((m) => m.id === matchId);
@@ -1493,6 +1514,28 @@ export default function AdminScreen() {
                       )}
                     </Pressable>
                   </>
+                )}
+              </View>
+
+              <View style={[styles.card, { backgroundColor: c.bgCard }]}>
+                <Pressable
+                  style={styles.createHeader}
+                  onPress={handleSync}
+                  disabled={syncing}
+                >
+                  <Ionicons name="sync" size={20} color={ORANGE} style={{ marginRight: 8 }} />
+                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                    Sincronizza da playbasket.it
+                  </Text>
+                </Pressable>
+
+                {syncMsg && (
+                  <View style={[styles.feedbackCard, { backgroundColor: c.bgCardAlt, borderColor: c.border, marginTop: 16 }]}>
+                    <Ionicons name={syncing ? "hourglass" : syncMsg.startsWith("✅") ? "checkmark-circle" : "alert-circle"} size={18} color={c.textSecondary} style={{ marginRight: 8 }} />
+                    <Text style={[styles.feedbackText, { color: c.textSecondary }]}>
+                      {syncing ? "Sincronizzazione in corso..." : syncMsg}
+                    </Text>
+                  </View>
                 )}
               </View>
 
