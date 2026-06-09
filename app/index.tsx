@@ -43,6 +43,7 @@ function useClickSound() {
   const soundRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
+    Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => {});
     Audio.Sound.createAsync(require("../assets/sounds/pop.wav"))
       .then(({ sound }) => {
         soundRef.current = sound;
