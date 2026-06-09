@@ -349,7 +349,7 @@ export default function AdminScreen() {
                 <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
               </Pressable>
             )}
-            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Admin</Text>
+            <Text style={[styles.headerTitle, { color: c.textPrimary }]}>👤 Admin</Text>
           </View>
 
           {!savedKey ? (
