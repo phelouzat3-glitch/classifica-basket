@@ -1,7 +1,10 @@
 import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef } from "react";
 import {
+  Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -34,17 +37,94 @@ const MENU_ITEMS = [
   { icon: "👥", label: "Rosa", route: ROUTES.rosa },
 ] as const;
 
-function BasketballField() {
+const ORBIT_RADIUS = 20;
+const CIRCLE_POINTS = 16;
+
+const inputRange = Array.from({ length: CIRCLE_POINTS + 1 }, (_, i) => i / CIRCLE_POINTS);
+const orbitXMap = inputRange.map((t) => Math.cos(t * Math.PI * 2) * ORBIT_RADIUS);
+const orbitYMap = inputRange.map((t) => Math.sin(t * Math.PI * 2) * ORBIT_RADIUS);
+
+function useOrbitAnimation() {
+  const orbitAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const orbitLoop = Animated.loop(
+      Animated.timing(orbitAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      { iterations: -1 },
+    );
+    const spinLoop = Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      { iterations: -1 },
+    );
+    orbitLoop.start();
+    spinLoop.start();
+    return () => {
+      orbitLoop.stop();
+      spinLoop.stop();
+    };
+  }, [orbitAnim, spinAnim]);
+
+  const ballX = orbitAnim.interpolate({
+    inputRange,
+    outputRange: orbitXMap,
+    extrapolate: "clamp",
+  });
+  const ballY = orbitAnim.interpolate({
+    inputRange,
+    outputRange: orbitYMap,
+    extrapolate: "clamp",
+  });
+  const spinRotation = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
+  return { ballX, ballY, spinRotation };
+}
+
+function BasketballField({
+  ballX,
+  ballY,
+  spinRotation,
+}: {
+  ballX: Animated.AnimatedInterpolation<number>;
+  ballY: Animated.AnimatedInterpolation<number>;
+  spinRotation: Animated.AnimatedInterpolation<string>;
+}) {
   return (
     <View style={styles.field}>
       <View style={styles.fieldBorder}>
         <View style={styles.centerLine} />
         <View style={styles.centerCircle} />
-        <View style={[styles.topKey, styles.keyBase]} />
-        <View style={[styles.bottomKey, styles.keyBase]} />
-        <View style={styles.topFreeThrow} />
-        <View style={styles.bottomFreeThrow} />
-        <Text style={styles.fieldBall}>🏀</Text>
+        <View style={[styles.leftKey, styles.keyBase]} />
+        <View style={[styles.rightKey, styles.keyBase]} />
+        <View style={styles.leftFreeThrow} />
+        <View style={styles.rightFreeThrow} />
+        <Animated.Text
+          style={[
+            styles.fieldBall,
+            {
+              transform: [
+                { translateX: ballX },
+                { translateY: ballY },
+                { rotate: spinRotation },
+              ],
+            },
+          ]}
+        >
+          🏀
+        </Animated.Text>
       </View>
     </View>
   );
@@ -82,6 +162,7 @@ export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const { ballX, ballY, spinRotation } = useOrbitAnimation();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.bg }]}>
@@ -120,7 +201,7 @@ export default function LandingScreen() {
           </Text>
         </View>
 
-        <BasketballField />
+        <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
 
         <View style={styles.centerSection}>
           <Text style={[styles.welcome, { color: colors.textPrimary }]}>Benvenuto</Text>
@@ -203,8 +284,8 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   fieldBorder: {
-    width: 160,
-    height: 220,
+    width: 280,
+    height: 160,
     backgroundColor: COURT_COLOR,
     borderRadius: 12,
     borderWidth: 2,
@@ -214,12 +295,12 @@ const styles = StyleSheet.create({
   },
   centerLine: {
     position: "absolute",
-    left: 0,
-    right: 0,
-    top: "50%",
-    height: 2,
+    top: 0,
+    bottom: 0,
+    left: "50%",
+    width: 2,
     backgroundColor: LINE_COLOR,
-    marginTop: -1,
+    marginLeft: -1,
   },
   centerCircle: {
     position: "absolute",
@@ -235,45 +316,45 @@ const styles = StyleSheet.create({
   },
   keyBase: {
     position: "absolute",
-    width: 52,
-    height: 34,
+    width: 36,
+    height: 52,
     borderWidth: 2,
     borderColor: LINE_COLOR,
   },
-  topKey: {
+  leftKey: {
     position: "absolute",
-    top: 0,
-    left: "50%",
-    marginLeft: -26,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 4,
+    left: 0,
+    top: "50%",
+    marginTop: -26,
+    borderLeftWidth: 0,
+    borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
   },
-  bottomKey: {
+  rightKey: {
     position: "absolute",
-    bottom: 0,
-    left: "50%",
-    marginLeft: -26,
-    borderBottomWidth: 0,
+    right: 0,
+    top: "50%",
+    marginTop: -26,
+    borderRightWidth: 0,
     borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
+    borderBottomLeftRadius: 4,
   },
-  topFreeThrow: {
+  leftFreeThrow: {
     position: "absolute",
-    top: 34,
-    left: "50%",
-    marginLeft: -1,
-    width: 2,
-    height: 26,
+    left: 36,
+    top: "50%",
+    marginTop: -1,
+    width: 24,
+    height: 2,
     backgroundColor: LINE_COLOR,
   },
-  bottomFreeThrow: {
+  rightFreeThrow: {
     position: "absolute",
-    bottom: 34,
-    left: "50%",
-    marginLeft: -1,
-    width: 2,
-    height: 26,
+    right: 36,
+    top: "50%",
+    marginTop: -1,
+    width: 24,
+    height: 2,
     backgroundColor: LINE_COLOR,
   },
   fieldBall: {
