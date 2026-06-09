@@ -311,9 +311,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    marginLeft: -18,
-    marginTop: -18,
-    fontSize: 36,
+    marginLeft: -14,
+    marginTop: -14,
+    fontSize: 28,
   },
   centerSection: {
     alignItems: "center",
