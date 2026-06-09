@@ -209,16 +209,40 @@ export default function LandingScreen() {
 
         <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
 
-        <View style={styles.bottomSection}>
+          <View style={styles.bottomSection}>
           <View style={styles.menuGrid}>
-            {MENU_ITEMS.map((item) => (
-              <MenuCard
-                key={item.label}
-                icon={item.icon}
-                label={item.label}
-                onPress={() => router.replace(item.route)}
-              />
-            ))}
+            <View style={styles.menuRow}>
+              <View style={styles.menuCol}>
+                <MenuCard
+                  icon={MENU_ITEMS[0].icon}
+                  label={MENU_ITEMS[0].label}
+                  onPress={() => router.replace(MENU_ITEMS[0].route)}
+                />
+              </View>
+              <View style={styles.menuCol}>
+                <MenuCard
+                  icon={MENU_ITEMS[1].icon}
+                  label={MENU_ITEMS[1].label}
+                  onPress={() => router.replace(MENU_ITEMS[1].route)}
+                />
+              </View>
+            </View>
+            <View style={styles.menuRow}>
+              <View style={styles.menuCol}>
+                <MenuCard
+                  icon={MENU_ITEMS[2].icon}
+                  label={MENU_ITEMS[2].label}
+                  onPress={() => router.replace(MENU_ITEMS[2].route)}
+                />
+              </View>
+              <View style={styles.menuCol}>
+                <MenuCard
+                  icon={MENU_ITEMS[3].icon}
+                  label={MENU_ITEMS[3].label}
+                  onPress={() => router.replace(MENU_ITEMS[3].route)}
+                />
+              </View>
+            </View>
           </View>
 
           <Pressable
@@ -367,14 +391,16 @@ const styles = StyleSheet.create({
     gap: Platform.select({ web: 20, default: 14 }),
   },
   menuGrid: {
+    gap: 10,
+  },
+  menuRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 12,
+    gap: 10,
+  },
+  menuCol: {
+    flex: 1,
   },
   menuCard: {
-    width: Platform.select({ web: "44%", default: "46%" }),
-    maxWidth: Platform.select({ web: 999, default: 120 }),
     aspectRatio: 1,
     borderRadius: 14,
     justifyContent: "center",
@@ -386,10 +412,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   menuIcon: {
-    fontSize: Platform.select({ web: 30, default: 24 }),
+    fontSize: Platform.select({ web: 28, default: 24 }),
   },
   menuLabel: {
-    fontSize: Platform.select({ web: 14, default: 12 }),
+    fontSize: Platform.select({ web: 13, default: 12 }),
     fontWeight: "600",
   },
   button: {
