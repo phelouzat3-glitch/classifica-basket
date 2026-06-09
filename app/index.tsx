@@ -246,15 +246,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: "space-between",
     maxWidth: 500,
     alignSelf: "center",
     width: "100%",
   },
   topSection: {
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 4,
+    marginTop: 16,
+    marginBottom: 2,
   },
   badge: {
     paddingHorizontal: 10,
@@ -281,7 +280,7 @@ const styles = StyleSheet.create({
   },
   field: {
     alignItems: "center",
-    marginVertical: 12,
+    marginVertical: 8,
   },
   fieldBorder: {
     width: 280,
@@ -367,7 +366,7 @@ const styles = StyleSheet.create({
   },
   centerSection: {
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   welcome: {
     fontSize: 18,
@@ -385,8 +384,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   menuCard: {
     width: "46%",
