@@ -424,7 +424,6 @@ export default function AdminScreen() {
                               !hasScore && !sel && { borderLeftWidth: 3, borderLeftColor: ORANGE },
                             ]}
                             onPress={() => {
-                              if (hasScore) return;
                               setMatchId(m.id);
                               setHomeScore("");
                               setAwayScore("");
