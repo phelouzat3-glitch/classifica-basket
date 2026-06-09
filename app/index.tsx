@@ -43,7 +43,7 @@ function useClickSound() {
   const soundRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
-    Audio.Sound.createAsync(require("../../assets/sounds/pop.wav")).then(
+    Audio.Sound.createAsync(require("../assets/sounds/pop.wav")).then(
       ({ sound }) => {
         soundRef.current = sound;
       },
