@@ -1525,7 +1525,7 @@ export default function AdminScreen() {
                 >
                   <Ionicons name="sync" size={20} color={ORANGE} style={{ marginRight: 8 }} />
                   <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
-                    Sincronizza da playbasket.it
+                    Sincronizza da abccastelfiorentino.it
                   </Text>
                 </Pressable>
 
