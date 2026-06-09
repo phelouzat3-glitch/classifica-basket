@@ -145,15 +145,21 @@ function MenuCard({
       style={({ pressed }) => [
         styles.menuCard,
         {
-          backgroundColor: colors.bgCard,
+          backgroundColor: pressed ? colors.accent : colors.bgCard,
           shadowColor: colors.textPrimary,
-          opacity: pressed ? 0.85 : 1,
         },
       ]}
       onPress={onPress}
     >
       <Text style={styles.menuIcon}>{icon}</Text>
-      <Text style={[styles.menuLabel, { color: colors.textPrimary }]}>{label}</Text>
+      <Text
+        style={[
+          styles.menuLabel,
+          { color: colors.textPrimary },
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
