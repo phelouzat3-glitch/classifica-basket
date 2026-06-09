@@ -13,14 +13,15 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const COURT_COLOR = "#C8955A";
+const LINE_COLOR = "#FFFFFF";
+
 // ─── Route constants ────────────────────────────────────────────────────────
 const ROUTES = {
   home: "/(tabs)/home" as const,
 } as const;
 
 // ─── Team config ─────────────────────────────────────────────────────────────
-// Sposta questi valori in un file di config (es. src/config/team.ts)
-// o recuperali da uno store/API per rendere il componente riutilizzabile.
 const TEAM_CONFIG = {
   name: "ABC Castelfiorentino",
   division: "Serie C · Girone B",
@@ -50,6 +51,21 @@ function FeatureRow({ icon, text, textColor }: FeatureRowProps) {
   );
 }
 
+function BasketballField() {
+  return (
+    <View style={styles.field}>
+      <View style={styles.fieldBorder}>
+        <View style={styles.centerLine} />
+        <View style={styles.centerCircle} />
+        <View style={[styles.topKey, styles.keyBase]} />
+        <View style={[styles.bottomKey, styles.keyBase]} />
+        <View style={styles.topFreeThrow} />
+        <View style={styles.bottomFreeThrow} />
+      </View>
+    </View>
+  );
+}
+
 // ─── Animation hook ──────────────────────────────────────────────────────────
 function useSpinAnimation() {
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -60,7 +76,7 @@ function useSpinAnimation() {
         toValue: 1,
         duration: 3000,
         easing: Easing.linear,
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
       { iterations: -1 },
     );
@@ -126,6 +142,8 @@ export default function LandingScreen() {
             {TEAM_CONFIG.season}
           </Text>
         </View>
+
+        <BasketballField />
 
         <View style={styles.centerSection}>
           <Animated.Text
@@ -209,6 +227,84 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     marginTop: 4,
+  },
+  field: {
+    alignItems: "center",
+    marginVertical: 28,
+  },
+  fieldBorder: {
+    width: 240,
+    height: 340,
+    backgroundColor: COURT_COLOR,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: LINE_COLOR,
+    overflow: "hidden",
+    position: "relative",
+  },
+  centerLine: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: "50%",
+    height: 3,
+    backgroundColor: LINE_COLOR,
+    marginTop: -1.5,
+  },
+  centerCircle: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: LINE_COLOR,
+    top: "50%",
+    left: "50%",
+    marginLeft: -30,
+    marginTop: -30,
+  },
+  keyBase: {
+    position: "absolute",
+    width: 80,
+    height: 52,
+    borderWidth: 3,
+    borderColor: LINE_COLOR,
+  },
+  topKey: {
+    position: "absolute",
+    top: 0,
+    left: "50%",
+    marginLeft: -40,
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+  },
+  bottomKey: {
+    position: "absolute",
+    bottom: 0,
+    left: "50%",
+    marginLeft: -40,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+  },
+  topFreeThrow: {
+    position: "absolute",
+    top: 52,
+    left: "50%",
+    marginLeft: -1,
+    width: 2,
+    height: 40,
+    backgroundColor: LINE_COLOR,
+  },
+  bottomFreeThrow: {
+    position: "absolute",
+    bottom: 52,
+    left: "50%",
+    marginLeft: -1,
+    width: 2,
+    height: 40,
+    backgroundColor: LINE_COLOR,
   },
   centerSection: {
     alignItems: "center",
