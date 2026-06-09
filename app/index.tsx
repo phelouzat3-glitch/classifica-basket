@@ -44,7 +44,7 @@ export default function LandingScreen() {
           <View style={[styles.badge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
             <Text style={[styles.badgeText, { color: c.accent }]}>Serie C · Girone B</Text>
           </View>
-          <Text style={[styles.teamName, { color: c.textPrimary }]}>ABC Castelfiorentino</Text>
+          <Text style={[styles.teamName, { color: c.textPrimary }]} numberOfLines={1} adjustsFontSizeToFit>ABC Castelfiorentino</Text>
           <Text style={[styles.division, { color: c.textSecondary }]}>Stagione 2025/26</Text>
         </View>
 
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   teamName: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
     textAlign: "center",
     letterSpacing: -0.5,
