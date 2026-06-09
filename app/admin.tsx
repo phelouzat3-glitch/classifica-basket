@@ -159,15 +159,29 @@ export default function AdminScreen() {
     })();
   }, [fetchMatches, animateIn]);
 
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   const handleLogin = async () => {
     if (!apiKey.trim()) return;
+    setLoginError(null);
     try {
+      const res = await fetch(`${API_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${apiKey.trim()}` },
+      });
+      if (!res.ok) {
+        setLoginError("Password errata. Riprova.");
+        return;
+      }
+      const data = (await res.json()) as AdminUser[];
+      setUsers(data);
       const storage = await getStorage();
       await storage.setItem(STORAGE_KEY, apiKey.trim());
       setSavedKey(apiKey.trim());
       setSuccess(null);
       await fetchMatches();
-    } catch {}
+    } catch {
+      setLoginError("Errore di connessione al server");
+    }
   };
 
   const handleLogout = async () => {
@@ -340,7 +354,7 @@ export default function AdminScreen() {
   const handleChangeKey = async () => {
     if (!newKey.trim() || newKey !== confirmNewKey) return;
     if (newKey.trim().length < 3) {
-      setKeyChangeMsg("La chiave deve essere di almeno 3 caratteri");
+      setKeyChangeMsg("La password deve essere di almeno 3 caratteri");
       setKeyChangeOk(false);
       return;
     }
@@ -356,7 +370,7 @@ export default function AdminScreen() {
         body: JSON.stringify({ newKey: newKey.trim() }),
       });
       if (!res.ok) throw new Error("");
-      setKeyChangeMsg("Chiave aggiornata con successo!");
+      setKeyChangeMsg("Password aggiornata con successo!");
       setKeyChangeOk(true);
       setSavedKey(newKey.trim());
       setApiKey(newKey.trim());
@@ -366,7 +380,7 @@ export default function AdminScreen() {
       const storage = await getStorage();
       await storage.setItem(STORAGE_KEY, newKey.trim());
     } catch {
-      setKeyChangeMsg("Errore: chiave non valida o già in uso");
+      setKeyChangeMsg("Errore: password non valida o già in uso");
       setKeyChangeOk(false);
     } finally {
       setChangingKey(false);
@@ -471,9 +485,27 @@ export default function AdminScreen() {
                 <Ionicons name="shield-checkmark" size={28} color={ORANGE} />
               </View>
               <Text style={[styles.subtitle, { color: c.textSecondary }]}>
-                Inserisci la chiave API per accedere al pannello di
+                Inserisci la password per accedere al pannello di
                 amministrazione
               </Text>
+              {loginError && (
+                <View
+                  style={[
+                    styles.feedbackCard,
+                    { backgroundColor: c.lossBg, borderColor: c.loss },
+                  ]}
+                >
+                  <Ionicons
+                    name="alert-circle"
+                    size={18}
+                    color={c.loss}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={{ color: c.loss, fontSize: 14, fontWeight: "600" }}>
+                    {loginError}
+                  </Text>
+                </View>
+              )}
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                 <TextInput
                   style={[
@@ -484,10 +516,10 @@ export default function AdminScreen() {
                       borderColor: c.border,
                     },
                   ]}
-                  placeholder="API Key"
+                  placeholder="Password"
                   placeholderTextColor={c.textMuted}
                   value={apiKey}
-                  onChangeText={setApiKey}
+                  onChangeText={(t) => { setApiKey(t); setLoginError(null); }}
                   secureTextEntry
                   autoCapitalize="none"
                 />
@@ -1369,7 +1401,7 @@ export default function AdminScreen() {
                   }}
                 >
                   <Ionicons
-                    name="key-outline"
+                    name="lock-closed-outline"
                     size={20}
                     color={ORANGE}
                     style={{ marginRight: 8 }}
@@ -1377,7 +1409,7 @@ export default function AdminScreen() {
                   <Text
                     style={[styles.createHeaderText, { color: c.textPrimary }]}
                   >
-                    Cambia chiave API
+                    Cambia password
                   </Text>
                   <Ionicons
                     name={changeKeyOpen ? "chevron-up" : "chevron-down"}
@@ -1430,7 +1462,7 @@ export default function AdminScreen() {
                     )}
 
                     <Text style={[styles.label, { color: c.textMuted }]}>
-                      NUOVA CHIAVE
+                      NUOVA PASSWORD
                     </Text>
                     <TextInput
                       style={[
@@ -1446,7 +1478,7 @@ export default function AdminScreen() {
                         setNewKey(t);
                         setKeyChangeMsg(null);
                       }}
-                      placeholder="Inserisci nuova chiave"
+                      placeholder="Inserisci nuova password"
                       placeholderTextColor={c.textMuted}
                       autoCapitalize="none"
                     />
@@ -1457,7 +1489,7 @@ export default function AdminScreen() {
                         { color: c.textMuted, marginTop: 12 },
                       ]}
                     >
-                      CONFERMA CHIAVE
+                      CONFERMA PASSWORD
                     </Text>
                     <TextInput
                       style={[
@@ -1473,7 +1505,7 @@ export default function AdminScreen() {
                         setConfirmNewKey(t);
                         setKeyChangeMsg(null);
                       }}
-                      placeholder="Riscrivi la nuova chiave"
+                      placeholder="Riscrivi la nuova password"
                       placeholderTextColor={c.textMuted}
                       autoCapitalize="none"
                     />
@@ -1509,7 +1541,7 @@ export default function AdminScreen() {
                             color="#FFF"
                             style={{ marginRight: 8 }}
                           />
-                          <Text style={styles.btnText}>Aggiorna chiave</Text>
+                          <Text style={styles.btnText}>Aggiorna password</Text>
                         </>
                       )}
                     </Pressable>
