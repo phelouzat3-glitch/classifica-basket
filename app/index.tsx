@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/src/theme";
 import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,6 +11,7 @@ import {
   Animated,
   Easing,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -27,6 +29,9 @@ const TEAM_CONFIG = {
   division: "Serie C · Girone B",
   season: "Stagione 2025/26",
 } as const;
+
+const TOKEN_KEY = "@auth_token";
+const USER_KEY = "@auth_user";
 
 const ORBIT_RADIUS = Platform.select({ web: 28, default: 24 });
 const CIRCLE_POINTS = 16;
@@ -127,38 +132,99 @@ function BasketballField({
   );
 }
 
+type Mode = "login" | "register";
+
 export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const { ballX, ballY, spinRotation } = useOrbitAnimation();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [privacy, setPrivacy] = useState(false);
+  const [mode, setMode] = useState<Mode>("login");
+
+  const [loginName, setLoginName] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+  const [regPrivacy, setRegPrivacy] = useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [checkingToken, setCheckingToken] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        if (token) {
+          router.replace("/(tabs)/home");
+          return;
+        }
+      } catch {}
+      setCheckingToken(false);
+    })();
+  }, [router]);
+
+  const handleLogin = useCallback(async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!loginName.trim() || !loginPassword.trim()) {
+      setError("Compila tutti i campi");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: loginName.trim(),
+          password: loginPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data.message;
+        setError(typeof msg === "string" ? msg : "Errore durante l'accesso");
+        return;
+      }
+
+      await AsyncStorage.setItem(TOKEN_KEY, data.token);
+      await AsyncStorage.setItem(USER_KEY, data.name);
+
+      router.replace("/(tabs)/home");
+    } catch {
+      setError("Errore di connessione al server");
+    } finally {
+      setLoading(false);
+    }
+  }, [loginName, loginPassword, router]);
 
   const handleRegister = useCallback(async () => {
     setError(null);
     setSuccess(null);
 
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
       setError("Compila tutti i campi");
       return;
     }
-    if (password !== confirmPassword) {
+    if (regPassword !== regConfirm) {
       setError("Le password non coincidono");
       return;
     }
-    if (password.length < 6) {
+    if (regPassword.length < 6) {
       setError("La password deve essere di almeno 6 caratteri");
       return;
     }
-    if (!privacy) {
+    if (!regPrivacy) {
       setError("Devi accettare l'informativa sulla privacy");
       return;
     }
@@ -169,9 +235,9 @@ export default function LandingScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password,
+          name: regName.trim(),
+          email: regEmail.trim(),
+          password: regPassword,
         }),
       });
 
@@ -190,18 +256,26 @@ export default function LandingScreen() {
       }
 
       setSuccess(`Registrazione completata! Benvenuto, ${data.name}`);
-      setName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-      setPrivacy(false);
-      setTimeout(() => router.replace("/(tabs)/home"), 1500);
+      setRegName("");
+      setRegEmail("");
+      setRegPassword("");
+      setRegConfirm("");
+      setRegPrivacy(false);
+      setTimeout(() => setMode("login"), 1500);
     } catch {
       setError("Errore di connessione al server");
     } finally {
       setLoading(false);
     }
-  }, [name, email, password, confirmPassword, privacy, router]);
+  }, [regName, regEmail, regPassword, regConfirm, regPrivacy]);
+
+  if (checkingToken) {
+    return (
+      <View style={[styles.root, { backgroundColor: colors.bg, justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
 
   return (
     <View
@@ -269,97 +343,196 @@ export default function LandingScreen() {
 
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
             <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-              <View style={styles.headerReg}>
-                <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
-                  <Ionicons name="person-add" size={28} color={colors.accent} />
-                </View>
-                <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Registrati</Text>
-                <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
-                  Crea un account per accedere
-                </Text>
+              <View style={styles.toggleRow}>
+                <Pressable
+                  style={[
+                    styles.toggleBtn,
+                    mode === "login" && { backgroundColor: colors.accent },
+                  ]}
+                  onPress={() => { setMode("login"); setError(null); setSuccess(null); }}
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === "login" ? { color: "#FFF" } : { color: colors.textSecondary },
+                    ]}
+                  >
+                    Accedi
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.toggleBtn,
+                    mode === "register" && { backgroundColor: colors.accent },
+                  ]}
+                  onPress={() => { setMode("register"); setError(null); setSuccess(null); }}
+                >
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === "register" ? { color: "#FFF" } : { color: colors.textSecondary },
+                    ]}
+                  >
+                    Registrati
+                  </Text>
+                </Pressable>
               </View>
 
-              <Text style={[styles.label, { color: colors.textMuted }]}>NOME</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
-                value={name}
-                onChangeText={(t) => { setName(t); setError(null); }}
-                placeholder="Il tuo nome"
-                placeholderTextColor={colors.textMuted}
-                autoCapitalize="words"
-                editable={!loading}
-              />
+              {mode === "login" ? (
+                <>
+                  <View style={styles.headerReg}>
+                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+                      <Ionicons name="log-in" size={28} color={colors.accent} />
+                    </View>
+                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Bentornato!</Text>
+                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                      Inserisci le tue credenziali per accedere
+                    </Text>
+                  </View>
 
-              <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
-                value={email}
-                onChangeText={(t) => { setEmail(t); setError(null); }}
-                placeholder="tua@email.com"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!loading}
-              />
+                  <Text style={[styles.label, { color: colors.textMuted }]}>NOME UTENTE</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={loginName}
+                    onChangeText={(t) => { setLoginName(t); setError(null); }}
+                    placeholder="Il tuo nome"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="words"
+                    editable={!loading}
+                  />
 
-              <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
-                value={password}
-                onChangeText={(t) => { setPassword(t); setError(null); }}
-                placeholder="Minimo 6 caratteri"
-                placeholderTextColor={colors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!loading}
-              />
+                  <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={loginPassword}
+                    onChangeText={(t) => { setLoginPassword(t); setError(null); }}
+                    placeholder="La tua password"
+                    placeholderTextColor={colors.textMuted}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
 
-              <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
-                value={confirmPassword}
-                onChangeText={(t) => { setConfirmPassword(t); setError(null); }}
-                placeholder="Riscrivi la password"
-                placeholderTextColor={colors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!loading}
-              />
+                  <Pressable
+                    style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="enter-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                        <Text style={styles.btnText}>Entra</Text>
+                      </>
+                    )}
+                  </Pressable>
 
-              <Pressable
-                style={styles.privacyRow}
-                onPress={() => { setPrivacy(!privacy); setError(null); }}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    {
-                      backgroundColor: privacy ? colors.accent : colors.bg,
-                      borderColor: privacy ? colors.accent : colors.border,
-                    },
-                  ]}
-                >
-                  {privacy && <Ionicons name="checkmark" size={16} color="#FFF" />}
-                </View>
-                <Text style={[styles.privacyText, { color: colors.textSecondary }]}>
-                  Accetto l'informativa sulla privacy
-                </Text>
-              </Pressable>
+                  <Pressable
+                    style={styles.contactLink}
+                    onPress={() => Linking.openURL("mailto:info@abccastelfiorentino.it")}
+                  >
+                    <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.accent} style={{ marginRight: 4 }} />
+                    <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                      Vuoi contattarci?
+                    </Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <View style={styles.headerReg}>
+                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+                      <Ionicons name="person-add" size={28} color={colors.accent} />
+                    </View>
+                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Registrati</Text>
+                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                      Crea un account per accedere
+                    </Text>
+                  </View>
 
-              <Pressable
-                style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
-                onPress={handleRegister}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <>
-                    <Ionicons name="person-add" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                    <Text style={styles.btnText}>Registrati</Text>
-                  </>
-                )}
-              </Pressable>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>NOME</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={regName}
+                    onChangeText={(t) => { setRegName(t); setError(null); }}
+                    placeholder="Il tuo nome"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="words"
+                    editable={!loading}
+                  />
+
+                  <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={regEmail}
+                    onChangeText={(t) => { setRegEmail(t); setError(null); }}
+                    placeholder="tua@email.com"
+                    placeholderTextColor={colors.textMuted}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
+
+                  <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={regPassword}
+                    onChangeText={(t) => { setRegPassword(t); setError(null); }}
+                    placeholder="Minimo 6 caratteri"
+                    placeholderTextColor={colors.textMuted}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
+
+                  <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    value={regConfirm}
+                    onChangeText={(t) => { setRegConfirm(t); setError(null); }}
+                    placeholder="Riscrivi la password"
+                    placeholderTextColor={colors.textMuted}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
+
+                  <Pressable
+                    style={styles.privacyRow}
+                    onPress={() => { setRegPrivacy(!regPrivacy); setError(null); }}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        {
+                          backgroundColor: regPrivacy ? colors.accent : colors.bg,
+                          borderColor: regPrivacy ? colors.accent : colors.border,
+                        },
+                      ]}
+                    >
+                      {regPrivacy && <Ionicons name="checkmark" size={16} color="#FFF" />}
+                    </View>
+                    <Text style={[styles.privacyText, { color: colors.textSecondary }]}>
+                      Accetto l'informativa sulla privacy
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                    onPress={handleRegister}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="person-add" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                        <Text style={styles.btnText}>Registrati</Text>
+                      </>
+                    )}
+                  </Pressable>
+                </>
+              )}
             </View>
           </KeyboardAvoidingView>
         </View>
@@ -499,6 +672,24 @@ const styles = StyleSheet.create({
     gap: Platform.select({ web: 24, default: 20 }),
   },
 
+  toggleRow: {
+    flexDirection: "row",
+    backgroundColor: "#00000012",
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 16,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
   headerReg: { alignItems: "center", marginBottom: 16 },
   iconCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center", marginBottom: 12 },
   titleReg: { fontSize: 22, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
@@ -512,4 +703,15 @@ const styles = StyleSheet.create({
   btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", minHeight: 50 },
   feedbackCard: { borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, flexDirection: "row", alignItems: "center" },
   feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
+  contactLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  contactLinkText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
 });
