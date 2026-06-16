@@ -32,6 +32,8 @@ const TEAM_CONFIG = {
 
 const TOKEN_KEY = "@auth_token";
 const USER_KEY = "@auth_user";
+const FAIL_KEY = "@login_fails";
+const MAX_FAILS = 3;
 
 const ORBIT_RADIUS = Platform.select({ web: 28, default: 24 });
 const CIRCLE_POINTS = 16;
@@ -132,7 +134,7 @@ function BasketballField({
   );
 }
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "forgot";
 
 export default function LandingScreen() {
   const router = useRouter();
@@ -144,12 +146,20 @@ export default function LandingScreen() {
 
   const [loginName, setLoginName] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [regPrivacy, setRegPrivacy] = useState(false);
+
+  const [forgotName, setForgotName] = useState("");
+  const [forgotCode, setForgotCode] = useState("");
+  const [forgotNewPassword, setForgotNewPassword] = useState("");
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
+  const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
+  const [forgotGeneratedCode, setForgotGeneratedCode] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [checkingToken, setCheckingToken] = useState(true);
@@ -164,6 +174,8 @@ export default function LandingScreen() {
           router.replace("/(tabs)/home");
           return;
         }
+        const fails = await AsyncStorage.getItem(FAIL_KEY);
+        if (fails) setFailedAttempts(parseInt(fails, 10) || 0);
       } catch {}
       setCheckingToken(false);
     })();
@@ -192,11 +204,21 @@ export default function LandingScreen() {
       const data = await res.json();
 
       if (!res.ok) {
+        const newFails = failedAttempts + 1;
+        setFailedAttempts(newFails);
+        await AsyncStorage.setItem(FAIL_KEY, JSON.stringify(newFails));
         const msg = data.message;
-        setError(typeof msg === "string" ? msg : "Errore durante l'accesso");
+        const remaining = MAX_FAILS - newFails;
+        setError(
+          typeof msg === "string"
+            ? `${msg} (${remaining > 0 ? `tentativi rimasti: ${remaining}` : "password dimenticata?"})`
+            : "Errore durante l'accesso",
+        );
         return;
       }
 
+      setFailedAttempts(0);
+      await AsyncStorage.setItem(FAIL_KEY, "0");
       await AsyncStorage.setItem(TOKEN_KEY, data.token);
       await AsyncStorage.setItem(USER_KEY, data.name);
 
@@ -206,7 +228,7 @@ export default function LandingScreen() {
     } finally {
       setLoading(false);
     }
-  }, [loginName, loginPassword, router]);
+  }, [loginName, loginPassword, failedAttempts, router]);
 
   const handleRegister = useCallback(async () => {
     setError(null);
@@ -268,6 +290,97 @@ export default function LandingScreen() {
       setLoading(false);
     }
   }, [regName, regEmail, regPassword, regConfirm, regPrivacy]);
+
+  const handleForgotRequest = useCallback(async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!forgotName.trim()) {
+      setError("Inserisci il tuo nome utente");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: forgotName.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data.message;
+        setError(typeof msg === "string" ? msg : "Errore");
+        return;
+      }
+
+      setForgotGeneratedCode(data.code);
+      setForgotStep("reset");
+      setSuccess("Codice di reset generato!");
+    } catch {
+      setError("Errore di connessione al server");
+    } finally {
+      setLoading(false);
+    }
+  }, [forgotName]);
+
+  const handleResetPassword = useCallback(async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!forgotCode.trim() || !forgotNewPassword.trim() || !forgotConfirmPassword.trim()) {
+      setError("Compila tutti i campi");
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setError("Le password non coincidono");
+      return;
+    }
+    if (forgotNewPassword.length < 6) {
+      setError("La password deve essere di almeno 6 caratteri");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: forgotName.trim(),
+          code: forgotCode.trim(),
+          newPassword: forgotNewPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data.message;
+        setError(typeof msg === "string" ? msg : "Errore");
+        return;
+      }
+
+      setSuccess("Password reimpostata! Ora puoi accedere.");
+      setFailedAttempts(0);
+      await AsyncStorage.setItem(FAIL_KEY, "0");
+      setTimeout(() => {
+        setMode("login");
+        setForgotStep("request");
+        setForgotName("");
+        setForgotCode("");
+        setForgotNewPassword("");
+        setForgotConfirmPassword("");
+        setForgotGeneratedCode("");
+      }, 1500);
+    } catch {
+      setError("Errore di connessione al server");
+    } finally {
+      setLoading(false);
+    }
+  }, [forgotName, forgotCode, forgotNewPassword, forgotConfirmPassword]);
 
   if (checkingToken) {
     return (
@@ -428,6 +541,18 @@ export default function LandingScreen() {
                     )}
                   </Pressable>
 
+                  {failedAttempts >= MAX_FAILS && (
+                    <Pressable
+                      style={styles.forgotLink}
+                      onPress={() => { setMode("forgot"); setForgotName(loginName); setError(null); setSuccess(null); }}
+                    >
+                      <Ionicons name="help-circle-outline" size={14} color={colors.accent} style={{ marginRight: 4 }} />
+                      <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                        Password dimenticata?
+                      </Text>
+                    </Pressable>
+                  )}
+
                   <Pressable
                     style={styles.contactLink}
                     onPress={() => Linking.openURL("mailto:info@abccastelfiorentino.it")}
@@ -530,6 +655,116 @@ export default function LandingScreen() {
                         <Text style={styles.btnText}>Registrati</Text>
                       </>
                     )}
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <View style={styles.headerReg}>
+                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+                      <Ionicons name="key-outline" size={28} color={colors.accent} />
+                    </View>
+                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Password dimenticata?</Text>
+                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                      {forgotStep === "request"
+                        ? "Inserisci il tuo nome utente per ricevere il codice di reset"
+                        : "Inserisci il codice e la nuova password"}
+                    </Text>
+                  </View>
+
+                  {forgotStep === "request" ? (
+                    <>
+                      <Text style={[styles.label, { color: colors.textMuted }]}>NOME UTENTE</Text>
+                      <TextInput
+                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        value={forgotName}
+                        onChangeText={(t) => { setForgotName(t); setError(null); }}
+                        placeholder="Il tuo nome"
+                        placeholderTextColor={colors.textMuted}
+                        autoCapitalize="words"
+                        editable={!loading}
+                      />
+
+                      <Pressable
+                        style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                        onPress={handleForgotRequest}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                          <>
+                            <Ionicons name="paper-plane" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                            <Text style={styles.btnText}>Richiedi codice</Text>
+                          </>
+                        )}
+                      </Pressable>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={[styles.codeNotice, { color: colors.accent }]}>
+                        Codice: {forgotGeneratedCode}
+                      </Text>
+
+                      <Text style={[styles.label, { color: colors.textMuted }]}>CODICE DI RESET</Text>
+                      <TextInput
+                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        value={forgotCode}
+                        onChangeText={(t) => { setForgotCode(t); setError(null); }}
+                        placeholder="Codice a 6 caratteri"
+                        placeholderTextColor={colors.textMuted}
+                        autoCapitalize="characters"
+                        editable={!loading}
+                      />
+
+                      <Text style={[styles.label, { color: colors.textMuted }]}>NUOVA PASSWORD</Text>
+                      <TextInput
+                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        value={forgotNewPassword}
+                        onChangeText={(t) => { setForgotNewPassword(t); setError(null); }}
+                        placeholder="Minimo 6 caratteri"
+                        placeholderTextColor={colors.textMuted}
+                        secureTextEntry
+                        autoCapitalize="none"
+                        editable={!loading}
+                      />
+
+                      <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
+                      <TextInput
+                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        value={forgotConfirmPassword}
+                        onChangeText={(t) => { setForgotConfirmPassword(t); setError(null); }}
+                        placeholder="Riscrivi la password"
+                        placeholderTextColor={colors.textMuted}
+                        secureTextEntry
+                        autoCapitalize="none"
+                        editable={!loading}
+                      />
+
+                      <Pressable
+                        style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                        onPress={handleResetPassword}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <ActivityIndicator size="small" color="#FFF" />
+                        ) : (
+                          <>
+                            <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                            <Text style={styles.btnText}>Reimposta password</Text>
+                          </>
+                        )}
+                      </Pressable>
+                    </>
+                  )}
+
+                  <Pressable
+                    style={styles.contactLink}
+                    onPress={() => { setMode("login"); setForgotStep("request"); setForgotName(""); setForgotCode(""); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotGeneratedCode(""); setError(null); setSuccess(null); }}
+                  >
+                    <Ionicons name="arrow-back" size={14} color={colors.accent} style={{ marginRight: 4 }} />
+                    <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                      Torna al login
+                    </Text>
                   </Pressable>
                 </>
               )}
@@ -713,5 +948,19 @@ const styles = StyleSheet.create({
   contactLinkText: {
     fontSize: 13,
     fontWeight: "600",
+  },
+  forgotLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  codeNotice: {
+    fontSize: 16,
+    fontWeight: "800",
+    textAlign: "center",
+    letterSpacing: 2,
+    marginBottom: 8,
   },
 });
