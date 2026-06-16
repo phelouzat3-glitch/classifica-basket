@@ -563,7 +563,7 @@ export default function LandingScreen() {
                     </Text>
                   </Pressable>
                 </>
-              ) : (
+              ) : mode === "register" ? (
                 <>
                   <View style={styles.headerReg}>
                     <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
