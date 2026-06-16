@@ -1,6 +1,5 @@
 import { API_URL } from "@/src/config/api";
-import { getPlayerImage } from "@/src/config/playerImages";
-import { Image } from "expo-image";
+import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -135,42 +134,16 @@ export default function PlayerDetailScreen() {
 
         <View style={styles.heroSection}>
           <View style={styles.photoWrap}>
-            {(() => {
-              const localImg = getPlayerImage(player.name);
-              return localImg ? (
-                <Pressable onPress={() => setPhotoViewer(true)}>
-                  <Image
-                    source={localImg}
-                    style={styles.playerPhoto}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                </Pressable>
-              ) : (
-                <View
-                  style={[
-                    styles.bigJersey,
-                    { backgroundColor: `${roleColor}15`, borderColor: `${roleColor}30` },
-                  ]}
-                >
-                  <Text style={[styles.bigJerseyText, { color: roleColor }]}>
-                    {player.jerseyNumber}
-                  </Text>
-                </View>
-              );
-            })()}
+            <Pressable onPress={() => setPhotoViewer(true)}>
+              <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={110} fontSize={38} />
+            </Pressable>
             <Text style={[styles.jerseyLabel, { color: c.textMuted }]}>#{player.jerseyNumber}</Text>
           </View>
 
           <Modal visible={photoViewer} transparent animationType="fade" onRequestClose={() => setPhotoViewer(false)}>
             <Pressable style={styles.photoViewerOverlay} onPress={() => setPhotoViewer(false)}>
-              <Pressable onPress={() => {}}>
-                {(() => {
-                  const img = getPlayerImage(player.name);
-                  return img ? (
-                    <Image source={img} style={styles.photoViewerImage} contentFit="contain" transition={300} />
-                  ) : null;
-                })()}
+              <Pressable onPress={() => {}} style={{ alignItems: "center", gap: 16 }}>
+                <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={160} fontSize={56} />
                 <Text style={[styles.photoViewerLabel, { color: "#fff" }]}>
                   {player.name} · #{player.jerseyNumber}
                 </Text>
@@ -269,23 +242,6 @@ const styles = StyleSheet.create({
   jerseyLabel: {
     fontSize: 13,
     fontWeight: "700",
-  },
-  playerPhoto: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  bigJersey: {
-    width: 100,
-    height: 100,
-    borderRadius: 30,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bigJerseyText: {
-    fontSize: 42,
-    fontWeight: "900",
   },
   playerName: {
     fontSize: 26,

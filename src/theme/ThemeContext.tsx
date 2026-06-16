@@ -1,37 +1,35 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Platform, useColorScheme } from "react-native";
-import { darkPalette, lightPalette } from "./palette";
 import type { ColorPalette } from "./palette";
+import { darkPalette, lightPalette } from "./palette";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Theme = "dark" | "light";
 const STORAGE_KEY = "theme-preference";
 
-function getStorage(): Storage | null {
-  try {
-    if (Platform.OS === "web") return localStorage;
-    const AsyncStorage = require("@react-native-async-storage/async-storage").default;
-    return AsyncStorage;
-  } catch {
-    return null;
-  }
+function getStorage(): Storage | typeof AsyncStorage {
+  if (Platform.OS === "web") return localStorage;
+  return AsyncStorage;
 }
 
 function saveItem(key: string, value: string) {
-  const storage = getStorage();
-  if (!storage) return;
   try {
-    if ("setItem" in storage) (storage as Storage).setItem(key, value);
-    else (storage as any).setItem(key, value);
+    getStorage()?.setItem(key, value);
   } catch {}
 }
 
 function getItem(key: string): Promise<string | null> {
-  const storage = getStorage();
-  if (!storage) return Promise.resolve(null);
   try {
-    if ("getItem" in storage) return Promise.resolve((storage as Storage).getItem(key));
-    return (storage as any).getItem(key);
+    const val = getStorage()?.getItem(key);
+    return Promise.resolve(val ?? null);
   } catch {
     return Promise.resolve(null);
   }
@@ -93,7 +91,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const increaseFontScale = useCallback(() => {
     setFontScaleState((prev) => {
-      const next = Math.min(FONT_SCALE_MAX, +(prev + FONT_SCALE_STEP).toFixed(1));
+      const next = Math.min(
+        FONT_SCALE_MAX,
+        +(prev + FONT_SCALE_STEP).toFixed(1),
+      );
       saveItem(FONT_SCALE_KEY, String(next));
       return next;
     });
@@ -101,20 +102,44 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const decreaseFontScale = useCallback(() => {
     setFontScaleState((prev) => {
-      const next = Math.max(FONT_SCALE_MIN, +(prev - FONT_SCALE_STEP).toFixed(1));
+      const next = Math.max(
+        FONT_SCALE_MIN,
+        +(prev - FONT_SCALE_STEP).toFixed(1),
+      );
       saveItem(FONT_SCALE_KEY, String(next));
       return next;
     });
   }, []);
 
-  const colors = useMemo(() => (theme === "dark" ? darkPalette : lightPalette), [theme]);
-
-  const value = useMemo(
-    () => ({ theme, toggleTheme, colors, fontScale, increaseFontScale, decreaseFontScale, setFontScale }),
-    [theme, toggleTheme, colors, fontScale, increaseFontScale, decreaseFontScale, setFontScale],
+  const colors = useMemo(
+    () => (theme === "dark" ? darkPalette : lightPalette),
+    [theme],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  const value = useMemo(
+    () => ({
+      theme,
+      toggleTheme,
+      colors,
+      fontScale,
+      increaseFontScale,
+      decreaseFontScale,
+      setFontScale,
+    }),
+    [
+      theme,
+      toggleTheme,
+      colors,
+      fontScale,
+      increaseFontScale,
+      decreaseFontScale,
+      setFontScale,
+    ],
+  );
+
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useColors(): ColorPalette {
@@ -148,7 +173,8 @@ export function useFontScaleControls(): {
   setFontScale: (n: number) => void;
 } {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useFontScaleControls must be used within ThemeProvider");
+  if (!ctx)
+    throw new Error("useFontScaleControls must be used within ThemeProvider");
   return {
     fontScale: ctx.fontScale,
     increaseFontScale: ctx.increaseFontScale,
@@ -159,6 +185,7 @@ export function useFontScaleControls(): {
 
 export function useScaledFontSize(size: number): number {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useScaledFontSize must be used within ThemeProvider");
+  if (!ctx)
+    throw new Error("useScaledFontSize must be used within ThemeProvider");
   return Math.round(size * ctx.fontScale);
 }

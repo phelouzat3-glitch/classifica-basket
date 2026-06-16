@@ -1,7 +1,7 @@
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
-import { getPlayerImage } from "@/src/config/playerImages";
+import PlayerAvatar from "@/src/components/PlayerAvatar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -405,26 +405,11 @@ export default function RosaScreen() {
                 ]}
                 onPress={() => router.push(`/player-detail?id=${item.id}` as any)}
               >
-                {(() => {
-                  if (item.photoUrl) {
-                    return (
-                      <Image source={{ uri: item.photoUrl }} style={styles.playerThumb} contentFit="cover" transition={200} />
-                    );
-                  }
-                  const localImg = getPlayerImage(item.name);
-                  if (localImg) {
-                    return (
-                      <Image source={localImg} style={styles.playerThumb} contentFit="cover" transition={200} />
-                    );
-                  }
-                  return (
-                    <View style={[styles.jerseyBadge, { backgroundColor: ACCENT_MUTED, borderColor: ACCENT_BORDER }]}>
-                      <Text style={[styles.jerseyNumber, { color: c.accent }]}>
-                        {item.jerseyNumber}
-                      </Text>
-                    </View>
-                  );
-                })()}
+                {item.photoUrl ? (
+                  <Image source={{ uri: item.photoUrl }} style={styles.playerThumb} contentFit="cover" transition={200} />
+                ) : (
+                  <PlayerAvatar name={item.name} jerseyNumber={item.jerseyNumber} size={44} fontSize={16} />
+                )}
 
                 <View style={styles.playerInfo}>
                   <Text

@@ -1,0 +1,49 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1b3e"/>
+      <stop offset="100%" stop-color="#1a3a6b"/>
+    </linearGradient>
+    <linearGradient id="ballGrad" x1="0.15" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0%" stop-color="#ff8a65"/>
+      <stop offset="25%" stop-color="#e64a19"/>
+      <stop offset="75%" stop-color="#d84315"/>
+      <stop offset="100%" stop-color="#bf360c"/>
+    </linearGradient>
+    <linearGradient id="trophyGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#ffd54f"/>
+      <stop offset="100%" stop-color="#f9a825"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGrad)"/>
+
+  <!-- Basketball -->
+  <circle cx="512" cy="420" r="230" fill="url(#ballGrad)"/>
+
+  <!-- Basketball lines -->
+  <path d="M512 190 Q460 280 460 420 Q460 560 512 650" fill="none" stroke="#3e2723" stroke-width="12" opacity="0.35"/>
+  <path d="M282 420 Q360 390 512 420 Q664 450 742 420" fill="none" stroke="#3e2723" stroke-width="12" opacity="0.35"/>
+  <path d="M282 420 Q310 320 380 270" fill="none" stroke="#3e2723" stroke-width="12" opacity="0.30"/>
+  <path d="M742 420 Q714 320 644 270" fill="none" stroke="#3e2723" stroke-width="12" opacity="0.30"/>
+
+  <!-- Trophy / Prize cup -->
+  <!-- Cup body -->
+  <path d="M420 680 Q420 580 472 550 L512 530 L552 550 Q604 580 604 680 Z" fill="url(#trophyGrad)" stroke="#e65100" stroke-width="6"/>
+
+  <!-- Cup handles -->
+  <path d="M420 600 Q340 590 340 540 Q340 480 420 490" fill="none" stroke="#ffb300" stroke-width="14" stroke-linecap="round"/>
+  <path d="M604 600 Q684 590 684 540 Q684 480 604 490" fill="none" stroke="#ffb300" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- Cup star -->
+  <text x="512" y="590" text-anchor="middle" font-size="80" fill="#e65100" font-family="Arial, sans-serif">★</text>
+
+  <!-- Ribbon/banner -->
+  <rect x="380" y="720" width="264" height="60" rx="12" fill="#e53935"/>
+  <rect x="380" y="720" width="264" height="60" rx="12" fill="none" stroke="#b71c1c" stroke-width="4"/>
+  <text x="512" y="758" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="34" fill="#ffffff">CLASSIFICA</text>
+
+  <!-- Subtle glow -->
+  <circle cx="512" cy="420" r="240" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.10"/>
+</svg>

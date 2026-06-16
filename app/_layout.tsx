@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { ThemeProvider, useColors, useTheme } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
-import DraggableControlPanel from "@/src/components/DraggableControlPanel";
 
 function LayoutContent() {
   const c = useColors();
@@ -72,11 +71,9 @@ function LayoutContent() {
           />
           <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
-          <Stack.Screen name="register" options={{ headerShown: true, title: "Registrati", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
         </Stack>
       </View>
-      <DraggableControlPanel />
     </View>
   );
 }

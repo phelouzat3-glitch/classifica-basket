@@ -1,19 +1,26 @@
-const playerImages: Record<string, any> = {
-  'marco-rossi': require('@/assets/images/players/marco-rossi.jpg'),
-  'andrea-bianchi': require('@/assets/images/players/andrea-bianchi.jpg'),
-  'lorenzo-verdi': require('@/assets/images/players/lorenzo-verdi.jpg'),
-  'filippo-neri': require('@/assets/images/players/filippo-neri.jpg'),
-  'matteo-gialli': require('@/assets/images/players/matteo-gialli.jpg'),
-  'alessandro-moretti': require('@/assets/images/players/alessandro-moretti.jpg'),
-  'davide-conti': require('@/assets/images/players/davide-conti.jpg'),
-  'simone-marini': require('@/assets/images/players/simone-marini.jpg'),
-  'luca-fontana': require('@/assets/images/players/luca-fontana.jpg'),
-  'tommaso-rinaldi': require('@/assets/images/players/tommaso-rinaldi.jpg'),
-  'stefano-bellini': require('@/assets/images/players/stefano-bellini.jpg'),
-  'nicola-rizzo': require('@/assets/images/players/nicola-rizzo.jpg'),
+const playerColors: Record<string, string> = {
+  'marco-rossi': '#E8600A',
+  'andrea-bianchi': '#2196F3',
+  'lorenzo-verdi': '#4CAF50',
+  'filippo-neri': '#9C27B0',
+  'matteo-gialli': '#FFC107',
+  'alessandro-moretti': '#E91E63',
+  'davide-conti': '#00BCD4',
+  'simone-marini': '#FF5722',
+  'luca-fontana': '#3F51B5',
+  'tommaso-rinaldi': '#009688',
+  'stefano-bellini': '#795548',
+  'nicola-rizzo': '#607D8B',
 };
 
-export function getPlayerImage(playerName: string): any | null {
+export function getPlayerInitials(playerName: string): string {
+  const parts = playerName.trim().split(/\s+/);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function getPlayerColor(playerName: string): string | null {
   const key = playerName.toLowerCase().replace(/\s+/g, '-');
-  return playerImages[key] ?? null;
+  return playerColors[key] ?? null;
 }

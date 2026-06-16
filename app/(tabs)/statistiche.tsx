@@ -1,8 +1,7 @@
 import { API_URL } from "@/src/config/api";
-import { getPlayerImage } from "@/src/config/playerImages";
+import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -422,16 +421,7 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                {(() => {
-                  const img = getPlayerImage(topScorer.name);
-                  return img ? (
-                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
-                  ) : (
-                    <View style={[styles.topJerseyBadge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
-                      <Text style={[styles.topJerseyText, { color: c.accent }]}>{topScorer.jerseyNumber}</Text>
-                    </View>
-                  );
-                })()}
+                <PlayerAvatar name={topScorer.name} jerseyNumber={topScorer.jerseyNumber} size={28} fontSize={10} />
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topScorer.name}
                 </Text>
@@ -453,16 +443,7 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                {(() => {
-                  const img = getPlayerImage(topRebounder.name);
-                  return img ? (
-                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
-                  ) : (
-                    <View style={[styles.topJerseyBadge, { backgroundColor: "#22C55E" + "18", borderColor: "#22C55E" + "30" }]}>
-                      <Text style={[styles.topJerseyText, { color: "#22C55E" }]}>{topRebounder.jerseyNumber}</Text>
-                    </View>
-                  );
-                })()}
+                <PlayerAvatar name={topRebounder.name} jerseyNumber={topRebounder.jerseyNumber} size={28} fontSize={10} />
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topRebounder.name}
                 </Text>
@@ -484,16 +465,7 @@ export default function StatisticheScreen() {
               }
             >
               <View style={styles.topLabelWrap}>
-                {(() => {
-                  const img = getPlayerImage(topAssist.name);
-                  return img ? (
-                    <Image source={img} style={styles.topPlayerThumb} contentFit="cover" transition={200} />
-                  ) : (
-                    <View style={[styles.topJerseyBadge, { backgroundColor: "#3B82F6" + "18", borderColor: "#3B82F6" + "30" }]}>
-                      <Text style={[styles.topJerseyText, { color: "#3B82F6" }]}>{topAssist.jerseyNumber}</Text>
-                    </View>
-                  );
-                })()}
+                <PlayerAvatar name={topAssist.name} jerseyNumber={topAssist.jerseyNumber} size={28} fontSize={10} />
                 <Text style={[styles.topName, { color: c.textPrimary }]}>
                   {topAssist.name}
                 </Text>

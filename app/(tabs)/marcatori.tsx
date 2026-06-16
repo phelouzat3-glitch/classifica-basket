@@ -1,6 +1,6 @@
 import { API_URL } from "@/src/config/api";
-import { getPlayerImage } from "@/src/config/playerImages";
-import { Image } from "expo-image";
+import { getPlayerInitials, getPlayerColor } from "@/src/config/playerImages";
+import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -134,6 +134,28 @@ export default function MarcatoriScreen() {
       ]}
       {...panHandlers}
     >
+      <View style={styles.bgContainer} pointerEvents="none">
+        {players.slice(0, 10).map((p, i) => {
+          return (
+            <Animated.View
+              key={p.id}
+              style={[
+                styles.bgInitial,
+                {
+                  left: `${10 + (i % 3) * 35}%`,
+                  top: `${10 + i * 9}%`,
+                  opacity: 0.06 + (i % 3) * 0.02,
+                },
+              ]}
+            >
+              <Text style={[styles.bgInitialText, { color: getPlayerColor(p.name) ?? c.accent }]}>
+                {getPlayerInitials(p.name)}
+              </Text>
+            </Animated.View>
+          );
+        })}
+      </View>
+
       <Text style={[styles.title, { color: c.textPrimary }]}>Classifica Marcatori</Text>
 
       <View style={styles.filterRow}>
@@ -207,16 +229,9 @@ export default function MarcatoriScreen() {
                   {pos}
                 </Text>
               </View>
-              {(() => {
-                const img = getPlayerImage(item.name);
-                return img ? (
-                  <Image source={img} style={styles.playerThumbMarc} contentFit="cover" transition={200} />
-                ) : (
-                  <View style={[styles.marcJerseyBadge, { backgroundColor: c.accent + "18", borderColor: c.accent + "30" }]}>
-                    <Text style={[styles.marcJerseyText, { color: c.accent }]}>{item.jerseyNumber}</Text>
-                  </View>
-                );
-              })()}
+              <View style={{ marginRight: 10 }}>
+                <PlayerAvatar name={item.name} jerseyNumber={item.jerseyNumber} />
+              </View>
               <View style={styles.playerInfo}>
                 <Text style={[styles.playerName, { color: c.textPrimary }]}>
                   {item.name}
@@ -243,6 +258,9 @@ export default function MarcatoriScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  bgContainer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  bgInitial: { position: "absolute" },
+  bgInitialText: { fontSize: 64, fontWeight: "900", fontFamily: "Arial Black", letterSpacing: -4 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
   title: { fontSize: 24, fontWeight: "800", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   filterRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 12 },

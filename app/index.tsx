@@ -1,15 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/src/theme";
+import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Easing,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,33 +22,25 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const COURT_COLOR = "#C8955A";
 const LINE_COLOR = "#FFFFFF";
 
-const ROUTES = {
-  home: "/(tabs)/home",
-  classifica: "/(tabs)/classifica",
-  calendario: "/(tabs)/calendario",
-  statistiche: "/(tabs)/statistiche",
-  rosa: "/(tabs)/rosa",
-} as const;
-
 const TEAM_CONFIG = {
   name: "ABC Castelfiorentino",
   division: "Serie C · Girone B",
   season: "Stagione 2025/26",
 } as const;
 
-const MENU_ITEMS = [
-  { icon: "🏆", label: "Classifica", route: ROUTES.classifica },
-  { icon: "📅", label: "Calendario", route: ROUTES.calendario },
-  { icon: "📊", label: "Statistiche", route: ROUTES.statistiche },
-  { icon: "👥", label: "Rosa", route: ROUTES.rosa },
-] as const;
-
 const ORBIT_RADIUS = Platform.select({ web: 28, default: 24 });
 const CIRCLE_POINTS = 16;
 
-const inputRange = Array.from({ length: CIRCLE_POINTS + 1 }, (_, i) => i / CIRCLE_POINTS);
-const orbitXMap = inputRange.map((t) => Math.cos(t * Math.PI * 2) * ORBIT_RADIUS);
-const orbitYMap = inputRange.map((t) => Math.sin(t * Math.PI * 2) * ORBIT_RADIUS);
+const inputRange = Array.from(
+  { length: CIRCLE_POINTS + 1 },
+  (_, i) => i / CIRCLE_POINTS,
+);
+const orbitXMap = inputRange.map(
+  (t) => Math.cos(t * Math.PI * 2) * ORBIT_RADIUS,
+);
+const orbitYMap = inputRange.map(
+  (t) => Math.sin(t * Math.PI * 2) * ORBIT_RADIUS,
+);
 
 function useOrbitAnimation() {
   const orbitAnim = useRef(new Animated.Value(0)).current;
@@ -130,45 +127,81 @@ function BasketballField({
   );
 }
 
-function MenuCard({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: string;
-  label: string;
-  onPress: () => void;
-}) {
-  const colors = useColors();
-  return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.menuCard,
-        {
-          backgroundColor: pressed ? colors.accent : colors.bgCard,
-          shadowColor: colors.textPrimary,
-        },
-      ]}
-      onPress={onPress}
-    >
-      <Text style={styles.menuIcon}>{icon}</Text>
-      <Text
-        style={[
-          styles.menuLabel,
-          { color: colors.textPrimary },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export default function LandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const { ballX, ballY, spinRotation } = useOrbitAnimation();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [privacy, setPrivacy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleRegister = useCallback(async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError("Compila tutti i campi");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Le password non coincidono");
+      return;
+    }
+    if (password.length < 6) {
+      setError("La password deve essere di almeno 6 caratteri");
+      return;
+    }
+    if (!privacy) {
+      setError("Devi accettare l'informativa sulla privacy");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const msg = data.message;
+        if (Array.isArray(msg)) {
+          setError(msg[0]);
+        } else if (typeof msg === "string") {
+          setError(msg);
+        } else {
+          setError("Errore durante la registrazione");
+        }
+        return;
+      }
+
+      setSuccess(`Registrazione completata! Benvenuto, ${data.name}`);
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setPrivacy(false);
+      setTimeout(() => router.replace("/(tabs)/home"), 1500);
+    } catch {
+      setError("Errore di connessione al server");
+    } finally {
+      setLoading(false);
+    }
+  }, [name, email, password, confirmPassword, privacy, router]);
 
   return (
     <View
@@ -213,54 +246,122 @@ export default function LandingScreen() {
           </Text>
         </View>
 
-        <BasketballField ballX={ballX} ballY={ballY} spinRotation={spinRotation} />
+        <BasketballField
+          ballX={ballX}
+          ballY={ballY}
+          spinRotation={spinRotation}
+        />
 
-          <View style={styles.bottomSection}>
-          <View style={styles.menuGrid}>
-            <View style={styles.menuRow}>
-              <View style={styles.menuCol}>
-                <MenuCard
-                  icon={MENU_ITEMS[0].icon}
-                  label={MENU_ITEMS[0].label}
-                  onPress={() => router.replace(MENU_ITEMS[0].route)}
-                />
-              </View>
-              <View style={styles.menuCol}>
-                <MenuCard
-                  icon={MENU_ITEMS[1].icon}
-                  label={MENU_ITEMS[1].label}
-                  onPress={() => router.replace(MENU_ITEMS[1].route)}
-                />
-              </View>
+        <View style={styles.bottomSection}>
+          {error && (
+            <View style={[styles.feedbackCard, { backgroundColor: colors.lossBg, borderColor: colors.loss }]}>
+              <Ionicons name="alert-circle" size={18} color={colors.loss} style={{ marginRight: 8 }} />
+              <Text style={[styles.feedbackText, { color: colors.loss }]}>{error}</Text>
             </View>
-            <View style={styles.menuRow}>
-              <View style={styles.menuCol}>
-                <MenuCard
-                  icon={MENU_ITEMS[2].icon}
-                  label={MENU_ITEMS[2].label}
-                  onPress={() => router.replace(MENU_ITEMS[2].route)}
-                />
-              </View>
-              <View style={styles.menuCol}>
-                <MenuCard
-                  icon={MENU_ITEMS[3].icon}
-                  label={MENU_ITEMS[3].label}
-                  onPress={() => router.replace(MENU_ITEMS[3].route)}
-                />
-              </View>
-            </View>
-          </View>
+          )}
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              { backgroundColor: colors.accent },
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={() => router.replace(ROUTES.home)}
-          >
-            <Text style={styles.buttonText}>Entra</Text>
-          </Pressable>
+          {success && (
+            <View style={[styles.feedbackCard, { backgroundColor: colors.winBg, borderColor: colors.win }]}>
+              <Ionicons name="checkmark-circle" size={18} color={colors.win} style={{ marginRight: 8 }} />
+              <Text style={[styles.feedbackText, { color: colors.win }]}>{success}</Text>
+            </View>
+          )}
+
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
+              <View style={styles.headerReg}>
+                <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+                  <Ionicons name="person-add" size={28} color={colors.accent} />
+                </View>
+                <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Registrati</Text>
+                <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                  Crea un account per accedere
+                </Text>
+              </View>
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>NOME</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                value={name}
+                onChangeText={(t) => { setName(t); setError(null); }}
+                placeholder="Il tuo nome"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="words"
+                editable={!loading}
+              />
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                value={email}
+                onChangeText={(t) => { setEmail(t); setError(null); }}
+                placeholder="tua@email.com"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+              />
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                value={password}
+                onChangeText={(t) => { setPassword(t); setError(null); }}
+                placeholder="Minimo 6 caratteri"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!loading}
+              />
+
+              <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                value={confirmPassword}
+                onChangeText={(t) => { setConfirmPassword(t); setError(null); }}
+                placeholder="Riscrivi la password"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!loading}
+              />
+
+              <Pressable
+                style={styles.privacyRow}
+                onPress={() => { setPrivacy(!privacy); setError(null); }}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    {
+                      backgroundColor: privacy ? colors.accent : colors.bg,
+                      borderColor: privacy ? colors.accent : colors.border,
+                    },
+                  ]}
+                >
+                  {privacy && <Ionicons name="checkmark" size={16} color="#FFF" />}
+                </View>
+                <Text style={[styles.privacyText, { color: colors.textSecondary }]}>
+                  Accetto l'informativa sulla privacy
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Ionicons name="person-add" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                    <Text style={styles.btnText}>Registrati</Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       </ScrollView>
     </View>
@@ -396,56 +497,18 @@ const styles = StyleSheet.create({
   bottomSection: {
     gap: Platform.select({ web: 24, default: 20 }),
   },
-  menuGrid: {
-    gap: 14,
-  },
-  menuRow: {
-    flexDirection: "row",
-    gap: 14,
-    justifyContent: "center",
-  },
-  menuCol: {
-    flex: 1,
-    maxWidth: Platform.select({ web: 200, default: 999 }),
-    alignItems: "center",
-  },
-  menuCard: {
-    width: "100%",
-    maxWidth: Platform.select({ web: 180, default: 145 }),
-    aspectRatio: 1,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  menuIcon: {
-    fontSize: Platform.select({ web: 30, default: 28 }),
-  },
-  menuLabel: {
-    fontSize: Platform.select({ web: 14, default: 14 }),
-    fontWeight: "600",
-  },
-  button: {
-    width: "100%",
-    maxWidth: Platform.select({ web: 400, default: 300 }),
-    alignSelf: "center",
-    paddingVertical: Platform.select({ web: 14, default: 12 }),
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
+
+  headerReg: { alignItems: "center", marginBottom: 16 },
+  iconCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center", marginBottom: 12 },
+  titleReg: { fontSize: 22, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
+  subtitleReg: { fontSize: 13, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
+  card: { borderRadius: 16, padding: 20 },
+  label: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginBottom: 8, marginTop: 14 },
+  input: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  privacyRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 18, marginBottom: 18 },
+  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, justifyContent: "center", alignItems: "center", marginTop: 1 },
+  privacyText: { fontSize: 12, lineHeight: 18, flex: 1 },
+  btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", minHeight: 50 },
+  feedbackCard: { borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, flexDirection: "row", alignItems: "center" },
+  feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
 });

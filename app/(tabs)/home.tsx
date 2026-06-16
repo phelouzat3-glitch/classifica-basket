@@ -1,7 +1,7 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
-import { useColors } from "@/src/theme/ThemeContext";
+import { useColors, useFontScaleControls, useToggleTheme, useTheme } from "@/src/theme/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -104,6 +104,9 @@ export default function HomeTabScreen() {
   }, [fadeAnim, slideAnim]);
 
   const c = useColors();
+  const theme = useTheme();
+  const toggleTheme = useToggleTheme();
+  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
   const { panHandlers } = useHorizontalSwipe();
 
   const load = useCallback(
@@ -204,16 +207,33 @@ export default function HomeTabScreen() {
             </Text>
           </View>
           <View style={styles.headerActions}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.notifBtn,
-                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() => router.push("/register" as any)}
-            >
-              <Ionicons name="person-add" size={18} color={c.accent} />
-            </Pressable>
+            <View style={[styles.settingsCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
+              <Text style={[styles.settingsTitle, { color: c.textMuted }]}>Impostazioni</Text>
+              <View style={styles.settingsRow}>
+                <Pressable
+                  onPress={decreaseFontScale}
+                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
+                >
+                  <Text style={[styles.settingsBtnText, { color: c.accent }]}>A–</Text>
+                </Pressable>
+                <Text style={[styles.settingsValue, { color: c.textSecondary }]}>
+                  {Math.round(fontScale * 100)}%
+                </Text>
+                <Pressable
+                  onPress={increaseFontScale}
+                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
+                >
+                  <Text style={[styles.settingsBtnText, { color: c.accent }]}>A+</Text>
+                </Pressable>
+                <View style={[styles.settingsDivider, { backgroundColor: c.border }]} />
+                <Pressable
+                  onPress={toggleTheme}
+                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
+                >
+                  <Ionicons name={theme === "dark" ? "sunny" : "moon"} size={16} color={c.accent} />
+                </Pressable>
+              </View>
+            </View>
             <Pressable
               style={({ pressed }) => [
                 styles.notifBtn,
@@ -625,6 +645,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 0.5,
   },
+  settingsCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  settingsTitle: { fontSize: 9, fontWeight: "700", letterSpacing: 0.5, marginBottom: 2, textAlign: "center" },
+  settingsRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  settingsBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingsBtnText: { fontSize: 12, fontWeight: "800" },
+  settingsValue: { fontSize: 10, fontWeight: "600", minWidth: 28, textAlign: "center" },
+  settingsDivider: { width: 1, height: 16 },
 
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   summaryCard: {

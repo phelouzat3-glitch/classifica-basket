@@ -1,4 +1,5 @@
 export type ColorPalette = {
+  cta: string;
   bg: string;
   bgCard: string;
   bgCardAlt: string;
@@ -36,6 +37,7 @@ export const darkPalette: ColorPalette = {
   winBg: "#14532D",
   loss: "#F87171",
   lossBg: "#450A0A",
+  cta: "",
 };
 
 export const lightPalette: ColorPalette = {
@@ -56,4 +58,5 @@ export const lightPalette: ColorPalette = {
   winBg: "#DCFCE7",
   loss: "#DC2626",
   lossBg: "#FEE2E2",
+  cta: "",
 };
