@@ -91,6 +91,17 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+      {/* 8. Ottava Scheda: Profilo */}
+      <Tabs.Screen
+        name="profilo"
+        options={{
+          title: "Profilo",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
