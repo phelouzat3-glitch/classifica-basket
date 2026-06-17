@@ -1,5 +1,6 @@
 import { StandingsTable } from "@/components/StandingsTable";
 import { API_URL } from "@/src/config/api";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -83,6 +84,8 @@ export default function ClassificaScreen() {
   const [searchText, setSearchText] = useState("");
 
   const insets = useSafeAreaInsets();
+  const season = useSeason();
+  const teamName = useTeamName();
 
   // Fade-in animation for content
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -116,7 +119,7 @@ export default function ClassificaScreen() {
       setError(null);
 
       try {
-        const res = await fetch(`${API_URL}/standings`);
+        const res = await fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`);
         if (!res.ok) throw new Error(`Errore ${res.status}`);
         const data = (await res.json()) as TeamFromApi[];
         setTeams(data.map(mapTeam));
@@ -128,7 +131,7 @@ export default function ClassificaScreen() {
         setRefreshing(false);
       }
     },
-    [animateIn],
+    [animateIn, season],
   );
 
   useEffect(() => {
@@ -261,7 +264,7 @@ export default function ClassificaScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text style={[styles.eyebrow, { color: c.textSecondary }]}>Stagione Regolare 2025 · 26</Text>
+            <Text style={[styles.eyebrow, { color: c.textSecondary }]}>{season === "2025/26-F" ? "Stagione Regolare 2025 · 26 · Femminile" : "Stagione Regolare 2025 · 26"}</Text>
             <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Classifica</Text>
           </View>
 

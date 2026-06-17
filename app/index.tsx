@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/src/theme";
 import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
+import { useSeason, useTeamName, useDivision, useLeague } from "@/src/context/LeagueContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -24,11 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const COURT_COLOR = "#C8955A";
 const LINE_COLOR = "#FFFFFF";
 
-const TEAM_CONFIG = {
-  name: "ABC Castelfiorentino",
-  division: "Serie C · Girone B",
-  season: "Stagione 2025/26",
-} as const;
+
 
 const TOKEN_KEY = "@auth_token";
 const USER_KEY = "@auth_user";
@@ -141,6 +138,10 @@ export default function LandingScreen() {
   const insets = useSafeAreaInsets();
   const colors = useColors();
   const { ballX, ballY, spinRotation } = useOrbitAnimation();
+  const season = useSeason();
+  const teamName = useTeamName();
+  const division = useDivision();
+  const { league, setLeague } = useLeague();
 
   const [mode, setMode] = useState<Mode>("login");
 
@@ -418,7 +419,7 @@ export default function LandingScreen() {
             ]}
           >
             <Text style={[styles.badgeText, { color: colors.accent }]}>
-              {TEAM_CONFIG.division}
+              {division}
             </Text>
           </View>
           <Text
@@ -426,11 +427,34 @@ export default function LandingScreen() {
             numberOfLines={1}
             adjustsFontSizeToFit
           >
-            {TEAM_CONFIG.name}
+            {teamName}
           </Text>
           <Text style={[styles.season, { color: colors.textSecondary }]}>
-            {TEAM_CONFIG.season}
+            {season === "2025/26-F" ? "Stagione 2025/26 · Femminile" : "Stagione 2025/26"}
           </Text>
+        </View>
+
+        <View style={styles.landingLeagueRow}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.landingLeagueBtn,
+              { backgroundColor: league === "M" ? colors.accent : colors.bgCard, borderColor: colors.accent },
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => setLeague("M")}
+          >
+            <Text style={[styles.landingLeagueText, { color: league === "M" ? "#FFF" : colors.accent }]}>Maschile</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.landingLeagueBtn,
+              { backgroundColor: league === "F" ? colors.accent : colors.bgCard, borderColor: colors.accent },
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => setLeague("F")}
+          >
+            <Text style={[styles.landingLeagueText, { color: league === "F" ? "#FFF" : colors.accent }]}>Femminile</Text>
+          </Pressable>
         </View>
 
         <BasketballField
@@ -962,5 +986,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 2,
     marginBottom: 8,
+  },
+  landingLeagueRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  landingLeagueBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  landingLeagueText: {
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

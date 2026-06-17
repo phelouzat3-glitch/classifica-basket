@@ -1,6 +1,7 @@
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
@@ -111,6 +112,8 @@ export default function RosaScreen() {
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const season = useSeason();
+  const teamName = useTeamName();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
@@ -142,7 +145,7 @@ export default function RosaScreen() {
       setError(null);
 
       try {
-        const res = await fetch(`${API_URL}/players`);
+        const res = await fetch(`${API_URL}/players?season=${encodeURIComponent(season)}`);
         if (!res.ok) throw new Error(`Errore ${res.status}`);
         const data = (await res.json()) as PlayerFromApi[];
         setPlayers(sortPlayers(data.map(mapPlayer)));
@@ -154,7 +157,7 @@ export default function RosaScreen() {
         setRefreshing(false);
       }
     },
-    [animateIn],
+    [animateIn, season],
   );
 
   useEffect(() => {
@@ -338,7 +341,7 @@ export default function RosaScreen() {
         ]}
       >
         <View style={styles.headerTop}>
-          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>ABC Castelfiorentino</Text>
+          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>{teamName}</Text>
           <View style={styles.headerTitleRow}>
             <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Rosa</Text>
             <View style={{ flex: 1 }} />

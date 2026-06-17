@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -98,6 +99,9 @@ export default function CalendarioScreen() {
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
   const [searchText, setSearchText] = useState("");
 
+  const season = useSeason();
+  const teamName = useTeamName();
+
   const monthsFull = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -130,7 +134,7 @@ export default function CalendarioScreen() {
     setError(null);
     try {
       const res = await fetch(
-        `${API_URL}/matches?team=${encodeURIComponent("Abc Castelfiorentino")}`,
+        `${API_URL}/matches?team=${encodeURIComponent(teamName)}&season=${encodeURIComponent(season)}`,
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as MatchFromAPI[];
@@ -142,7 +146,7 @@ export default function CalendarioScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [animateIn]);
+  }, [animateIn, season, teamName]);
 
   useEffect(() => {
     fetchMatches();
@@ -214,12 +218,9 @@ export default function CalendarioScreen() {
   return (
     <Animated.View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top, opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]} {...panHandlers}>
       <View style={[styles.header, { backgroundColor: c.bg }]}>
-        <Text style={styles.headerSmall}>ABC CASTELFIORENTINO</Text>
+        <Text style={styles.headerSmall}>{teamName.toUpperCase()}</Text>
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, { color: c.textPrimary }]}>Calendario</Text>
-          <Pressable onPress={() => router.push("/admin")} style={styles.adminBtn}>
-            <Ionicons name="settings-outline" size={20} color={c.textMuted} />
-          </Pressable>
         </View>
       </View>
 
@@ -493,14 +494,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "800",
   },
-  adminBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
   list: {
     paddingHorizontal: 16,
     paddingBottom: 40,

@@ -2,6 +2,7 @@ import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors, useFontScaleControls, useToggleTheme, useTheme } from "@/src/theme/ThemeContext";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -82,6 +83,8 @@ export default function HomeTabScreen() {
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const season = useSeason();
+  const teamName = useTeamName();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
@@ -115,8 +118,8 @@ export default function HomeTabScreen() {
       else setLoading(true);
       try {
         const [sRes, mRes] = await Promise.all([
-          fetch(`${API_URL}/standings`),
-          fetch(`${API_URL}/matches?limit=50`),
+          fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`),
+          fetch(`${API_URL}/matches?limit=50&season=${encodeURIComponent(season)}`),
         ]);
         if (sRes.ok) setStandings(await sRes.json());
         if (mRes.ok) setMatches(await mRes.json());
@@ -127,7 +130,7 @@ export default function HomeTabScreen() {
         setRefreshing(false);
       }
     },
-    [animateIn],
+    [animateIn, season],
   );
 
   useEffect(() => {
@@ -200,10 +203,10 @@ export default function HomeTabScreen() {
         <View style={styles.header}>
           <View>
             <Text style={[styles.headerSub, { color: c.textMuted }]}>
-              ABC Castelfiorentino
+              {teamName}
             </Text>
             <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
-              Stagione {myTeam?.season ?? "2025/26"}
+              Stagione {myTeam?.season ?? season}
             </Text>
           </View>
           <View style={styles.headerActions}>
@@ -326,7 +329,7 @@ export default function HomeTabScreen() {
               <View style={styles.nextMatchOpponent}>
                 <TeamLogo
                   teamName={
-                    nextMatch.home_team === "Abc Castelfiorentino"
+                    nextMatch.home_team === teamName
                       ? nextMatch.away_team
                       : nextMatch.home_team
                   }
@@ -334,12 +337,12 @@ export default function HomeTabScreen() {
                 />
                 <View style={styles.nextMatchInfo}>
                   <Text style={[styles.nextMatchTeamName, { color: c.textPrimary }]} numberOfLines={1}>
-                    {nextMatch.home_team === "Abc Castelfiorentino"
+                    {nextMatch.home_team === teamName
                       ? nextMatch.away_team
                       : nextMatch.home_team}
                   </Text>
                   <Text style={[styles.nextMatchVenue, { color: c.textMuted }]}>
-                    {nextMatch.home_team === "Abc Castelfiorentino" ? "🏠 In casa" : "✈️ In trasferta"}
+                    {nextMatch.home_team === teamName ? "🏠 In casa" : "✈️ In trasferta"}
                   </Text>
                 </View>
               </View>
@@ -365,10 +368,10 @@ export default function HomeTabScreen() {
               <Pressable
                 style={[styles.nextMatchActionBtn, { backgroundColor: c.accent }]}
                 onPress={() => {
-                  const opp = nextMatch.home_team === "Abc Castelfiorentino" ? nextMatch.away_team : nextMatch.home_team;
-                  const venue = nextMatch.home_team === "Abc Castelfiorentino" ? "in casa" : "in trasferta";
+                  const opp = nextMatch.home_team === teamName ? nextMatch.away_team : nextMatch.home_team;
+                  const venue = nextMatch.home_team === teamName ? "in casa" : "in trasferta";
                   Share.share({
-                    message: `🏀 ABC Castelfiorentino vs ${opp} (${venue})\n${formatDateLong(nextMatch.date)} · ${nextMatch.time ?? "20:30"}\n📅 ${nextMatch.round}ª giornata`,
+                    message: `🏀 ${teamName} vs ${opp} (${venue})\n${formatDateLong(nextMatch.date)} · ${nextMatch.time ?? "20:30"}\n📅 ${nextMatch.round}ª giornata`,
                   });
                 }}
               >

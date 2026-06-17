@@ -16,7 +16,7 @@ export default function TabsLayout() {
         },
       }}
     >
-      {/* 1. Prima Scheda: Home */}
+      {/* 1. Home */}
       <Tabs.Screen
         name="home"
         options={{
@@ -27,18 +27,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 2. Seconda Scheda: Statistiche */}
-      <Tabs.Screen
-        name="statistiche"
-        options={{
-          title: "Statistiche",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="analytics" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 3. Terza Scheda: Classifica */}
+      {/* 2. Classifica */}
       <Tabs.Screen
         name="classifica"
         options={{
@@ -48,7 +37,7 @@ export default function TabsLayout() {
           ),
         }}
       />
-      {/* 4. Quarta Scheda: Marcatori */}
+      {/* 3. Marcatori */}
       <Tabs.Screen
         name="marcatori"
         options={{
@@ -59,7 +48,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 5. Quinta Scheda: Rosa */}
+      {/* 4. Rosa */}
       <Tabs.Screen
         name="rosa"
         options={{
@@ -70,18 +59,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 6. Sesta Scheda: Sondaggi */}
-      <Tabs.Screen
-        name="sondaggi"
-        options={{
-          title: "Sondaggi",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" size={size} color={color} />
-          ),
-        }}
-      />
-
-      {/* 7. Settima Scheda: Calendario */}
+      {/* 5. Calendario */}
       <Tabs.Screen
         name="calendario"
         options={{
@@ -92,13 +70,13 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* 8. Ottava Scheda: Profilo */}
+      {/* 6. Impostazioni */}
       <Tabs.Screen
         name="profilo"
         options={{
-          title: "Profilo",
+          title: "Impostazioni",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />

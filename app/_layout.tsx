@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { ThemeProvider, useColors, useTheme } from "@/src/theme/ThemeContext";
+import { LeagueProvider } from "@/src/context/LeagueContext";
 import { API_URL } from "@/src/config/api";
 
 function LayoutContent() {
@@ -69,6 +70,7 @@ function LayoutContent() {
             name="match-detail"
             options={{ headerShown: true, title: "Dettaglio Partita", animation: "slide_from_right", animationDuration: 300 }}
           />
+          <Stack.Screen name="statistiche" options={{ headerShown: true, title: "Statistiche", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
@@ -81,7 +83,9 @@ function LayoutContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <LayoutContent />
+      <LeagueProvider>
+        <LayoutContent />
+      </LeagueProvider>
     </ThemeProvider>
   );
 }

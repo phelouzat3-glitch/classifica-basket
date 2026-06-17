@@ -1,8 +1,12 @@
 import { API_URL } from "@/src/config/api";
 import { Text } from "@/src/theme";
 import { useColors } from "@/src/theme/ThemeContext";
+import { useSeason, useTeamName, useLeague, League } from "@/src/context/LeagueContext";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
@@ -45,10 +49,16 @@ type AdminUser = {
 const ORANGE = "#E8600A";
 
 export default function AdminScreen() {
+  const router = useRouter();
   const c = useColors();
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
+  const season = useSeason();
+  const teamName = useTeamName();
+  const { league, setLeague } = useLeague();
+
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   const [apiKey, setApiKey] = useState("");
   const [savedKey, setSavedKey] = useState<string | null>(null);
@@ -115,13 +125,13 @@ export default function AdminScreen() {
 
   const fetchMatches = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/matches?season=2025/26`);
+      const res = await fetch(`${API_URL}/matches?season=${encodeURIComponent(season)}`);
       if (!res.ok) throw new Error("");
       const data = (await res.json()) as MatchOption[];
       setMatches(data.sort((a, b) => b.date.localeCompare(a.date)));
       animateIn();
     } catch {}
-  }, [animateIn]);
+  }, [animateIn, season]);
 
   const fetchUsers = useCallback(async () => {
     if (!savedKey) return;
@@ -158,6 +168,39 @@ export default function AdminScreen() {
       }
     })();
   }, [fetchMatches, animateIn]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const storage = await getStorage();
+        const stored = await storage.getItem("@admin_profile_photo");
+        if (stored) setProfilePhoto(stored);
+      } catch {}
+    })();
+  }, []);
+
+  const pickProfilePhoto = useCallback(async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permesso negato", "Servono i permessi per accedere alla galleria");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+      base64: true,
+    });
+    if (!result.canceled && result.assets?.[0]?.base64) {
+      const b64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setProfilePhoto(b64);
+      try {
+        const storage = await getStorage();
+        await storage.setItem("@admin_profile_photo", b64);
+      } catch {}
+    }
+  }, []);
 
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -196,6 +239,7 @@ export default function AdminScreen() {
     setHomeScore("");
     setAwayScore("");
     setSuccess(null);
+    router.replace("/(tabs)/profilo");
   };
 
   const handleSubmit = async () => {
@@ -254,7 +298,7 @@ export default function AdminScreen() {
           round: parseInt(createRound, 10) || 1,
           date: createDate.trim() || new Date().toISOString().slice(0, 10),
           time: createTime.trim() || null,
-          season: "2025/26",
+          season,
         }),
       });
       if (!res.ok) throw new Error("");
@@ -415,7 +459,7 @@ export default function AdminScreen() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch(`${API_URL}/admin/sync`, {
+      const res = await fetch(`${API_URL}/admin/sync?season=${encodeURIComponent(season)}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${savedKey}` },
       });
@@ -476,8 +520,22 @@ export default function AdminScreen() {
                 <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
               </Pressable>
             )}
+            <Pressable onPress={savedKey ? pickProfilePhoto : undefined} style={styles.avatarWrap}>
+              {profilePhoto ? (
+                <Image source={{ uri: profilePhoto }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: c.accentBg }]}>
+                  <Ionicons name="person" size={32} color={ORANGE} />
+                </View>
+              )}
+              {savedKey && (
+                <View style={[styles.avatarBadge, { backgroundColor: ORANGE }]}>
+                  <Ionicons name="camera" size={12} color="#FFF" />
+                </View>
+              )}
+            </Pressable>
             <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
-              👤 Admin
+              Admin
             </Text>
           </View>
 
@@ -550,6 +608,30 @@ export default function AdminScreen() {
             </View>
           ) : (
             <>
+              <View style={[styles.leagueRow, { backgroundColor: c.bgCard, borderColor: c.border, marginHorizontal: 20, marginBottom: 16 }]}>
+                <Text style={[styles.leagueLabel, { color: c.textSecondary }]}>Serie:</Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.leagueBtnA,
+                    { backgroundColor: league === "M" ? c.accent : c.bg, borderColor: c.accent },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => setLeague("M")}
+                >
+                  <Text style={[styles.leagueBtnTextA, { color: league === "M" ? "#FFF" : c.accent }]}>Maschile</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.leagueBtnA,
+                    { backgroundColor: league === "F" ? c.accent : c.bg, borderColor: c.accent },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => setLeague("F")}
+                >
+                  <Text style={[styles.leagueBtnTextA, { color: league === "F" ? "#FFF" : c.accent }]}>Femminile</Text>
+                </Pressable>
+              </View>
+
               <Text style={[styles.subtitle, { color: c.textSecondary }]}>
                 Seleziona una partita e inserisci il risultato
               </Text>
@@ -1749,6 +1831,34 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     alignItems: "center",
   },
+  avatarWrap: {
+    position: "relative",
+    marginTop: 8,
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarPlaceholder: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
+  },
   headerTitle: {
     fontSize: 30,
     fontWeight: "900",
@@ -2049,4 +2159,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  leagueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  leagueLabel: { fontSize: 13, fontWeight: "600" },
+  leagueBtnA: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  leagueBtnTextA: { fontSize: 12, fontWeight: "700" },
 });

@@ -1,4 +1,5 @@
 import { API_URL } from "@/src/config/api";
+import { useSeason } from "@/src/context/LeagueContext";
 import { getPlayerInitials, getPlayerColor } from "@/src/config/playerImages";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useRouter } from "expo-router";
@@ -43,6 +44,7 @@ export default function MarcatoriScreen() {
 
   const c = useColors();
   const { panHandlers } = useHorizontalSwipe();
+  const season = useSeason();
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -70,7 +72,7 @@ export default function MarcatoriScreen() {
   const load = (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
-    fetch(`${API_URL}/players`)
+    fetch(`${API_URL}/players?season=${encodeURIComponent(season)}`)
       .then((r) => r.json())
       .then((data: any) => {
         const mapped: Player[] = data.map((p: any) => ({

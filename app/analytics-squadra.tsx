@@ -1,5 +1,6 @@
 import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
@@ -26,10 +27,12 @@ export default function AnalyticsSquadraScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const c = useColors();
+  const season = useSeason();
+  const defaultTeam = useTeamName();
 
-  // Recupera il parametro opzionale (se presente), altrimenti imposta Castelfiorentino
+  // Recupera il parametro opzionale (se presente), altrimenti imposta la squadra corrente
   const { teamName } = useLocalSearchParams<{ teamName: string }>();
-  const displayTeam = teamName || "Abc Castelfiorentino";
+  const displayTeam = teamName || defaultTeam;
 
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,7 @@ export default function AnalyticsSquadraScreen() {
 
       try {
         // Costruiamo l'URL con i parametri richiesti dal controller NestJS
-        const url = `${API_URL}/standings/analytics?season=2025/26&team=${encodeURIComponent(displayTeam)}`;
+        const url = `${API_URL}/standings/analytics?season=${encodeURIComponent(season)}&team=${encodeURIComponent(displayTeam)}`;
         const res = await fetch(url);
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -59,7 +62,7 @@ export default function AnalyticsSquadraScreen() {
         setRefreshing(false);
       }
     },
-    [displayTeam],
+    [displayTeam, season],
   );
 
   useEffect(() => {

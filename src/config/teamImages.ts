@@ -1,6 +1,7 @@
 export const TEAM_LOGOS: Record<string, any> = {
   "union-basket-prato": require("@/assets/images/teams/union-basket-prato.png"),
   "abc-castelfiorentino": require("@/assets/images/teams/abc-castelfiorentino.png"),
+  "abc-castelfiorentino-femminile": require("@/assets/images/teams/abc-castelfiorentino.png"),
   "pallacanestro-prato-dragons": require("@/assets/images/teams/pallacanestro-prato-dragons.png"),
   "pallacanestro-agliana-2000": require("@/assets/images/teams/pallacanestro-agliana-2000.png"),
   "us-livorno-basket": require("@/assets/images/teams/us-livorno-basket.png"),
@@ -31,6 +32,7 @@ export const TEAM_LOGOS: Record<string, any> = {
 
 const TEAM_TO_ID: Record<string, string> = {
   "abc castelfiorentino": "abc-castelfiorentino",
+  "abc castelfiorentino femminile": "abc-castelfiorentino-femminile",
   "pallacanestro agliana 2000": "pallacanestro-agliana-2000",
   "bottegone basket 2001": "bottegone-basket-2001",
   "virtus certaldo": "virtus-certaldo",

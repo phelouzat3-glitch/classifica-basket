@@ -1,6 +1,7 @@
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
+import { useTeamName } from "@/src/context/LeagueContext";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
@@ -40,6 +41,7 @@ export default function MatchDetailScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const teamName = useTeamName();
 
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,7 @@ export default function MatchDetailScreen() {
     if (!match) return;
     const scoreStr = isPlayed ? `${ourScore}-${oppScore}` : "vs";
     const result = isPlayed ? (won ? "VITTORIA" : "SCONFITTA") : "";
-    const msg = `🏀 ABC Castelfiorentino ${scoreStr} ${opponent}${result ? ` (${result})` : ""}\n${formatDate(match.date)} · ${match.round}ª giornata`;
+    const msg = `🏀 ${teamName} ${scoreStr} ${opponent}${result ? ` (${result})` : ""}\n${formatDate(match.date)} · ${match.round}ª giornata`;
     await Share.share({ message: msg });
   };
 

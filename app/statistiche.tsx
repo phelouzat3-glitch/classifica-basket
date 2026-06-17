@@ -1,4 +1,5 @@
 import { API_URL } from "@/src/config/api";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
@@ -71,6 +72,8 @@ export default function StatisticheScreen() {
 
   const c = useColors();
   const { panHandlers } = useHorizontalSwipe();
+  const season = useSeason();
+  const teamName = useTeamName();
 
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -101,11 +104,11 @@ export default function StatisticheScreen() {
       else setLoading(true);
       try {
         const [sRes, aRes, pRes] = await Promise.all([
-          fetch(`${API_URL}/standings`),
+          fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`),
           fetch(
-            `${API_URL}/standings/analytics?season=2025/26&team=Abc%20Castelfiorentino`,
+            `${API_URL}/standings/analytics?season=${encodeURIComponent(season)}&team=${encodeURIComponent(teamName)}`,
           ),
-          fetch(`${API_URL}/players`),
+          fetch(`${API_URL}/players?season=${encodeURIComponent(season)}`),
         ]);
         if (sRes.ok) setStandings(await sRes.json());
         if (aRes.ok) setAnalytics(await aRes.json());
@@ -117,7 +120,7 @@ export default function StatisticheScreen() {
         setRefreshing(false);
       }
     },
-    [animateIn],
+    [animateIn, season, teamName],
   );
 
   useEffect(() => {
@@ -190,7 +193,7 @@ export default function StatisticheScreen() {
         <View style={styles.header}>
           <View>
             <Text style={[styles.headerSub, { color: c.textMuted }]}>
-              ABC Castelfiorentino
+              {teamName}
             </Text>
             <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
               Statistiche
@@ -203,7 +206,7 @@ export default function StatisticheScreen() {
             ]}
           >
             <Text style={[styles.posBadgeLabel, { color: c.textMuted }]}>
-              {myTeam?.season ?? "2025/26"}
+              {myTeam?.season ?? season}
             </Text>
             <Text style={[styles.posBadgeValue, { color: c.accent }]}>
               {myTeam?.position ?? "-"}°
