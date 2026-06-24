@@ -261,7 +261,7 @@ export default function AdminScreen() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${savedKey}`,
         },
-        body: JSON.stringify({ matchId, homeScore: h, awayScore: a }),
+        body: JSON.stringify({ matchId, homeScore: h, awayScore: a, season }),
       });
       if (!res.ok) {
         await res.text();
