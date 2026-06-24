@@ -31,6 +31,8 @@
     "web": {
       "name": "Classifica Basket",
       "shortName": "Basket",
+      "description": "Classifica, calendario, risultati e statistiche dell'ABC Castelfiorentino - Serie C Maschile e Femminile",
+      "lang": "it",
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "backgroundColor": "#ffffff"

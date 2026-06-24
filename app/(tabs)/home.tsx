@@ -1,14 +1,16 @@
+import { NewsCard, type NewsArticle } from "@/src/components/NewsCard";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
-import { useColors, useFontScaleControls, useToggleTheme, useTheme } from "@/src/theme/ThemeContext";
+import { SponsorBanner } from "@/src/components/SponsorBanner";
+import { getActiveSponsors } from "@/src/config/sponsors";
+import { useColors } from "@/src/theme/ThemeContext";
 import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -19,7 +21,7 @@ import {
 import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-Dimensions.get("window");
+
 
 type Standing = {
   position: number;
@@ -75,9 +77,13 @@ function formatDateLong(dateStr: string): string {
   return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
 }
 
+const YOUTH_SEASONS = ['2025/26-U17', '2025/26-U19', '2025/26-U15', '2025/26-U13', '2025/26-DR2'];
+
 export default function HomeTabScreen() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [youthMatches, setYouthMatches] = useState<Match[]>([]);
+  const [news, setNews] = useState<NewsArticle[]>([]);
   const [, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -107,9 +113,6 @@ export default function HomeTabScreen() {
   }, [fadeAnim, slideAnim]);
 
   const c = useColors();
-  const theme = useTheme();
-  const toggleTheme = useToggleTheme();
-  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
   const { panHandlers } = useHorizontalSwipe();
 
   const load = useCallback(
@@ -117,14 +120,21 @@ export default function HomeTabScreen() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       try {
-        const [sRes, mRes] = await Promise.all([
+        const [sRes, mRes, nRes, ...youthRes] = await Promise.all([
           fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`),
           fetch(`${API_URL}/matches?limit=50&season=${encodeURIComponent(season)}`),
+          fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
+          ...YOUTH_SEASONS.map(s =>
+            fetch(`${API_URL}/matches?season=${encodeURIComponent(s)}`).then(r => r.ok ? r.json() : [])
+          ),
         ]);
         if (sRes.ok) setStandings(await sRes.json());
         if (mRes.ok) setMatches(await mRes.json());
+        if (nRes.ok) setNews(await nRes.json());
+        setYouthMatches(youthRes.flat());
         if (!isRefresh) animateIn();
-      } catch {
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -176,7 +186,7 @@ export default function HomeTabScreen() {
   return (
     <Animated.View
       style={[
-        { flex: 1, backgroundColor: c.bg },
+        { flex: 1, backgroundColor: c.bg, overflow: "hidden" },
         {
           paddingTop: insets.top,
           opacity: fadeAnim,
@@ -209,50 +219,36 @@ export default function HomeTabScreen() {
               Stagione {myTeam?.season ?? season}
             </Text>
           </View>
-          <View style={styles.headerActions}>
-            <View style={[styles.settingsCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
-              <Text style={[styles.settingsTitle, { color: c.textMuted }]}>Impostazioni</Text>
-              <View style={styles.settingsRow}>
-                <Pressable
-                  onPress={decreaseFontScale}
-                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
-                >
-                  <Text style={[styles.settingsBtnText, { color: c.accent }]}>A–</Text>
-                </Pressable>
-                <Text style={[styles.settingsValue, { color: c.textSecondary }]}>
-                  {Math.round(fontScale * 100)}%
-                </Text>
-                <Pressable
-                  onPress={increaseFontScale}
-                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
-                >
-                  <Text style={[styles.settingsBtnText, { color: c.accent }]}>A+</Text>
-                </Pressable>
-                <View style={[styles.settingsDivider, { backgroundColor: c.border }]} />
-                <Pressable
-                  onPress={toggleTheme}
-                  style={({ pressed }) => [styles.settingsBtn, { backgroundColor: c.bg }, pressed && { opacity: 0.6 }]}
-                >
-                  <Ionicons name={theme === "dark" ? "sunny" : "moon"} size={16} color={c.accent} />
-                </Pressable>
-              </View>
-            </View>
-            <Pressable
-              style={({ pressed }) => [
-                styles.notifBtn,
-                { backgroundColor: c.accentBg, borderColor: c.accentBorder },
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() => router.push("/notifiche" as any)}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={22}
-                color={c.accent}
-              />
-            </Pressable>
-          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.notifBtn,
+              { backgroundColor: c.accentBg, borderColor: c.accentBorder },
+              pressed && { opacity: 0.6 },
+            ]}
+            onPress={() => router.push("/notifiche" as Href)}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={22}
+              color={c.accent}
+            />
+          </Pressable>
         </View>
+
+        {news.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
+              Notizie
+            </Text>
+            {news.map((a) => (
+              <NewsCard
+                key={a.id}
+                article={a}
+                onPress={() => router.push(`/notizie?id=${a.id}`)}
+              />
+            ))}
+          </>
+        )}
 
         <View style={styles.summaryRow}>
           <View
@@ -319,7 +315,7 @@ export default function HomeTabScreen() {
         {nextMatch && (
           <Pressable
             style={[styles.nextMatchCard, { backgroundColor: c.bgCard, borderColor: c.accentBorder }]}
-            onPress={() => router.push(`/match-detail?id=${nextMatch.id}` as any)}
+            onPress={() => router.push(`/match-detail?id=${nextMatch.id}` as Href)}
           >
             <View style={[styles.nextMatchBadge, { backgroundColor: c.accent }]}>
               <Text style={styles.nextMatchBadgeText}>PROSSIMA PARTITA</Text>
@@ -382,6 +378,10 @@ export default function HomeTabScreen() {
             </View>
           </Pressable>
         )}
+
+        {getActiveSponsors().map((s) => (
+          <SponsorBanner key={s.id} sponsor={s} />
+        ))}
 
         <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
           Classifica
@@ -492,7 +492,7 @@ export default function HomeTabScreen() {
             { backgroundColor: c.bgCard, borderColor: c.accentBorder },
             pressed && { opacity: 0.7 },
           ]}
-          onPress={() => router.push("/classifica" as any)}
+          onPress={() => router.push("/classifica" as Href)}
         >
           <Text style={[styles.viewAllBtnText, { color: c.accent }]}>
             Vedi classifica completa
@@ -519,7 +519,7 @@ export default function HomeTabScreen() {
                 { backgroundColor: c.bgCard, borderColor: c.border },
                 pressed && { opacity: 0.7 },
               ]}
-              onPress={() => router.push(`/match-detail?id=${m.id}` as any)}
+              onPress={() => router.push(`/match-detail?id=${m.id}` as Href)}
             >
               <View
                 style={[
@@ -623,6 +623,78 @@ export default function HomeTabScreen() {
             </View>
           </View>
         )}
+
+        {youthMatches.length > 0 && (
+          <>
+            <View style={[styles.youthHeader, { borderColor: c.accentBorder, backgroundColor: c.accentBg }]}>
+              <Ionicons name="people" size={16} color={c.accent} />
+              <Text style={[styles.youthHeaderText, { color: c.accent }]}>
+                Settore Giovanile
+              </Text>
+            </View>
+
+            {youthMatches
+              .filter((m) => m.is_my_team && m.home_score != null && m.away_score != null)
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 5)
+              .map((m) => {
+                const isHome = m.home_team.startsWith("Abc") || m.home_team.includes("Castelfiorentino");
+                const opponent = isHome ? m.away_team : m.home_team;
+                const ourScore = isHome ? m.home_score : m.away_score;
+                const oppScore = isHome ? m.away_score : m.home_score;
+                const won = ourScore != null && oppScore != null && ourScore > oppScore;
+
+                return (
+                  <Pressable
+                    key={m.id}
+                    style={({ pressed }) => [
+                      styles.matchRow,
+                      { backgroundColor: c.bgCard, borderColor: c.border },
+                      pressed && { opacity: 0.7 },
+                    ]}
+                    onPress={() => router.push(`/match-detail?id=${m.id}` as Href)}
+                  >
+                    <View style={[styles.outcomeBadge, won ? { backgroundColor: c.winBg } : { backgroundColor: c.lossBg }]}>
+                      <Text style={[styles.outcomeText, won ? { color: c.win } : { color: c.loss }]}>
+                        {won ? "V" : "S"}
+                      </Text>
+                    </View>
+                    <View style={styles.matchLogoWrap}>
+                      <TeamLogo teamName={opponent} size={22} />
+                    </View>
+                    <View style={styles.matchInfo}>
+                      <Text style={[styles.matchOpponent, { color: c.textPrimary }]} numberOfLines={1}>
+                        {opponent}
+                      </Text>
+                      <Text style={[styles.matchMeta, { color: c.textMuted }]}>
+                        {formatDate(m.date)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.matchScore, won && { color: c.win }]}>
+                      {ourScore ?? "?"}-{oppScore ?? "?"}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+
+            {youthMatches
+              .filter((m) => m.is_my_team && m.home_score == null && m.away_score == null)
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .slice(0, 3)
+              .map((m) => {
+                const isHome = m.home_team.startsWith("Abc") || m.home_team.includes("Castelfiorentino");
+                const opponent = isHome ? m.away_team : m.home_team;
+                return (
+                  <View key={m.id} style={[styles.youthUpcoming, { backgroundColor: c.bgCard, borderColor: c.accentBorder }]}>
+                    <Ionicons name="calendar-outline" size={14} color={c.accent} />
+                    <Text style={[styles.youthUpcomingText, { color: c.textPrimary }]} numberOfLines={1}>
+                      {formatDateLong(m.date)} · {isHome ? `${m.home_team} vs ${m.away_team}` : `${m.away_team} @ ${m.home_team}`}
+                    </Text>
+                  </View>
+                );
+              })}
+          </>
+        )}
       </ScrollView>
     </Animated.View>
   );
@@ -639,7 +711,6 @@ const styles = StyleSheet.create({
   },
   headerSub: { fontSize: 12, marginBottom: 2 },
   headerTitle: { fontSize: 20, fontWeight: "700" },
-  headerActions: { flexDirection: "row", gap: 8 },
   notifBtn: {
     width: 36,
     height: 36,
@@ -648,24 +719,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 0.5,
   },
-  settingsCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  settingsTitle: { fontSize: 9, fontWeight: "700", letterSpacing: 0.5, marginBottom: 2, textAlign: "center" },
-  settingsRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  settingsBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  settingsBtnText: { fontSize: 12, fontWeight: "800" },
-  settingsValue: { fontSize: 10, fontWeight: "600", minWidth: 28, textAlign: "center" },
-  settingsDivider: { width: 1, height: 16 },
 
   summaryRow: { flexDirection: "row", gap: 8, marginBottom: 24 },
   summaryCard: {
@@ -845,4 +898,28 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   nextMatchActionText: { color: "#fff", fontSize: 13, fontWeight: "700" },
+
+  youthHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 0.5,
+    marginBottom: 12,
+    marginTop: 24,
+  },
+  youthHeaderText: { fontSize: 12, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase" },
+  youthUpcoming: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 0.5,
+    marginBottom: 6,
+  },
+  youthUpcomingText: { fontSize: 12, fontWeight: "500", flex: 1 },
 });

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useColors } from "@/src/theme/ThemeContext";
 import {
@@ -125,7 +125,7 @@ export default function PartiteScreen() {
       await Share.share({
         message: `🏀 ${homeName} - ${awayName}\n${scoreLine}\n📅 ${dateStr}${timeStr ? " " + timeStr : ""}`,
       });
-    } catch {}
+    } catch (e) { console.error(e); }
   };
 
   if (loading && !refreshing) {
@@ -159,7 +159,7 @@ export default function PartiteScreen() {
       <View style={[styles.header, { backgroundColor: c.bg, borderBottomColor: c.border }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity
-            onPress={() => router.replace("/(tabs)/calendario" as any)}
+            onPress={() => router.replace("/(tabs)/calendario" as Href)}
             style={[styles.backBtn, { backgroundColor: c.bgCard, borderColor: c.border }]}
           >
             <Ionicons name="chevron-back" size={18} color={c.accent} />

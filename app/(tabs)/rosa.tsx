@@ -6,7 +6,7 @@ import PlayerAvatar from "@/src/components/PlayerAvatar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -406,7 +406,7 @@ export default function RosaScreen() {
                   { backgroundColor: c.bgCard, borderColor: c.border },
                   pressed && { backgroundColor: "#2a3a4c", opacity: 0.7 },
                 ]}
-                onPress={() => router.push(`/player-detail?id=${item.id}` as any)}
+                onPress={() => router.push(`/player-detail?id=${item.id}` as Href)}
               >
                 {item.photoUrl ? (
                   <Image source={{ uri: item.photoUrl }} style={styles.playerThumb} contentFit="cover" transition={200} />

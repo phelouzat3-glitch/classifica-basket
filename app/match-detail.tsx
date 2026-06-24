@@ -57,7 +57,8 @@ export default function MatchDetailScreen() {
         const found = all.find((m) => m.id === Number(id));
         setMatch(found ?? null);
       }
-    } catch {
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);

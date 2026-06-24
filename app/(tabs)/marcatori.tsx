@@ -2,7 +2,7 @@ import { API_URL } from "@/src/config/api";
 import { useSeason } from "@/src/context/LeagueContext";
 import { getPlayerInitials, getPlayerColor } from "@/src/config/playerImages";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,6 +35,7 @@ const FILTERS = [
   { key: "reboundsPerGame" as const, label: "RIM", suffix: "RPG" },
   { key: "assistsPerGame" as const, label: "ASS", suffix: "APG" },
 ];
+type StatKey = typeof FILTERS[number]["key"];
 
 export default function MarcatoriScreen() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -88,7 +89,7 @@ export default function MarcatoriScreen() {
         setPlayers(mapped);
         if (!isRefresh) animateIn();
       })
-      .catch(() => {})
+      .catch((e) => { console.error(e); })
       .finally(() => {
         setLoading(false);
         setRefreshing(false);
@@ -102,8 +103,9 @@ export default function MarcatoriScreen() {
   const currentFilter = FILTERS.find((f) => f.key === activeKey) ?? FILTERS[0];
 
   const sorted = [...players].sort((a, b) => {
-    const aVal = (a as any)[activeKey] ?? 0;
-    const bVal = (b as any)[activeKey] ?? 0;
+    const key = activeKey as StatKey;
+    const aVal = a[key] ?? 0;
+    const bVal = b[key] ?? 0;
     return bVal - aVal;
   });
 
@@ -200,7 +202,7 @@ export default function MarcatoriScreen() {
         }
         renderItem={({ item, index }) => {
           const pos = index + 1;
-          const val = Number((item as any)[activeKey] ?? 0);
+          const val = Number(item[activeKey as StatKey] ?? 0);
           const isTop3 = pos <= 3;
           const colors = ["#FFD700", "#C0C0C0", "#CD7F32"];
           return (
@@ -211,7 +213,7 @@ export default function MarcatoriScreen() {
                 pressed && styles.rowPressed,
               ]}
               onPress={() =>
-                router.push(`/player-detail?id=${item.id}` as any)
+                router.push(`/player-detail?id=${item.id}` as Href)
               }
             >
               <View

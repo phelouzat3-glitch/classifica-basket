@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/src/theme";
 import { API_URL } from "@/src/config/api";
-import { useColors } from "@/src/theme/ThemeContext";
+import { useColors, useFontScaleControls, useToggleTheme, useTheme } from "@/src/theme/ThemeContext";
 import { useLeague, League } from "@/src/context/LeagueContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { SponsorBanner } from "@/src/components/SponsorBanner";
+import { getActiveSponsors } from "@/src/config/sponsors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -75,6 +77,9 @@ export default function ProfiloScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const themeName = useTheme();
+  const toggleTheme = useToggleTheme();
+  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
   const { league, setLeague, config } = useLeague();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -102,7 +107,8 @@ export default function ProfiloScreen() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [pollsLoading, setPollsLoading] = useState(false);
   const [votedOptions, setVotedOptions] = useState<Record<number, number>>({});
-  const [votingPollId, setVotingPollId] = useState<number | null>(null);
+  const initialVotesRef = useRef<Record<number, number>>({});
+
 
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
@@ -159,6 +165,7 @@ export default function ProfiloScreen() {
       if (Object.keys(merged).length > 0) {
         setVotedOptions(merged);
       }
+      initialVotesRef.current = { ...merged };
     } catch {
     } finally {
       setPollsLoading(false);
@@ -268,28 +275,41 @@ export default function ProfiloScreen() {
     }
   }, [oldPassword, newPassword, confirmPassword]);
 
-  const handleVote = async (pollId: number, optionId: number) => {
-    if (votingPollId !== null) return;
-    if (votedOptions[pollId] === optionId) return;
-    setVotingPollId(pollId);
-    try {
-      const res = await fetch(`${API_URL}/polls/${pollId}/vote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ optionId }),
-      });
-      if (res.ok) {
-        const updated: Poll = await res.json();
-        setPolls((prev) => prev.map((p) => (p.id === pollId ? updated : p)));
-        const next = { ...votedOptions, [pollId]: optionId };
-        setVotedOptions(next);
-        await writeVotes(next);
-      }
-    } catch {
-    } finally {
-      setVotingPollId(null);
+  const votedOptionsRef = useRef(votedOptions);
+  votedOptionsRef.current = votedOptions;
+
+  const handleVote = (pollId: number, optionId: number) => {
+    const isUnvote = votedOptions[pollId] === optionId;
+    if (isUnvote) {
+      const next = { ...votedOptions };
+      delete next[pollId];
+      setVotedOptions(next);
+    } else {
+      const next = { ...votedOptions, [pollId]: optionId };
+      setVotedOptions(next);
     }
   };
+
+  const submitVotes = useCallback(async (current: Record<number, number>) => {
+    const initial = initialVotesRef.current;
+    for (const pollIdStr of [...new Set([...Object.keys(current), ...Object.keys(initial)])]) {
+      const pollId = Number(pollIdStr);
+      const currentChoice = current[pollId];
+      const initialChoice = initial[pollId];
+      if (currentChoice === initialChoice) continue;
+      const url = currentChoice !== undefined
+        ? `${API_URL}/polls/${pollId}/vote`
+        : `${API_URL}/polls/${pollId}/unvote`;
+      const optionId = currentChoice ?? initialChoice;
+      try {
+        await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ optionId }),
+        });
+      } catch {}
+    }
+  }, []);
 
   const handleLogout = useCallback(async () => {
     await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
@@ -297,6 +317,11 @@ export default function ProfiloScreen() {
   }, [router]);
 
   const toggleProfileMenu = () => {
+    if (showSondaggi) {
+      const current = votedOptionsRef.current;
+      submitVotes(current);
+      writeVotes(current);
+    }
     setShowProfileMenu(!showProfileMenu);
     setShowSondaggi(false);
     setShowEditProfile(false);
@@ -306,13 +331,16 @@ export default function ProfiloScreen() {
   };
 
   const toggleSondaggi = () => {
-    setShowSondaggi(!showSondaggi);
-    setShowProfilo(false);
+    const nextShow = !showSondaggi;
+    if (showSondaggi && !nextShow) {
+      const current = votedOptionsRef.current;
+      submitVotes(current);
+      writeVotes(current);
+      setPolls([]);
+    }
+    setShowSondaggi(nextShow);
     setError(null);
     setSuccess(null);
-    if (!showSondaggi && polls.length === 0 && !pollsLoading) {
-      loadPolls();
-    }
   };
 
   return (
@@ -528,6 +556,55 @@ export default function ProfiloScreen() {
           </View>
         </View>
 
+        {getActiveSponsors().map((s) => (
+          <SponsorBanner key={s.id} sponsor={s} />
+        ))}
+
+        {/* SCHERMO */}
+        <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
+          <View style={styles.menuRow}>
+            <Ionicons name="text-outline" size={22} color={colors.accent} />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Schermo</Text>
+          </View>
+          <View style={styles.displayBody}>
+            <View style={styles.displaySection}>
+              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>CARATTERE</Text>
+              <View style={styles.displayRow}>
+                <Pressable
+                  onPress={decreaseFontScale}
+                  style={({ pressed }) => [styles.displayBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+                >
+                  <Text style={[styles.displayBtnText, { color: colors.accent }]}>A–</Text>
+                </Pressable>
+                <View style={[styles.displayValueBadge, { backgroundColor: colors.accentBg }]}>
+                  <Text style={[styles.displayValue, { color: colors.accent }]}>
+                    {Math.round(fontScale * 100)}%
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={increaseFontScale}
+                  style={({ pressed }) => [styles.displayBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+                >
+                  <Text style={[styles.displayBtnText, { color: colors.accent }]}>A+</Text>
+                </Pressable>
+              </View>
+            </View>
+            <View style={[styles.displayDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.displaySection}>
+              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>TEMA</Text>
+              <Pressable
+                onPress={toggleTheme}
+                style={({ pressed }) => [styles.themeBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+              >
+                <Ionicons name={themeName === "dark" ? "sunny" : "moon"} size={20} color={colors.accent} />
+                <Text style={[styles.themeLabel, { color: colors.textSecondary }]}>
+                  {themeName === "dark" ? "Chiaro" : "Scuro"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+
         {/* SONDAGGI */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <Pressable style={styles.menuRow} onPress={toggleSondaggi}>
@@ -559,64 +636,73 @@ export default function ProfiloScreen() {
                 const myVote = votedOptions[poll.id];
                 const hasVoted = myVote !== undefined;
                 const totalVotes = poll.options.reduce((s, o) => s + o.votes, 0);
-                const isVoting = votingPollId === poll.id;
-                const maxVotes = Math.max(...poll.options.map((o) => o.votes), 1);
 
                 return (
-                  <View key={poll.id} style={[styles.pollCard, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                  <View key={poll.id} style={[styles.pollCard, { backgroundColor: colors.bgCard }]}>
                     <Text style={[styles.pollQuestion, { color: colors.textPrimary }]}>{poll.question}</Text>
 
-                    {poll.options.map((opt, idx) => {
-                      const barColors = [colors.accent, "#22C55E", "#3B82F6", "#F59E0B", "#EC4899", "#8B5CF6"];
-                      const barColor = barColors[idx % barColors.length];
-                      const isMyVote = opt.id === myVote;
-                      const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
-                      const barWidth = maxVotes > 0 ? (opt.votes / maxVotes) * 100 : 0;
+                    <View style={styles.pollOptions}>
+                      {poll.options.map((opt) => {
+                        const isMyVote = opt.id === myVote;
+                        const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
 
-                      return (
-                        <Pressable
-                          key={opt.id}
-                          style={({ pressed }) => [
-                            styles.optionRow,
-                            {
-                              backgroundColor: isMyVote ? colors.accentBg + "80" : colors.bgCard,
-                              borderColor: isMyVote ? colors.accent : colors.border,
-                            },
-                            pressed && { opacity: 0.6 },
-                            isVoting && { opacity: 0.5 },
-                          ]}
-                          onPress={() => handleVote(poll.id, opt.id)}
-                          disabled={isVoting}
-                        >
-                          <View style={[styles.barBg, { backgroundColor: colors.bgOverlay }]}>
-                            <View style={[styles.barFill, { width: `${barWidth}%`, backgroundColor: barColor, opacity: hasVoted ? 0.25 : 0.08 }]} />
-                          </View>
+                        return (
+                          <Pressable
+                            key={opt.id}
+              style={({ pressed }) => [
+                styles.optionRow,
+                {
+                  backgroundColor: isMyVote ? colors.accent : colors.bg,
+                  borderColor: isMyVote ? colors.accent : colors.border,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+                            onPress={() => handleVote(poll.id, opt.id)}
+                          >
+                            <Text
+                              style={[
+                                styles.optionText,
+                                {
+                                  color: isMyVote ? "#FFF" : colors.textPrimary,
+                                  fontWeight: "600",
+                                },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {opt.text}
+                            </Text>
 
-                          <View style={styles.radioWrap}>
-                            {isMyVote ? (
-                              <View style={[styles.radioChecked, { borderColor: colors.accent }]}>
-                                <View style={[styles.radioDot, { backgroundColor: colors.accent }]} />
-                              </View>
-                            ) : (
-                              <View style={[styles.radioUnchecked, { borderColor: hasVoted ? colors.textMuted : colors.textSecondary }]} />
-                            )}
-                          </View>
+                            <View style={[
+                              styles.optionRight,
+                              isMyVote && { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
+                            ]}>
+                              <Text
+                                style={[
+                                  styles.optionPct,
+                                  { color: isMyVote ? "#FFF" : colors.textMuted },
+                                ]}
+                              >
+                                {hasVoted ? `${pct}%` : ""}
+                              </Text>
+                              {isMyVote && (
+                                <Ionicons name="checkmark-circle" size={16} color="#FFF" style={{ marginLeft: 4 }} />
+                              )}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
 
-                          <Text style={[styles.optionText, { color: isMyVote ? colors.accent : colors.textPrimary, fontWeight: isMyVote ? "700" : "400" }]}>{opt.text}</Text>
-
-                          {hasVoted && (
-                            <Text style={[styles.optionPct, { color: isMyVote ? colors.accent : colors.textMuted }]}>{pct}%</Text>
-                          )}
-                        </Pressable>
-                      );
-                    })}
-
-                    {hasVoted && (
+                    <View style={styles.pollFooter}>
                       <Text style={[styles.totalVotes, { color: colors.textMuted }]}>
                         {totalVotes} {totalVotes === 1 ? "voto" : "voti"}
-                        {Object.keys(votedOptions).length > 0 && " · Tocca un'altra opzione per cambiare"}
                       </Text>
-                    )}
+                      {hasVoted && (
+                        <Text style={[styles.totalVotes, { color: colors.textMuted }]}>
+                          · {myVote !== undefined && poll.options.find(o => o.id === myVote)?.text}
+                        </Text>
+                      )}
+                    </View>
                   </View>
                 );
               })}
@@ -705,44 +791,102 @@ const styles = StyleSheet.create({
   },
   logoutText: { fontSize: 15, fontWeight: "700" },
 
+  displayBody: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 14,
+  },
+  displaySection: {
+    gap: 8,
+  },
+  displayLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginLeft: 2,
+  },
+  displayRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  displayBtn: {
+    width: 44,
+    height: 38,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  displayBtnText: { fontSize: 15, fontWeight: "800" },
+  displayValueBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 8,
+    minWidth: 56,
+    alignItems: "center",
+  },
+  displayValue: { fontSize: 13, fontWeight: "800" },
+  displayDivider: {
+    height: 1,
+    marginVertical: 2,
+  },
+  themeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+  },
+  themeLabel: { fontSize: 13, fontWeight: "600" },
+
   pollsLoading: { padding: 20, alignItems: "center" },
   emptyBox: { borderRadius: 12, padding: 30, alignItems: "center", gap: 10, borderWidth: 0.5 },
   emptyText: { fontSize: 14, fontWeight: "500", textAlign: "center" },
-  pollCard: { borderRadius: 12, padding: 16, marginBottom: 14, borderWidth: 0.5 },
-  pollQuestion: { fontSize: 15, fontWeight: "700", marginBottom: 12 },
+  pollCard: {
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 12,
+  },
+  pollQuestion: {
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  pollOptions: {
+    gap: 8,
+  },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    marginBottom: 8,
+    justifyContent: "space-between",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    overflow: "hidden",
   },
-  barBg: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: "100%",
-    borderRadius: 9,
-    overflow: "hidden",
+  optionText: { fontSize: 14, fontWeight: "600", flex: 1, marginRight: 8 },
+  optionRight: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  barFill: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: 9,
+  optionPct: {
+    fontSize: 13,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
   },
-  radioWrap: { width: 22, alignItems: "center", justifyContent: "center", marginRight: 10 },
-  radioChecked: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  radioDot: { width: 10, height: 10, borderRadius: 5 },
-  radioUnchecked: { width: 20, height: 20, borderRadius: 10, borderWidth: 2 },
-  optionText: { fontSize: 14, flex: 1 },
-  optionPct: { fontSize: 14, fontWeight: "700", minWidth: 40, textAlign: "right" },
-  totalVotes: { fontSize: 12, fontWeight: "500", textAlign: "center", marginTop: 8 },
+  pollFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 14,
+    gap: 4,
+  },
+  totalVotes: { fontSize: 12, fontWeight: "500" },
   leagueBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,

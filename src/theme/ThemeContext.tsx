@@ -23,14 +23,15 @@ function getStorage(): Storage | typeof AsyncStorage {
 function saveItem(key: string, value: string) {
   try {
     getStorage()?.setItem(key, value);
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 function getItem(key: string): Promise<string | null> {
   try {
     const val = getStorage()?.getItem(key);
     return Promise.resolve(val ?? null);
-  } catch {
+  } catch (e) {
+    console.error(e);
     return Promise.resolve(null);
   }
 }

@@ -3,7 +3,7 @@ import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { useColors } from "@/src/theme/ThemeContext";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -114,7 +114,8 @@ export default function StatisticheScreen() {
         if (aRes.ok) setAnalytics(await aRes.json());
         if (pRes.ok) setPlayers(await pRes.json());
         if (!isRefresh) animateIn();
-      } catch {
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -420,7 +421,7 @@ export default function StatisticheScreen() {
                 pressed && { opacity: 0.6 },
               ]}
               onPress={() =>
-                router.push(`/player-detail?id=${topScorer.id}` as any)
+                router.push(`/player-detail?id=${topScorer.id}` as Href)
               }
             >
               <View style={styles.topLabelWrap}>
@@ -442,7 +443,7 @@ export default function StatisticheScreen() {
                 pressed && { opacity: 0.6 },
               ]}
               onPress={() =>
-                router.push(`/player-detail?id=${topRebounder.id}` as any)
+                router.push(`/player-detail?id=${topRebounder.id}` as Href)
               }
             >
               <View style={styles.topLabelWrap}>
@@ -464,7 +465,7 @@ export default function StatisticheScreen() {
                 pressed && { opacity: 0.6 },
               ]}
               onPress={() =>
-                router.push(`/player-detail?id=${topAssist.id}` as any)
+                router.push(`/player-detail?id=${topAssist.id}` as Href)
               }
             >
               <View style={styles.topLabelWrap}>
@@ -519,7 +520,7 @@ export default function StatisticheScreen() {
             { backgroundColor: c.accentBg, borderColor: c.accentBorder },
             pressed && { opacity: 0.7 },
           ]}
-          onPress={() => router.push("/analytics-squadra" as any)}
+          onPress={() => router.push("/analytics-squadra" as Href)}
         >
           <Text style={[styles.analyticsBtnText, { color: c.accent }]}>
             Analisi completa squadra →

@@ -1,5 +1,6 @@
 import { API_URL } from "@/src/config/api";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -135,7 +136,11 @@ export default function PlayerDetailScreen() {
         <View style={styles.heroSection}>
           <View style={styles.photoWrap}>
             <Pressable onPress={() => setPhotoViewer(true)}>
-              <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={110} fontSize={38} />
+              {player.photoUrl ? (
+                <Image source={{ uri: player.photoUrl }} style={styles.playerPhoto} contentFit="cover" />
+              ) : (
+                <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={110} fontSize={38} />
+              )}
             </Pressable>
             <Text style={[styles.jerseyLabel, { color: c.textMuted }]}>#{player.jerseyNumber}</Text>
           </View>
@@ -143,7 +148,11 @@ export default function PlayerDetailScreen() {
           <Modal visible={photoViewer} transparent animationType="fade" onRequestClose={() => setPhotoViewer(false)}>
             <Pressable style={styles.photoViewerOverlay} onPress={() => setPhotoViewer(false)}>
               <Pressable onPress={() => {}} style={{ alignItems: "center", gap: 16 }}>
-                <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={160} fontSize={56} />
+                {player.photoUrl ? (
+                  <Image source={{ uri: player.photoUrl }} style={styles.photoViewerImage} contentFit="contain" />
+                ) : (
+                  <PlayerAvatar name={player.name} jerseyNumber={player.jerseyNumber} size={160} fontSize={56} />
+                )}
                 <Text style={[styles.photoViewerLabel, { color: "#fff" }]}>
                   {player.name} · #{player.jerseyNumber}
                 </Text>
@@ -196,7 +205,7 @@ export default function PlayerDetailScreen() {
               await Share.share({
                 message: `🏀 ${player.name} · #${player.jerseyNumber} · ${player.role}\n📊 PTS: ${player.pointsPerGame?.toFixed(1) ?? "0.0"} | RIM: ${player.reboundsPerGame?.toFixed(1) ?? "0.0"} | ASS: ${player.assistsPerGame?.toFixed(1) ?? "0.0"}\n\n🔗 https://classifica-basket.vercel.app`,
               });
-            } catch {}
+            } catch (e) { console.error(e); }
           }}
         >
           <Text style={[styles.shareBtnText, { color: "#08090B" }]}>Condividi giocatore</Text>
@@ -238,6 +247,11 @@ const styles = StyleSheet.create({
   photoWrap: {
     alignItems: "center",
     gap: 6,
+  },
+  playerPhoto: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
   },
   jerseyLabel: {
     fontSize: 13,

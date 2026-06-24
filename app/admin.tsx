@@ -456,7 +456,6 @@ export default function AdminScreen() {
   };
 
   const handleSync = async () => {
-    console.log("[handleSync] season:", season, "league:", league);
     setSyncing(true);
     setSyncMsg(null);
     try {

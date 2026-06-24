@@ -5,7 +5,7 @@ function extractFontSize(style: TextProps["style"]): number | undefined {
   if (!style) return undefined;
   if (Array.isArray(style)) {
     for (const s of style) {
-      const v = extractFontSize(s);
+      const v = extractFontSize(s as TextProps["style"]);
       if (v !== undefined) return v;
     }
     return undefined;

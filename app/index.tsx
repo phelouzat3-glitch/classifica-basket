@@ -4,6 +4,7 @@ import { API_URL } from "@/src/config/api";
 import { useColors } from "@/src/theme/ThemeContext";
 import { useSeason, useTeamName, useDivision, useLeague } from "@/src/context/LeagueContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   TextInput,
   View,
@@ -177,7 +179,7 @@ export default function LandingScreen() {
         }
         const fails = await AsyncStorage.getItem(FAIL_KEY);
         if (fails) setFailedAttempts(parseInt(fails, 10) || 0);
-      } catch {}
+      } catch (e) { console.error(e); }
       setCheckingToken(false);
     })();
   }, [router]);
@@ -462,6 +464,31 @@ export default function LandingScreen() {
           ballY={ballY}
           spinRotation={spinRotation}
         />
+
+        <View style={styles.qrCard}>
+          <Text style={[styles.qrLabel, { color: colors.textMuted }]}>CONDIVIDI L'APP</Text>
+          <Image
+            source={require("../assets/images/qr-code.png")}
+            style={styles.qrImage}
+            contentFit="contain"
+          />
+          <Text style={[styles.qrUrl, { color: colors.textSecondary }]}>
+            classifica-basket.vercel.app
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.shareBtn,
+              { backgroundColor: colors.accent },
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => {
+              Share.share({ message: "https://classifica-basket.vercel.app", title: "Classifica Basket" });
+            }}
+          >
+            <Ionicons name="share-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+            <Text style={styles.shareBtnText}>Condividi link</Text>
+          </Pressable>
+        </View>
 
         <View style={styles.bottomSection}>
           {error && (
@@ -960,6 +987,7 @@ const styles = StyleSheet.create({
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, justifyContent: "center", alignItems: "center", marginTop: 1 },
   privacyText: { fontSize: 12, lineHeight: 18, flex: 1 },
   btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", minHeight: 50 },
+  btnText: { color: "#FFF", fontSize: 15, fontWeight: "700" },
   feedbackCard: { borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, flexDirection: "row", alignItems: "center" },
   feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
   contactLink: {
@@ -986,6 +1014,41 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 2,
     marginBottom: 8,
+  },
+  qrCard: {
+    alignItems: "center",
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  qrLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  qrImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 12,
+  },
+  qrUrl: {
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  shareBtnText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "700",
   },
   landingLeagueRow: {
     flexDirection: "row",

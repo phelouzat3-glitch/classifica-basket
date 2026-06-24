@@ -1,11 +1,11 @@
-import { useRouter, useSegments } from "expo-router";
+import { useRouter, useSegments, type Href } from "expo-router";
 import { useMemo, useRef } from "react";
 import type { GestureResponderEvent, PanResponderGestureState } from "react-native";
 import { PanResponder } from "react-native";
 
 const SWIPE_THRESHOLD = 50;
 
-const TAB_ORDER = ["home", "statistiche", "classifica", "marcatori", "rosa", "sondaggi", "calendario"];
+const TAB_ORDER = ["home", "classifica", "marcatori", "rosa", "calendario", "profilo"];
 
 export function useHorizontalSwipe() {
   const router = useRouter();
@@ -26,9 +26,9 @@ export function useHorizontalSwipe() {
           const idx = indexRef.current;
           if (idx === -1) return;
           if (gs.dx > SWIPE_THRESHOLD && idx > 0) {
-            router.replace(`/(tabs)/${TAB_ORDER[idx - 1]}`);
+            router.replace(`/(tabs)/${TAB_ORDER[idx - 1]}` as Href);
           } else if (gs.dx < -SWIPE_THRESHOLD && idx < TAB_ORDER.length - 1) {
-            router.replace(`/(tabs)/${TAB_ORDER[idx + 1]}`);
+            router.replace(`/(tabs)/${TAB_ORDER[idx + 1]}` as Href);
           }
         },
       }),

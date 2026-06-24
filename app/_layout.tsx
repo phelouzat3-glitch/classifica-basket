@@ -12,7 +12,7 @@ function LayoutContent() {
 
   useEffect(() => {
     if (Platform.OS === "web") {
-      try { document.body.style.backgroundColor = c.bg; } catch {}
+      try { document.body.style.backgroundColor = c.bg; } catch (e) { console.error(e); }
     }
   }, [c.bg]);
 
@@ -46,7 +46,8 @@ function LayoutContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ expoPushToken: tokenData.data }),
         });
-      } catch {
+      } catch (e) {
+        console.error(e);
       }
     })();
     return () => { cancelled = true; };
@@ -74,6 +75,18 @@ function LayoutContent() {
           <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
+          <Stack.Screen
+            name="notizie"
+            options={{ headerShown: true, title: "Notizie", animation: "slide_from_right", animationDuration: 300 }}
+          />
+          <Stack.Screen
+            name="notifiche"
+            options={{ headerShown: true, title: "Notifiche", animation: "slide_from_right", animationDuration: 300 }}
+          />
+          <Stack.Screen
+            name="analytics-squadra"
+            options={{ headerShown: true, title: "Analisi Squadra", animation: "slide_from_right", animationDuration: 300 }}
+          />
         </Stack>
       </View>
     </View>
