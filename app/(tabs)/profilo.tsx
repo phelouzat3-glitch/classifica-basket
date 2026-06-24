@@ -7,12 +7,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { SponsorBanner } from "@/src/components/SponsorBanner";
 import { getActiveSponsors } from "@/src/config/sponsors";
+import PasswordInput from "@/src/components/PasswordInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -108,6 +111,9 @@ export default function ProfiloScreen() {
   const [pollsLoading, setPollsLoading] = useState(false);
   const [votedOptions, setVotedOptions] = useState<Record<number, number>>({});
   const initialVotesRef = useRef<Record<number, number>>({});
+  const [adminPw, setAdminPw] = useState("");
+  const [showAdminPw, setShowAdminPw] = useState(false);
+  const [adminPwErr, setAdminPwErr] = useState("");
 
 
   const animateIn = useCallback(() => {
@@ -459,35 +465,35 @@ export default function ProfiloScreen() {
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
                   <View style={styles.subSection}>
                     <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD ATTUALE</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    <PasswordInput
+                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      style={{ color: colors.textPrimary }}
                       value={oldPassword}
                       onChangeText={(t) => { setOldPassword(t); setError(null); }}
                       placeholder="La tua password attuale"
                       placeholderTextColor={colors.textMuted}
-                      secureTextEntry
                       autoCapitalize="none"
                       editable={!loading}
                     />
                     <Text style={[styles.label, { color: colors.textMuted }]}>NUOVA PASSWORD</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    <PasswordInput
+                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      style={{ color: colors.textPrimary }}
                       value={newPassword}
                       onChangeText={(t) => { setNewPassword(t); setError(null); }}
                       placeholder="Minimo 6 caratteri"
                       placeholderTextColor={colors.textMuted}
-                      secureTextEntry
                       autoCapitalize="none"
                       editable={!loading}
                     />
                     <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA NUOVA PASSWORD</Text>
-                    <TextInput
-                      style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    <PasswordInput
+                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      style={{ color: colors.textPrimary }}
                       value={confirmPassword}
                       onChangeText={(t) => { setConfirmPassword(t); setError(null); }}
                       placeholder="Riscrivi la nuova password"
                       placeholderTextColor={colors.textMuted}
-                      secureTextEntry
                       autoCapitalize="none"
                       editable={!loading}
                     />
@@ -712,7 +718,7 @@ export default function ProfiloScreen() {
 
         {/* ADMIN */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-          <Pressable style={styles.menuRow} onPress={() => router.push("/admin")}>
+          <Pressable style={styles.menuRow} onPress={() => { setAdminPw(""); setAdminPwErr(""); setShowAdminPw(true); }}>
             <Ionicons name="shield-checkmark-outline" size={22} color={colors.accent} />
             <Text style={[styles.menuText, { color: colors.textPrimary }]}>Admin</Text>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
@@ -725,6 +731,53 @@ export default function ProfiloScreen() {
           <Text style={[styles.logoutText, { color: colors.loss }]}>Esci</Text>
         </Pressable>
       </ScrollView>
+
+      <Modal visible={showAdminPw} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.bgCard }]}>
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Password admin</Text>
+            <PasswordInput
+              containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+              style={{ color: colors.textPrimary }}
+              placeholder="Inserisci password"
+              placeholderTextColor={colors.textMuted}
+              value={adminPw}
+              onChangeText={setAdminPw}
+              autoFocus
+            />
+            {adminPwErr ? <Text style={[styles.modalError, { color: colors.loss }]}>{adminPwErr}</Text> : null}
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalBtn, { backgroundColor: colors.border }]}
+                onPress={() => setShowAdminPw(false)}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.textPrimary }]}>Annulla</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalBtn, { backgroundColor: colors.accent }]}
+                onPress={() => {
+                  const pw = adminPw.trim();
+                  if (!pw) return;
+                    fetch(`${API_URL}/admin/users`, {
+                      headers: { Authorization: `Bearer ${pw}` },
+                    })
+                      .then((res) => {
+                        if (!res.ok) throw new Error("Password errata");
+                        return AsyncStorage.setItem("@admin_key", pw);
+                      })
+                      .then(() => {
+                        setShowAdminPw(false);
+                        router.push("/admin");
+                      })
+                      .catch((e) => setAdminPwErr(e.message));
+                }}
+              >
+                <Text style={[styles.modalBtnText, { color: "#fff" }]}>Entra</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -895,4 +948,50 @@ const styles = StyleSheet.create({
   },
   leagueBtnText: { fontSize: 12, fontWeight: "700" },
   leagueInfo: { fontSize: 11, fontWeight: "500", marginTop: 2 },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalBox: {
+    width: "85%",
+    maxWidth: 400,
+    borderRadius: 16,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  modalError: {
+    fontSize: 13,
+    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  modalBtn: {
+    flex: 1,
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+  },
+  modalBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
 });

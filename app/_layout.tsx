@@ -18,6 +18,21 @@ function LayoutContent() {
 
   useEffect(() => {
     if (Platform.OS === "web") return;
+    import("expo-notifications").then(({ setNotificationHandler }) => {
+      setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+    }).catch(e => console.error(e));
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
     let cancelled = false;
     (async () => {
       try {

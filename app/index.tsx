@@ -22,6 +22,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import PasswordInput from "@/src/components/PasswordInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const COURT_COLOR = "#C8955A";
@@ -566,13 +567,13 @@ export default function LandingScreen() {
                   />
 
                   <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                  <PasswordInput
+                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    style={{ color: colors.textPrimary }}
                     value={loginPassword}
                     onChangeText={(t) => { setLoginPassword(t); setError(null); }}
                     placeholder="La tua password"
                     placeholderTextColor={colors.textMuted}
-                    secureTextEntry
                     autoCapitalize="none"
                     editable={!loading}
                   />
@@ -650,25 +651,25 @@ export default function LandingScreen() {
                   />
 
                   <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                  <PasswordInput
+                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    style={{ color: colors.textPrimary }}
                     value={regPassword}
                     onChangeText={(t) => { setRegPassword(t); setError(null); }}
                     placeholder="Minimo 6 caratteri"
                     placeholderTextColor={colors.textMuted}
-                    secureTextEntry
                     autoCapitalize="none"
                     editable={!loading}
                   />
 
                   <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
-                  <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                  <PasswordInput
+                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    style={{ color: colors.textPrimary }}
                     value={regConfirm}
                     onChangeText={(t) => { setRegConfirm(t); setError(null); }}
                     placeholder="Riscrivi la password"
                     placeholderTextColor={colors.textMuted}
-                    secureTextEntry
                     autoCapitalize="none"
                     editable={!loading}
                   />
@@ -768,25 +769,25 @@ export default function LandingScreen() {
                       />
 
                       <Text style={[styles.label, { color: colors.textMuted }]}>NUOVA PASSWORD</Text>
-                      <TextInput
-                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                      <PasswordInput
+                        containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                        style={{ color: colors.textPrimary }}
                         value={forgotNewPassword}
                         onChangeText={(t) => { setForgotNewPassword(t); setError(null); }}
                         placeholder="Minimo 6 caratteri"
                         placeholderTextColor={colors.textMuted}
-                        secureTextEntry
                         autoCapitalize="none"
                         editable={!loading}
                       />
 
                       <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
-                      <TextInput
-                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                      <PasswordInput
+                        containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                        style={{ color: colors.textPrimary }}
                         value={forgotConfirmPassword}
                         onChangeText={(t) => { setForgotConfirmPassword(t); setError(null); }}
                         placeholder="Riscrivi la password"
                         placeholderTextColor={colors.textMuted}
-                        secureTextEntry
                         autoCapitalize="none"
                         editable={!loading}
                       />

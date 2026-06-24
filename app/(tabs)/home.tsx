@@ -86,6 +86,7 @@ export default function HomeTabScreen() {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -146,6 +147,18 @@ export default function HomeTabScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const poll = () => {
+      fetch(`${API_URL}/notifications/unread-count`)
+        .then(r => r.ok ? r.json() : { unread: 0 })
+        .then(d => setUnreadCount(d.unread))
+        .catch(() => {});
+    };
+    poll();
+    const id = setInterval(poll, 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const myTeam = standings.find((s) => s.is_my_team);
   const topStandings = standings
@@ -232,6 +245,13 @@ export default function HomeTabScreen() {
               size={22}
               color={c.accent}
             />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </View>
 
@@ -922,4 +942,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   youthUpcomingText: { fontSize: 12, fontWeight: "500", flex: 1 },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#EF4444",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: "#fff", fontSize: 10, fontWeight: "800" },
 });

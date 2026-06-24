@@ -12,6 +12,7 @@ import {
   Alert,
   Animated,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -19,6 +20,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import PasswordInput from "@/src/components/PasswordInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function getStorage() {
@@ -43,6 +45,7 @@ type AdminUser = {
   id: number;
   email: string;
   name: string;
+  password: string;
   createdAt: string;
 };
 
@@ -105,6 +108,8 @@ export default function AdminScreen() {
 
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [pbMsg, setPbMsg] = useState<string | null>(null);
+  const [pbSyncing, setPbSyncing] = useState(false);
 
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
@@ -436,23 +441,49 @@ export default function AdminScreen() {
   };
 
   const handleDeleteUser = (user: AdminUser) => {
-    Alert.alert(`Eliminare ${user.name}?`, `${user.email}`, [
-      { text: "Annulla", style: "cancel" },
-      {
-        text: "Elimina",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const res = await fetch(`${API_URL}/admin/users/${user.id}`, {
+    if (typeof window !== "undefined" && window.confirm) {
+      if (!window.confirm(`Eliminare ${user.name} (${user.email})?`)) return;
+      fetch(`${API_URL}/admin/users/${user.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${savedKey}` },
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.message || "Errore durante l'eliminazione");
+          }
+          fetchUsers();
+          window.alert("Utente eliminato");
+        })
+        .catch((e) => {
+          window.alert(e.message);
+        });
+    } else {
+      Alert.alert(`Eliminare ${user.name}?`, `${user.email}`, [
+        { text: "Annulla", style: "cancel" },
+        {
+          text: "Elimina",
+          style: "destructive",
+          onPress: () => {
+            fetch(`${API_URL}/admin/users/${user.id}`, {
               method: "DELETE",
               headers: { Authorization: `Bearer ${savedKey}` },
-            });
-            if (!res.ok) throw new Error("");
-            await fetchUsers();
-          } catch {}
+            })
+              .then(async (res) => {
+                if (!res.ok) {
+                  const body = await res.json().catch(() => ({}));
+                  throw new Error(body.message || "Errore durante l'eliminazione");
+                }
+                fetchUsers();
+                Alert.alert("Utente eliminato");
+              })
+              .catch((e) => {
+                Alert.alert("Errore", e.message);
+              });
+          },
         },
-      },
-    ]    );
+      ]);
+    }
   };
 
   const handleSync = async () => {
@@ -470,6 +501,24 @@ export default function AdminScreen() {
       setSyncMsg("❌ Errore durante la sincronizzazione");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handlePbSync = async () => {
+    setPbSyncing(true);
+    setPbMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/sync-playbasket`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${savedKey}` },
+      });
+      if (!res.ok) throw new Error("");
+      const data = await res.json();
+      setPbMsg(`✅ ${data.message}`);
+    } catch {
+      setPbMsg("❌ Errore durante la sincronizzazione");
+    } finally {
+      setPbSyncing(false);
     }
   };
 
@@ -569,20 +618,13 @@ export default function AdminScreen() {
                 </View>
               )}
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: c.bg,
-                      color: c.textPrimary,
-                      borderColor: c.border,
-                    },
-                  ]}
+                <PasswordInput
+                  containerStyle={{ backgroundColor: c.bg, borderColor: c.border, marginBottom: 12 }}
+                  style={{ color: c.textPrimary }}
                   placeholder="Password"
                   placeholderTextColor={c.textMuted}
                   value={apiKey}
                   onChangeText={(t) => { setApiKey(t); setLoginError(null); }}
-                  secureTextEntry
                   autoCapitalize="none"
                 />
                 <Pressable
@@ -1554,15 +1596,9 @@ export default function AdminScreen() {
                     <Text style={[styles.label, { color: c.textMuted }]}>
                       NUOVA PASSWORD
                     </Text>
-                    <TextInput
-                      style={[
-                        styles.createInput,
-                        {
-                          backgroundColor: c.bg,
-                          color: c.textPrimary,
-                          borderColor: c.border,
-                        },
-                      ]}
+                    <PasswordInput
+                      containerStyle={{ backgroundColor: c.bg, borderColor: c.border }}
+                      style={{ color: c.textPrimary }}
                       value={newKey}
                       onChangeText={(t) => {
                         setNewKey(t);
@@ -1581,15 +1617,9 @@ export default function AdminScreen() {
                     >
                       CONFERMA PASSWORD
                     </Text>
-                    <TextInput
-                      style={[
-                        styles.createInput,
-                        {
-                          backgroundColor: c.bg,
-                          color: c.textPrimary,
-                          borderColor: c.border,
-                        },
-                      ]}
+                    <PasswordInput
+                      containerStyle={{ backgroundColor: c.bg, borderColor: c.border }}
+                      style={{ color: c.textPrimary }}
                       value={confirmNewKey}
                       onChangeText={(t) => {
                         setConfirmNewKey(t);
@@ -1659,6 +1689,28 @@ export default function AdminScreen() {
                     </Text>
                   </View>
                 )}
+
+                <View style={{ height: 1, backgroundColor: c.border, marginVertical: 12 }} />
+
+                <Pressable
+                  style={styles.createHeader}
+                  onPress={handlePbSync}
+                  disabled={pbSyncing}
+                >
+                  <Ionicons name="cloud-download" size={20} color={ORANGE} style={{ marginRight: 8 }} />
+                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                    Sincronizza da playbasket.it
+                  </Text>
+                </Pressable>
+
+                {pbMsg && (
+                  <View style={[styles.feedbackCard, { backgroundColor: c.bgCardAlt, borderColor: c.border, marginTop: 16 }]}>
+                    <Ionicons name={pbSyncing ? "hourglass" : pbMsg.startsWith("✅") ? "checkmark-circle" : "alert-circle"} size={18} color={c.textSecondary} style={{ marginRight: 8 }} />
+                    <Text style={[styles.feedbackText, { color: c.textSecondary }]}>
+                      {pbSyncing ? "Sincronizzazione in corso..." : pbMsg}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
@@ -1707,11 +1759,7 @@ export default function AdminScreen() {
                         Nessun utente registrato
                       </Text>
                     ) : (
-                      <ScrollView
-                        style={styles.usersTableScroll}
-                        nestedScrollEnabled
-                      >
-                        <View style={styles.usersTable}>
+                      <View style={styles.usersTable}>
                           <View
                             style={[
                               styles.usersHeaderRow,
@@ -1721,7 +1769,7 @@ export default function AdminScreen() {
                             <Text
                               style={[
                                 styles.usersHeaderCell,
-                                { color: c.textMuted },
+                                { color: c.textMuted, flex: 0.7 },
                               ]}
                             >
                               NOME
@@ -1729,14 +1777,22 @@ export default function AdminScreen() {
                             <Text
                               style={[
                                 styles.usersHeaderCell,
-                                { color: c.textMuted },
+                                { color: c.textMuted, flex: 1.3 },
                               ]}
                             >
                               EMAIL
                             </Text>
                             <Text
                               style={[
-                                styles.usersHeaderCell,
+                                styles.usersHeaderCellPassword,
+                                { color: c.textMuted },
+                              ]}
+                            >
+                              PASSWORD
+                            </Text>
+                            <Text
+                              style={[
+                                styles.usersHeaderCellSmall,
                                 { color: c.textMuted },
                               ]}
                             >
@@ -1762,21 +1818,40 @@ export default function AdminScreen() {
                               >
                                 <Text
                                   style={[
-                                    styles.usersCell,
+                                    styles.usersCellName,
                                     { color: c.textPrimary },
                                   ]}
                                   numberOfLines={1}
                                 >
                                   {u.name}
                                 </Text>
+                                <Pressable
+                                  onPress={() =>
+                                    Linking.openURL(`mailto:${u.email}`)
+                                  }
+                                  style={styles.usersCellEmail}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.usersCellEmail,
+                                      {
+                                        color: c.link,
+                                        textDecorationLine: "underline",
+                                      },
+                                    ]}
+                                    numberOfLines={1}
+                                  >
+                                    {u.email}
+                                  </Text>
+                                </Pressable>
                                 <Text
                                   style={[
-                                    styles.usersCell,
+                                    styles.usersCellPassword,
                                     { color: c.textSecondary },
                                   ]}
                                   numberOfLines={1}
                                 >
-                                  {u.email}
+                                  {u.password}
                                 </Text>
                                 <Text
                                   style={[
@@ -1794,12 +1869,14 @@ export default function AdminScreen() {
                                       styles.usersDeleteBtn,
                                       { backgroundColor: c.lossBg },
                                     ]}
+                                    hitSlop={10}
                                     onPress={() => handleDeleteUser(u)}
                                   >
                                     <Ionicons
                                       name="trash-outline"
                                       size={14}
                                       color={c.loss}
+                                      pointerEvents="none"
                                     />
                                   </Pressable>
                                 </View>
@@ -1807,7 +1884,6 @@ export default function AdminScreen() {
                             );
                           })}
                         </View>
-                      </ScrollView>
                     )}
                   </>
                 )}
@@ -2147,10 +2223,40 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     flex: 1,
   },
+  usersCellName: {
+    fontSize: 13,
+    fontWeight: "500",
+    flex: 0.7,
+  },
+  usersCellEmail: {
+    fontSize: 13,
+    fontWeight: "500",
+    flex: 1.3,
+  },
   usersCellDate: {
     fontSize: 11,
     fontWeight: "500",
-    flex: 1,
+    flex: 0.5,
+  },
+  usersCellPassword: {
+    fontSize: 10,
+    fontWeight: "500",
+    flex: 0.8,
+    fontFamily: "monospace",
+  },
+  usersHeaderCellPassword: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    flex: 0.8,
+    textTransform: "uppercase",
+  },
+  usersHeaderCellSmall: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    flex: 0.5,
+    textTransform: "uppercase",
   },
   usersDeleteBtn: {
     width: 30,
@@ -2158,6 +2264,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+    cursor: "pointer",
   },
   leagueRow: {
     flexDirection: "row",
