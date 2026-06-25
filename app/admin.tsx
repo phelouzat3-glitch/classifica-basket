@@ -1,12 +1,13 @@
+import PasswordInput from "@/src/components/PasswordInput";
 import { API_URL } from "@/src/config/api";
+import { useLeague, useSeason } from "@/src/context/LeagueContext";
 import { Text } from "@/src/theme";
 import { useColors } from "@/src/theme/ThemeContext";
-import { useSeason, useTeamName, useLeague, League } from "@/src/context/LeagueContext";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,7 +21,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import PasswordInput from "@/src/components/PasswordInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function getStorage() {
@@ -58,7 +58,6 @@ export default function AdminScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
   const season = useSeason();
-  const teamName = useTeamName();
   const { league, setLeague } = useLeague();
 
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -130,7 +129,9 @@ export default function AdminScreen() {
 
   const fetchMatches = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/matches?season=${encodeURIComponent(season)}`);
+      const res = await fetch(
+        `${API_URL}/matches?season=${encodeURIComponent(season)}`,
+      );
       if (!res.ok) throw new Error("");
       const data = (await res.json()) as MatchOption[];
       setMatches(data.sort((a, b) => b.date.localeCompare(a.date)));
@@ -187,7 +188,10 @@ export default function AdminScreen() {
   const pickProfilePhoto = useCallback(async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert("Permesso negato", "Servono i permessi per accedere alla galleria");
+      Alert.alert(
+        "Permesso negato",
+        "Servono i permessi per accedere alla galleria",
+      );
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -337,7 +341,10 @@ export default function AdminScreen() {
       if (!res.ok) {
         const txt = await res.text();
         let msg = "Errore durante l'eliminazione";
-        try { const j = JSON.parse(txt); msg = j.message || msg; } catch {}
+        try {
+          const j = JSON.parse(txt);
+          msg = j.message || msg;
+        } catch {}
         setSuccess(msg);
         return;
       }
@@ -472,7 +479,9 @@ export default function AdminScreen() {
               .then(async (res) => {
                 if (!res.ok) {
                   const body = await res.json().catch(() => ({}));
-                  throw new Error(body.message || "Errore durante l'eliminazione");
+                  throw new Error(
+                    body.message || "Errore durante l'eliminazione",
+                  );
                 }
                 fetchUsers();
                 Alert.alert("Utente eliminato");
@@ -490,10 +499,13 @@ export default function AdminScreen() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch(`${API_URL}/admin/sync?season=${encodeURIComponent(season)}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${savedKey}` },
-      });
+      const res = await fetch(
+        `${API_URL}/admin/sync?season=${encodeURIComponent(season)}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${savedKey}` },
+        },
+      );
       if (!res.ok) throw new Error("");
       const data = await res.json();
       setSyncMsg(`✅ ${data.message}`);
@@ -569,11 +581,19 @@ export default function AdminScreen() {
                 <Text style={[styles.logoutText, { color: c.loss }]}>Esci</Text>
               </Pressable>
             )}
-            <Pressable onPress={savedKey ? pickProfilePhoto : undefined} style={styles.avatarWrap}>
+            <Pressable
+              onPress={savedKey ? pickProfilePhoto : undefined}
+              style={styles.avatarWrap}
+            >
               {profilePhoto ? (
                 <Image source={{ uri: profilePhoto }} style={styles.avatar} />
               ) : (
-                <View style={[styles.avatarPlaceholder, { backgroundColor: c.accentBg }]}>
+                <View
+                  style={[
+                    styles.avatarPlaceholder,
+                    { backgroundColor: c.accentBg },
+                  ]}
+                >
                   <Ionicons name="person" size={32} color={ORANGE} />
                 </View>
               )}
@@ -612,19 +632,28 @@ export default function AdminScreen() {
                     color={c.loss}
                     style={{ marginRight: 6 }}
                   />
-                  <Text style={{ color: c.loss, fontSize: 14, fontWeight: "600" }}>
+                  <Text
+                    style={{ color: c.loss, fontSize: 14, fontWeight: "600" }}
+                  >
                     {loginError}
                   </Text>
                 </View>
               )}
               <View style={[styles.card, { backgroundColor: c.bgCard }]}>
                 <PasswordInput
-                  containerStyle={{ backgroundColor: c.bg, borderColor: c.border, marginBottom: 12 }}
+                  containerStyle={{
+                    backgroundColor: c.bg,
+                    borderColor: c.border,
+                    marginBottom: 12,
+                  }}
                   style={{ color: c.textPrimary }}
                   placeholder="Password"
                   placeholderTextColor={c.textMuted}
                   value={apiKey}
-                  onChangeText={(t) => { setApiKey(t); setLoginError(null); }}
+                  onChangeText={(t) => {
+                    setApiKey(t);
+                    setLoginError(null);
+                  }}
                   autoCapitalize="none"
                 />
                 <Pressable
@@ -650,27 +679,59 @@ export default function AdminScreen() {
             </View>
           ) : (
             <>
-              <View style={[styles.leagueRow, { backgroundColor: c.bgCard, borderColor: c.border, marginHorizontal: 20, marginBottom: 16 }]}>
-                <Text style={[styles.leagueLabel, { color: c.textSecondary }]}>Serie:</Text>
+              <View
+                style={[
+                  styles.leagueRow,
+                  {
+                    backgroundColor: c.bgCard,
+                    borderColor: c.border,
+                    marginHorizontal: 20,
+                    marginBottom: 16,
+                  },
+                ]}
+              >
+                <Text style={[styles.leagueLabel, { color: c.textSecondary }]}>
+                  Serie:
+                </Text>
                 <Pressable
                   style={({ pressed }) => [
                     styles.leagueBtnA,
-                    { backgroundColor: league === "M" ? c.accent : c.bg, borderColor: c.accent },
+                    {
+                      backgroundColor: league === "M" ? c.accent : c.bg,
+                      borderColor: c.accent,
+                    },
                     pressed && { opacity: 0.7 },
                   ]}
                   onPress={() => setLeague("M")}
                 >
-                  <Text style={[styles.leagueBtnTextA, { color: league === "M" ? "#FFF" : c.accent }]}>Maschile</Text>
+                  <Text
+                    style={[
+                      styles.leagueBtnTextA,
+                      { color: league === "M" ? "#FFF" : c.accent },
+                    ]}
+                  >
+                    Maschile
+                  </Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => [
                     styles.leagueBtnA,
-                    { backgroundColor: league === "F" ? c.accent : c.bg, borderColor: c.accent },
+                    {
+                      backgroundColor: league === "F" ? c.accent : c.bg,
+                      borderColor: c.accent,
+                    },
                     pressed && { opacity: 0.7 },
                   ]}
                   onPress={() => setLeague("F")}
                 >
-                  <Text style={[styles.leagueBtnTextA, { color: league === "F" ? "#FFF" : c.accent }]}>Femminile</Text>
+                  <Text
+                    style={[
+                      styles.leagueBtnTextA,
+                      { color: league === "F" ? "#FFF" : c.accent },
+                    ]}
+                  >
+                    Femminile
+                  </Text>
                 </Pressable>
               </View>
 
@@ -901,25 +962,60 @@ export default function AdminScreen() {
                         {deleteConfirm?.id === selectedMatch?.id ? (
                           <View style={{ flexDirection: "row", gap: 8 }}>
                             <Pressable
-                              style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
-                              onPress={() => selectedMatch && handleDelete(selectedMatch)}
+                              style={[
+                                styles.actionBtn,
+                                { backgroundColor: c.lossBg },
+                              ]}
+                              onPress={() =>
+                                selectedMatch && handleDelete(selectedMatch)
+                              }
                             >
-                              <Text style={[styles.actionBtnText, { color: c.loss }]}>Conferma</Text>
+                              <Text
+                                style={[
+                                  styles.actionBtnText,
+                                  { color: c.loss },
+                                ]}
+                              >
+                                Conferma
+                              </Text>
                             </Pressable>
                             <Pressable
-                              style={[styles.actionBtn, { backgroundColor: c.bgCardAlt }]}
+                              style={[
+                                styles.actionBtn,
+                                { backgroundColor: c.bgCardAlt },
+                              ]}
                               onPress={() => setDeleteConfirm(null)}
                             >
-                              <Text style={[styles.actionBtnText, { color: c.textMuted }]}>Annulla</Text>
+                              <Text
+                                style={[
+                                  styles.actionBtnText,
+                                  { color: c.textMuted },
+                                ]}
+                              >
+                                Annulla
+                              </Text>
                             </Pressable>
                           </View>
                         ) : (
                           <Pressable
-                            style={[styles.actionBtn, { backgroundColor: c.lossBg }]}
-                            onPress={() => selectedMatch && setDeleteConfirm(selectedMatch)}
+                            style={[
+                              styles.actionBtn,
+                              { backgroundColor: c.lossBg },
+                            ]}
+                            onPress={() =>
+                              selectedMatch && setDeleteConfirm(selectedMatch)
+                            }
                           >
-                            <Ionicons name="trash-outline" size={16} color={c.loss} />
-                            <Text style={[styles.actionBtnText, { color: c.loss }]}>Cancella</Text>
+                            <Ionicons
+                              name="trash-outline"
+                              size={16}
+                              color={c.loss}
+                            />
+                            <Text
+                              style={[styles.actionBtnText, { color: c.loss }]}
+                            >
+                              Cancella
+                            </Text>
                           </Pressable>
                         )}
                         <Pressable
@@ -1597,7 +1693,10 @@ export default function AdminScreen() {
                       NUOVA PASSWORD
                     </Text>
                     <PasswordInput
-                      containerStyle={{ backgroundColor: c.bg, borderColor: c.border }}
+                      containerStyle={{
+                        backgroundColor: c.bg,
+                        borderColor: c.border,
+                      }}
                       style={{ color: c.textPrimary }}
                       value={newKey}
                       onChangeText={(t) => {
@@ -1618,7 +1717,10 @@ export default function AdminScreen() {
                       CONFERMA PASSWORD
                     </Text>
                     <PasswordInput
-                      containerStyle={{ backgroundColor: c.bg, borderColor: c.border }}
+                      containerStyle={{
+                        backgroundColor: c.bg,
+                        borderColor: c.border,
+                      }}
                       style={{ color: c.textPrimary }}
                       value={confirmNewKey}
                       onChangeText={(t) => {
@@ -1675,38 +1777,102 @@ export default function AdminScreen() {
                   onPress={handleSync}
                   disabled={syncing}
                 >
-                  <Ionicons name="sync" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                  <Ionicons
+                    name="sync"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
                     Sincronizza da abccastelfiorentino.it
                   </Text>
                 </Pressable>
 
                 {syncMsg && (
-                  <View style={[styles.feedbackCard, { backgroundColor: c.bgCardAlt, borderColor: c.border, marginTop: 16 }]}>
-                    <Ionicons name={syncing ? "hourglass" : syncMsg.startsWith("✅") ? "checkmark-circle" : "alert-circle"} size={18} color={c.textSecondary} style={{ marginRight: 8 }} />
-                    <Text style={[styles.feedbackText, { color: c.textSecondary }]}>
+                  <View
+                    style={[
+                      styles.feedbackCard,
+                      {
+                        backgroundColor: c.bgCardAlt,
+                        borderColor: c.border,
+                        marginTop: 16,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        syncing
+                          ? "hourglass"
+                          : syncMsg.startsWith("✅")
+                            ? "checkmark-circle"
+                            : "alert-circle"
+                      }
+                      size={18}
+                      color={c.textSecondary}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text
+                      style={[styles.feedbackText, { color: c.textSecondary }]}
+                    >
                       {syncing ? "Sincronizzazione in corso..." : syncMsg}
                     </Text>
                   </View>
                 )}
 
-                <View style={{ height: 1, backgroundColor: c.border, marginVertical: 12 }} />
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: c.border,
+                    marginVertical: 12,
+                  }}
+                />
 
                 <Pressable
                   style={styles.createHeader}
                   onPress={handlePbSync}
                   disabled={pbSyncing}
                 >
-                  <Ionicons name="cloud-download" size={20} color={ORANGE} style={{ marginRight: 8 }} />
-                  <Text style={[styles.createHeaderText, { color: c.textPrimary }]}>
+                  <Ionicons
+                    name="cloud-download"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
                     Sincronizza da playbasket.it
                   </Text>
                 </Pressable>
 
                 {pbMsg && (
-                  <View style={[styles.feedbackCard, { backgroundColor: c.bgCardAlt, borderColor: c.border, marginTop: 16 }]}>
-                    <Ionicons name={pbSyncing ? "hourglass" : pbMsg.startsWith("✅") ? "checkmark-circle" : "alert-circle"} size={18} color={c.textSecondary} style={{ marginRight: 8 }} />
-                    <Text style={[styles.feedbackText, { color: c.textSecondary }]}>
+                  <View
+                    style={[
+                      styles.feedbackCard,
+                      {
+                        backgroundColor: c.bgCardAlt,
+                        borderColor: c.border,
+                        marginTop: 16,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        pbSyncing
+                          ? "hourglass"
+                          : pbMsg.startsWith("✅")
+                            ? "checkmark-circle"
+                            : "alert-circle"
+                      }
+                      size={18}
+                      color={c.textSecondary}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text
+                      style={[styles.feedbackText, { color: c.textSecondary }]}
+                    >
                       {pbSyncing ? "Sincronizzazione in corso..." : pbMsg}
                     </Text>
                   </View>
@@ -1760,130 +1926,128 @@ export default function AdminScreen() {
                       </Text>
                     ) : (
                       <View style={styles.usersTable}>
-                          <View
+                        <View
+                          style={[
+                            styles.usersHeaderRow,
+                            { borderBottomColor: c.border },
+                          ]}
+                        >
+                          <Text
                             style={[
-                              styles.usersHeaderRow,
-                              { borderBottomColor: c.border },
+                              styles.usersHeaderCell,
+                              { color: c.textMuted, flex: 0.7 },
                             ]}
                           >
-                            <Text
+                            NOME
+                          </Text>
+                          <Text
+                            style={[
+                              styles.usersHeaderCell,
+                              { color: c.textMuted, flex: 1.3 },
+                            ]}
+                          >
+                            EMAIL
+                          </Text>
+                          <Text
+                            style={[
+                              styles.usersHeaderCellPassword,
+                              { color: c.textMuted },
+                            ]}
+                          >
+                            PASSWORD
+                          </Text>
+                          <Text
+                            style={[
+                              styles.usersHeaderCellSmall,
+                              { color: c.textMuted },
+                            ]}
+                          >
+                            DATA
+                          </Text>
+                          <Text
+                            style={[
+                              styles.usersHeaderCell,
+                              { color: c.textMuted, width: 50 },
+                            ]}
+                          />
+                        </View>
+                        {users.map((u) => {
+                          const d = new Date(u.createdAt);
+                          const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+                          return (
+                            <View
+                              key={u.id}
                               style={[
-                                styles.usersHeaderCell,
-                                { color: c.textMuted, flex: 0.7 },
+                                styles.usersRow,
+                                { borderBottomColor: c.border },
                               ]}
                             >
-                              NOME
-                            </Text>
-                            <Text
-                              style={[
-                                styles.usersHeaderCell,
-                                { color: c.textMuted, flex: 1.3 },
-                              ]}
-                            >
-                              EMAIL
-                            </Text>
-                            <Text
-                              style={[
-                                styles.usersHeaderCellPassword,
-                                { color: c.textMuted },
-                              ]}
-                            >
-                              PASSWORD
-                            </Text>
-                            <Text
-                              style={[
-                                styles.usersHeaderCellSmall,
-                                { color: c.textMuted },
-                              ]}
-                            >
-                              DATA
-                            </Text>
-                            <Text
-                              style={[
-                                styles.usersHeaderCell,
-                                { color: c.textMuted, width: 50 },
-                              ]}
-                            />
-                          </View>
-                          {users.map((u) => {
-                            const d = new Date(u.createdAt);
-                            const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-                            return (
-                              <View
-                                key={u.id}
+                              <Text
                                 style={[
-                                  styles.usersRow,
-                                  { borderBottomColor: c.border },
+                                  styles.usersCellName,
+                                  { color: c.textPrimary },
                                 ]}
+                                numberOfLines={1}
+                              >
+                                {u.name}
+                              </Text>
+                              <Pressable
+                                onPress={() =>
+                                  Linking.openURL(`mailto:${u.email}`)
+                                }
+                                style={styles.usersCellEmail}
                               >
                                 <Text
                                   style={[
-                                    styles.usersCellName,
-                                    { color: c.textPrimary },
+                                    styles.usersCellEmail,
+                                    {
+                                      color: c.link,
+                                      textDecorationLine: "underline",
+                                    },
                                   ]}
                                   numberOfLines={1}
                                 >
-                                  {u.name}
+                                  {u.email}
                                 </Text>
+                              </Pressable>
+                              <Text
+                                style={[
+                                  styles.usersCellPassword,
+                                  { color: c.textSecondary },
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {u.password}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.usersCellDate,
+                                  { color: c.textMuted },
+                                ]}
+                              >
+                                {dateStr}
+                              </Text>
+                              <View style={{ width: 50, alignItems: "center" }}>
                                 <Pressable
-                                  onPress={() =>
-                                    Linking.openURL(`mailto:${u.email}`)
-                                  }
-                                  style={styles.usersCellEmail}
+                                  style={[
+                                    styles.usersDeleteBtn,
+                                    { backgroundColor: c.lossBg },
+                                  ]}
+                                  hitSlop={10}
+                                  onPress={() => handleDeleteUser(u)}
                                 >
-                                  <Text
-                                    style={[
-                                      styles.usersCellEmail,
-                                      {
-                                        color: c.link,
-                                        textDecorationLine: "underline",
-                                      },
-                                    ]}
-                                    numberOfLines={1}
-                                  >
-                                    {u.email}
-                                  </Text>
+                                  <Ionicons
+                                    name="trash-outline"
+                                    size={14}
+                                    color={c.loss}
+                                    pointerEvents="none"
+                                  />
                                 </Pressable>
-                                <Text
-                                  style={[
-                                    styles.usersCellPassword,
-                                    { color: c.textSecondary },
-                                  ]}
-                                  numberOfLines={1}
-                                >
-                                  {u.password}
-                                </Text>
-                                <Text
-                                  style={[
-                                    styles.usersCellDate,
-                                    { color: c.textMuted },
-                                  ]}
-                                >
-                                  {dateStr}
-                                </Text>
-                                <View
-                                  style={{ width: 50, alignItems: "center" }}
-                                >
-                                  <Pressable
-                                    style={[
-                                      styles.usersDeleteBtn,
-                                      { backgroundColor: c.lossBg },
-                                    ]}
-                                    hitSlop={10}
-                                    onPress={() => handleDeleteUser(u)}
-                                  >
-                                    <Ionicons
-                                      name="trash-outline"
-                                      size={14}
-                                      color={c.loss}
-                                      pointerEvents="none"
-                                    />
-                                  </Pressable>
-                                </View>
                               </View>
-                            );
-                          })}
-                        </View>
+                            </View>
+                          );
+                        })}
+                      </View>
                     )}
                   </>
                 )}

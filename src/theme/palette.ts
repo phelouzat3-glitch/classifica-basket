@@ -1,4 +1,7 @@
+import { ColorValue } from "react-native";
+
 export type ColorPalette = {
+  link: ColorValue | undefined;
   cta: string;
   bg: string;
   bgCard: string;
@@ -38,6 +41,7 @@ export const darkPalette: ColorPalette = {
   loss: "#F87171",
   lossBg: "#450A0A",
   cta: "",
+  link: undefined,
 };
 
 export const lightPalette: ColorPalette = {
@@ -59,4 +63,5 @@ export const lightPalette: ColorPalette = {
   loss: "#DC2626",
   lossBg: "#FEE2E2",
   cta: "",
+  link: undefined,
 };

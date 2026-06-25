@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSeason } from "@/src/context/LeagueContext";
 
 type NotificationItem = {
   id: number;
@@ -25,6 +26,14 @@ type NotificationItem = {
   isRead: boolean;
   season: string | null;
   createdAt: string;
+};
+
+type NewsArticle = {
+  id: number;
+  title: string;
+  content: string;
+  publishedAt: string;
+  season: string;
 };
 
 const TYPE_CONFIG: Record<
@@ -42,6 +51,7 @@ export default function NotificheScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const season = useSeason();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,15 +61,33 @@ export default function NotificheScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/notifications`);
-      if (res.ok) setNotifications(await res.json());
+      const [notifRes, newsRes] = await Promise.all([
+        fetch(`${API_URL}/notifications`),
+        fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
+      ]);
+      const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
+      const news: NewsArticle[] = newsRes.ok ? await newsRes.json() : [];
+      const newsItems: NotificationItem[] = news.map((a) => ({
+        id: a.id + 100000,
+        title: a.title,
+        body: a.content,
+        type: "news" as const,
+        linkRoute: `/notizie?id=${a.id}`,
+        isRead: true,
+        season: a.season,
+        createdAt: a.publishedAt,
+      }));
+      const merged = [...notifs, ...newsItems].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setNotifications(merged);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [season]);
 
   useEffect(() => {
     fetchNotifications();
