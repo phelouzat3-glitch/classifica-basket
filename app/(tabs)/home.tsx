@@ -151,8 +151,8 @@ export default function HomeTabScreen() {
   useEffect(() => {
     const poll = () => {
       fetch(`${API_URL}/notifications/unread-count`)
-        .then(r => r.ok ? r.json() : { unread: 0 })
-        .then(d => setUnreadCount(d.unread))
+        .then(r => r.ok ? r.json() : { count: 0 })
+        .then(d => setUnreadCount(d.count ?? 0))
         .catch(() => {});
     };
     poll();
