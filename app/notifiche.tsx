@@ -62,7 +62,7 @@ export default function NotificheScreen() {
     else setLoading(true);
     try {
       const [notifRes, newsRes] = await Promise.all([
-        fetch(`${API_URL}/notifications`),
+        fetch(`${API_URL}/notifications?season=${encodeURIComponent(season)}`),
         fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
       ]);
       const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
@@ -163,7 +163,7 @@ export default function NotificheScreen() {
           <Pressable
             onPress={async () => {
               try {
-                await fetch(`${API_URL}/notifications/read-all`, {
+                await fetch(`${API_URL}/notifications/read-all?season=${encodeURIComponent(season)}`, {
                   method: "PATCH",
                 });
                 setNotifications((prev) =>

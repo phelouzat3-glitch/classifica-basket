@@ -146,7 +146,7 @@ export default function HomeTabScreen() {
 
   useEffect(() => {
     const poll = () => {
-      fetch(`${API_URL}/notifications/unread-count`)
+      fetch(`${API_URL}/notifications/unread-count?season=${encodeURIComponent(season)}`)
         .then(r => r.ok ? r.json() : { count: 0 })
         .then(d => setUnreadCount(d.count ?? 0))
         .catch(() => {});
@@ -154,7 +154,7 @@ export default function HomeTabScreen() {
     poll();
     const id = setInterval(poll, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, [season]);
 
   const myTeam = standings.find((s) => s.is_my_team);
   const topStandings = standings
@@ -236,7 +236,7 @@ export default function HomeTabScreen() {
             ]}
             onPress={async () => {
               try {
-                await fetch(`${API_URL}/notifications/read-all`, { method: "PATCH" });
+                await fetch(`${API_URL}/notifications/read-all?season=${encodeURIComponent(season)}`, { method: "PATCH" });
               } catch {}
               setUnreadCount(0);
               router.push("/notifiche" as Href);
