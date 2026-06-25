@@ -1,4 +1,3 @@
-import { NewsCard, type NewsArticle } from "@/src/components/NewsCard";
 import { TeamLogo } from "@/components/TeamLogo";
 import { API_URL } from "@/src/config/api";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
@@ -83,7 +82,6 @@ export default function HomeTabScreen() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [youthMatches, setYouthMatches] = useState<Match[]>([]);
-  const [news, setNews] = useState<NewsArticle[]>([]);
   const [, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -121,17 +119,15 @@ export default function HomeTabScreen() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       try {
-        const [sRes, mRes, nRes, ...youthRes] = await Promise.all([
+        const [sRes, mRes, ...youthRes] = await Promise.all([
           fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`),
           fetch(`${API_URL}/matches?limit=50&season=${encodeURIComponent(season)}`),
-          fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
           ...YOUTH_SEASONS.map(s =>
             fetch(`${API_URL}/matches?season=${encodeURIComponent(s)}`).then(r => r.ok ? r.json() : [])
           ),
         ]);
         if (sRes.ok) setStandings(await sRes.json());
         if (mRes.ok) setMatches(await mRes.json());
-        if (nRes.ok) setNews(await nRes.json());
         setYouthMatches(youthRes.flat());
         if (!isRefresh) animateIn();
       } catch (e) {
@@ -260,21 +256,6 @@ export default function HomeTabScreen() {
             )}
           </Pressable>
         </View>
-
-        {news.length > 0 && (
-          <>
-            <Text style={[styles.sectionTitle, { color: c.textSecondary }]}>
-              Notizie
-            </Text>
-            {news.map((a) => (
-              <NewsCard
-                key={a.id}
-                article={a}
-                onPress={() => router.push(`/notizie?id=${a.id}`)}
-              />
-            ))}
-          </>
-        )}
 
         <View style={styles.summaryRow}>
           <View
