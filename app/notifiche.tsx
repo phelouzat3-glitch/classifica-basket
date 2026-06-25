@@ -3,7 +3,7 @@ import { useColors } from "@/src/theme/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -47,6 +47,18 @@ const TYPE_CONFIG: Record<
   general: { icon: "notifications", color: "#94A3B8", label: "Notifica" },
 };
 
+function dedupeMatchResults(items: NotificationItem[]): NotificationItem[] {
+  const seen = new Set<string>();
+  return items.filter((n) => {
+    if (n.type === "match_result" && n.body) {
+      const key = n.body;
+      if (seen.has(key)) return false;
+      seen.add(key);
+    }
+    return true;
+  });
+}
+
 export default function NotificheScreen() {
   const c = useColors();
   const insets = useSafeAreaInsets();
@@ -61,13 +73,30 @@ export default function NotificheScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [notifRes, newsRes] = await Promise.all([
+      const baseSeason = season.includes("-") ? season.split("-").slice(0, 2).join("-") : season;
+      const newsSeasons = season === baseSeason ? [season] : [season, baseSeason];
+      const newsPromises = newsSeasons.map(
+        (s) => s ? fetch(`${API_URL}/news?season=${encodeURIComponent(s)}`) : fetch(`${API_URL}/news`)
+      );
+      const [notifRes, ...newsResps] = await Promise.all([
         fetch(`${API_URL}/notifications?season=${encodeURIComponent(season)}`),
-        fetch(`${API_URL}/news`),
+        ...newsPromises,
       ]);
       const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
-      const news: NewsArticle[] = newsRes.ok ? await newsRes.json() : [];
-      const newsItems: NotificationItem[] = news.map((a) => ({
+      const allNewsResults: NewsArticle[] = [];
+      for (const r of newsResps) {
+        if (r.ok) {
+          const articles: NewsArticle[] = await r.json();
+          allNewsResults.push(...articles);
+        }
+      }
+      const seenNewsIds = new Set<number>();
+      const uniqueNews = allNewsResults.filter((a) => {
+        if (seenNewsIds.has(a.id)) return false;
+        seenNewsIds.add(a.id);
+        return true;
+      });
+      const newsItems: NotificationItem[] = uniqueNews.map((a) => ({
         id: a.id + 100000,
         title: a.title,
         body: a.content,
@@ -80,7 +109,7 @@ export default function NotificheScreen() {
       const merged = [...notifs, ...newsItems].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      setNotifications(merged);
+      setNotifications(dedupeMatchResults(merged));
     } catch (e) {
       console.error(e);
     } finally {
@@ -136,7 +165,15 @@ export default function NotificheScreen() {
     });
   };
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const { results, news } = useMemo(() => {
+    const r: NotificationItem[] = [];
+    const n: NotificationItem[] = [];
+    for (const item of notifications) {
+      if (item.type === "news") n.push(item);
+      else r.push(item);
+    }
+    return { results: r, news: n };
+  }, [notifications]);
 
   return (
     <View
@@ -159,27 +196,6 @@ export default function NotificheScreen() {
           Notifiche
         </Text>
         <View style={{ flex: 1 }} />
-        {unreadCount > 0 && (
-          <Pressable
-            onPress={async () => {
-              try {
-                await fetch(`${API_URL}/notifications/read-all?season=${encodeURIComponent(season)}`, {
-                  method: "PATCH",
-                });
-                setNotifications((prev) =>
-                  prev.map((n) => ({ ...n, isRead: true })),
-                );
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-            style={[styles.markAllBtn, { backgroundColor: c.accentBg, borderColor: c.accentBorder }]}
-          >
-            <Text style={[styles.markAllText, { color: c.accent }]}>
-              Leggi tutte
-            </Text>
-          </Pressable>
-        )}
         <View style={{ width: 36 }} />
       </View>
 
@@ -210,67 +226,139 @@ export default function NotificheScreen() {
             />
           }
         >
-          {notifications.map((n) => {
-            const cfg = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.general;
-            return (
-              <Pressable
-                key={n.id}
-                style={({ pressed }) => [
-                  styles.card,
-                  { backgroundColor: n.isRead ? c.bg : c.bgCard, borderColor: c.border },
-                  pressed && { opacity: 0.7 },
-                ]}
-                onPress={() => handlePress(n)}
-              >
-                <View
-                  style={[
-                    styles.iconWrap,
-                    { backgroundColor: cfg.color + "18", borderColor: cfg.color + "30" },
-                  ]}
-                >
-                  <Ionicons
-                    name={cfg.icon}
-                    size={18}
-                    color={cfg.color}
-                  />
-                </View>
-                <View style={styles.content}>
-                  <View style={styles.titleRow}>
-                    <Text
+          {results.length > 0 && (
+            <View style={{ marginBottom: 8 }}>
+              <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
+                Risultati
+              </Text>
+              {results.map((n) => {
+                const cfg = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.general;
+                return (
+                  <Pressable
+                    key={n.id}
+                    style={({ pressed }) => [
+                      styles.card,
+                      { backgroundColor: n.isRead ? c.bg : c.bgCard, borderColor: c.border },
+                      pressed && { opacity: 0.7 },
+                    ]}
+                    onPress={() => handlePress(n)}
+                  >
+                    <View
                       style={[
-                        styles.cardTitle,
-                        { color: c.textPrimary },
-                        !n.isRead && styles.unread,
+                        styles.iconWrap,
+                        { backgroundColor: cfg.color + "18", borderColor: cfg.color + "30" },
                       ]}
-                      numberOfLines={1}
                     >
-                      {n.title}
-                    </Text>
-                    {!n.isRead && (
-                      <View style={[styles.dot, { backgroundColor: c.accent }]} />
-                    )}
-                  </View>
-                  {n.body && (
-                    <Text
-                      style={[styles.cardBody, { color: c.textSecondary }]}
-                      numberOfLines={2}
+                      <Ionicons
+                        name={cfg.icon}
+                        size={18}
+                        color={cfg.color}
+                      />
+                    </View>
+                    <View style={styles.content}>
+                      <View style={styles.titleRow}>
+                        <Text
+                          style={[
+                            styles.cardTitle,
+                            { color: c.textPrimary },
+                            !n.isRead && styles.unread,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {n.title}
+                        </Text>
+                        {!n.isRead && (
+                          <View style={[styles.dot, { backgroundColor: c.accent }]} />
+                        )}
+                      </View>
+                      {n.body && (
+                        <Text
+                          style={[styles.cardBody, { color: c.textSecondary }]}
+                          numberOfLines={2}
+                        >
+                          {n.body}
+                        </Text>
+                      )}
+                      <View style={styles.metaRow}>
+                        <Text style={[styles.typeLabel, { color: cfg.color }]}>
+                          {cfg.label}
+                        </Text>
+                        <Text style={[styles.timeText, { color: c.textMuted }]}>
+                          {formatTime(n.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+          {news.length > 0 && (
+            <View>
+              <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
+                Notizie
+              </Text>
+              {news.map((n) => {
+                const cfg = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.general;
+                return (
+                  <Pressable
+                    key={n.id}
+                    style={({ pressed }) => [
+                      styles.card,
+                      { backgroundColor: n.isRead ? c.bg : c.bgCard, borderColor: c.border },
+                      pressed && { opacity: 0.7 },
+                    ]}
+                    onPress={() => handlePress(n)}
+                  >
+                    <View
+                      style={[
+                        styles.iconWrap,
+                        { backgroundColor: cfg.color + "18", borderColor: cfg.color + "30" },
+                      ]}
                     >
-                      {n.body}
-                    </Text>
-                  )}
-                  <View style={styles.metaRow}>
-                    <Text style={[styles.typeLabel, { color: cfg.color }]}>
-                      {cfg.label}
-                    </Text>
-                    <Text style={[styles.timeText, { color: c.textMuted }]}>
-                      {formatTime(n.createdAt)}
-                    </Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
-              </Pressable>
-            );
-          })}
+                      <Ionicons
+                        name={cfg.icon}
+                        size={18}
+                        color={cfg.color}
+                      />
+                    </View>
+                    <View style={styles.content}>
+                      <View style={styles.titleRow}>
+                        <Text
+                          style={[
+                            styles.cardTitle,
+                            { color: c.textPrimary },
+                            !n.isRead && styles.unread,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {n.title}
+                        </Text>
+                      </View>
+                      {n.body && (
+                        <Text
+                          style={[styles.cardBody, { color: c.textSecondary }]}
+                          numberOfLines={2}
+                        >
+                          {n.body}
+                        </Text>
+                      )}
+                      <View style={styles.metaRow}>
+                        <Text style={[styles.typeLabel, { color: cfg.color }]}>
+                          {cfg.label}
+                        </Text>
+                        <Text style={[styles.timeText, { color: c.textMuted }]}>
+                          {formatTime(n.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
       )}
     </View>
@@ -335,6 +423,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   cardTitle: { fontSize: 14, fontWeight: "600", flex: 1 },
   unread: { fontWeight: "800" },
+  sectionTitle: { fontSize: 12, fontWeight: "700", letterSpacing: 0.5, marginBottom: 6, marginTop: 4, textTransform: "uppercase" },
   dot: { width: 8, height: 8, borderRadius: 4 },
   cardBody: { fontSize: 12, lineHeight: 16, marginTop: 1 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
