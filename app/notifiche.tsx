@@ -63,7 +63,7 @@ export default function NotificheScreen() {
     try {
       const [notifRes, newsRes] = await Promise.all([
         fetch(`${API_URL}/notifications?season=${encodeURIComponent(season)}`),
-        fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
+        fetch(`${API_URL}/news`),
       ]);
       const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
       const news: NewsArticle[] = newsRes.ok ? await newsRes.json() : [];
