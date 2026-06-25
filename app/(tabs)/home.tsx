@@ -238,7 +238,13 @@ export default function HomeTabScreen() {
               { backgroundColor: c.accentBg, borderColor: c.accentBorder },
               pressed && { opacity: 0.6 },
             ]}
-            onPress={() => router.push("/notifiche" as Href)}
+            onPress={async () => {
+              try {
+                await fetch(`${API_URL}/notifications/read-all`, { method: "PATCH" });
+              } catch {}
+              setUnreadCount(0);
+              router.push("/notifiche" as Href);
+            }}
           >
             <Ionicons
               name="notifications-outline"
