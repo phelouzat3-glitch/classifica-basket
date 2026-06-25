@@ -109,6 +109,8 @@ export default function AdminScreen() {
   const [syncing, setSyncing] = useState(false);
   const [pbMsg, setPbMsg] = useState<string | null>(null);
   const [pbSyncing, setPbSyncing] = useState(false);
+  const [wnMsg, setWnMsg] = useState<string | null>(null);
+  const [wnSyncing, setWnSyncing] = useState(false);
 
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
@@ -531,6 +533,24 @@ export default function AdminScreen() {
       setPbMsg("❌ Errore durante la sincronizzazione");
     } finally {
       setPbSyncing(false);
+    }
+  };
+
+  const handleSeedWomenNews = async () => {
+    setWnSyncing(true);
+    setWnMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/seed-women-news`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${savedKey}` },
+      });
+      if (!res.ok) throw new Error("");
+      const data = await res.json();
+      setWnMsg(`✅ ${data.message}`);
+    } catch {
+      setWnMsg("❌ Errore durante la sincronizzazione");
+    } finally {
+      setWnSyncing(false);
     }
   };
 
@@ -1874,6 +1894,65 @@ export default function AdminScreen() {
                       style={[styles.feedbackText, { color: c.textSecondary }]}
                     >
                       {pbSyncing ? "Sincronizzazione in corso..." : pbMsg}
+                    </Text>
+                  </View>
+                )}
+
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: c.border,
+                    marginVertical: 12,
+                  }}
+                />
+
+                <Pressable
+                  style={styles.createHeader}
+                  onPress={handleSeedWomenNews}
+                  disabled={wnSyncing}
+                >
+                  <Ionicons
+                    name="newspaper"
+                    size={20}
+                    color={ORANGE}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={[styles.createHeaderText, { color: c.textPrimary }]}
+                  >
+                    Aggiungi news femminili
+                  </Text>
+                </Pressable>
+
+                {wnMsg && (
+                  <View
+                    style={[
+                      styles.feedbackCard,
+                      {
+                        backgroundColor: c.bgCardAlt,
+                        borderColor: c.border,
+                        marginTop: 16,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        wnSyncing
+                          ? "hourglass"
+                          : wnMsg.startsWith("✅")
+                            ? "checkmark-circle"
+                            : "alert-circle"
+                      }
+                      size={18}
+                      color={c.textSecondary}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text
+                      style={[styles.feedbackText, { color: c.textSecondary }]}
+                    >
+                      {wnSyncing
+                        ? "Caricamento news..."
+                        : wnMsg}
                     </Text>
                   </View>
                 )}
