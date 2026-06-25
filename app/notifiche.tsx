@@ -73,7 +73,7 @@ export default function NotificheScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const baseSeason = season.includes("-") ? season.split("-").slice(0, 2).join("-") : season;
+      const baseSeason = season.split("-")[0];
       const newsSeasons = season === baseSeason ? [season] : [season, baseSeason];
       const newsPromises = newsSeasons.map(
         (s) => s ? fetch(`${API_URL}/news?season=${encodeURIComponent(s)}`) : fetch(`${API_URL}/news`)
