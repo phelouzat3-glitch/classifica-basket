@@ -73,30 +73,13 @@ export default function NotificheScreen() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const baseSeason = season.split("-")[0];
-      const newsSeasons = season === baseSeason ? [season] : [season, baseSeason];
-      const newsPromises = newsSeasons.map(
-        (s) => s ? fetch(`${API_URL}/news?season=${encodeURIComponent(s)}`) : fetch(`${API_URL}/news`)
-      );
-      const [notifRes, ...newsResps] = await Promise.all([
+      const [notifRes, newsRes] = await Promise.all([
         fetch(`${API_URL}/notifications?season=${encodeURIComponent(season)}`),
-        ...newsPromises,
+        fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
       ]);
       const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
-      const allNewsResults: NewsArticle[] = [];
-      for (const r of newsResps) {
-        if (r.ok) {
-          const articles: NewsArticle[] = await r.json();
-          allNewsResults.push(...articles);
-        }
-      }
-      const seenNewsIds = new Set<number>();
-      const uniqueNews = allNewsResults.filter((a) => {
-        if (seenNewsIds.has(a.id)) return false;
-        seenNewsIds.add(a.id);
-        return true;
-      });
-      const newsItems: NotificationItem[] = uniqueNews.map((a) => ({
+      const allNews: NewsArticle[] = newsRes.ok ? await newsRes.json() : [];
+      const newsItems: NotificationItem[] = allNews.map((a) => ({
         id: a.id + 100000,
         title: a.title,
         body: a.content,
