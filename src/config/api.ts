@@ -3,4 +3,4 @@
 // "localhost" sul telefono si riferisce al telefono stesso.
 // Su browser web (Expo Web), localhost funziona perché è lo stesso computer.
 
-export const API_URL = "https://basket-api-production.up.railway.app";
+export const API_URL = "https://basket-api-yzy0.onrender.com";
