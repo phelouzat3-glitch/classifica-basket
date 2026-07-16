@@ -1,8 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "@/src/theme";
+import PasswordInput from "@/src/components/PasswordInput";
 import { API_URL } from "@/src/config/api";
+import {
+  useDivision,
+  useLeague,
+  useSeason,
+  useTeamName,
+} from "@/src/context/LeagueContext";
+import { Text } from "@/src/theme";
 import { useColors } from "@/src/theme/ThemeContext";
-import { useSeason, useTeamName, useDivision, useLeague } from "@/src/context/LeagueContext";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -22,13 +28,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import PasswordInput from "@/src/components/PasswordInput";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const COURT_COLOR = "#C8955A";
 const LINE_COLOR = "#FFFFFF";
-
-
 
 const TOKEN_KEY = "@auth_token";
 const USER_KEY = "@auth_user";
@@ -180,7 +183,9 @@ export default function LandingScreen() {
         }
         const fails = await AsyncStorage.getItem(FAIL_KEY);
         if (fails) setFailedAttempts(parseInt(fails, 10) || 0);
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
       setCheckingToken(false);
     })();
   }, [router]);
@@ -200,7 +205,7 @@ export default function LandingScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: loginName.trim(),
+          email: loginName.trim(),
           password: loginPassword,
         }),
       });
@@ -334,7 +339,11 @@ export default function LandingScreen() {
     setError(null);
     setSuccess(null);
 
-    if (!forgotCode.trim() || !forgotNewPassword.trim() || !forgotConfirmPassword.trim()) {
+    if (
+      !forgotCode.trim() ||
+      !forgotNewPassword.trim() ||
+      !forgotConfirmPassword.trim()
+    ) {
       setError("Compila tutti i campi");
       return;
     }
@@ -388,7 +397,16 @@ export default function LandingScreen() {
 
   if (checkingToken) {
     return (
-      <View style={[styles.root, { backgroundColor: colors.bg, justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.root,
+          {
+            backgroundColor: colors.bg,
+            justifyContent: "center",
+            alignItems: "center",
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
@@ -433,7 +451,9 @@ export default function LandingScreen() {
             {teamName}
           </Text>
           <Text style={[styles.season, { color: colors.textSecondary }]}>
-            {season === "2025/26-F" ? "Stagione 2025/26 · Femminile" : "Stagione 2025/26"}
+            {season === "2025/26-F"
+              ? "Stagione 2025/26 · Femminile"
+              : "Stagione 2025/26"}
           </Text>
         </View>
 
@@ -441,22 +461,42 @@ export default function LandingScreen() {
           <Pressable
             style={({ pressed }) => [
               styles.landingLeagueBtn,
-              { backgroundColor: league === "M" ? colors.accent : colors.bgCard, borderColor: colors.accent },
+              {
+                backgroundColor: league === "M" ? colors.accent : colors.bgCard,
+                borderColor: colors.accent,
+              },
               pressed && { opacity: 0.7 },
             ]}
             onPress={() => setLeague("M")}
           >
-            <Text style={[styles.landingLeagueText, { color: league === "M" ? "#FFF" : colors.accent }]}>Maschile</Text>
+            <Text
+              style={[
+                styles.landingLeagueText,
+                { color: league === "M" ? "#FFF" : colors.accent },
+              ]}
+            >
+              Maschile
+            </Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [
               styles.landingLeagueBtn,
-              { backgroundColor: league === "F" ? colors.accent : colors.bgCard, borderColor: colors.accent },
+              {
+                backgroundColor: league === "F" ? colors.accent : colors.bgCard,
+                borderColor: colors.accent,
+              },
               pressed && { opacity: 0.7 },
             ]}
             onPress={() => setLeague("F")}
           >
-            <Text style={[styles.landingLeagueText, { color: league === "F" ? "#FFF" : colors.accent }]}>Femminile</Text>
+            <Text
+              style={[
+                styles.landingLeagueText,
+                { color: league === "F" ? "#FFF" : colors.accent },
+              ]}
+            >
+              Femminile
+            </Text>
           </Pressable>
         </View>
 
@@ -467,7 +507,9 @@ export default function LandingScreen() {
         />
 
         <View style={styles.qrCard}>
-          <Text style={[styles.qrLabel, { color: colors.textMuted }]}>CONDIVIDI L'APP</Text>
+          <Text style={[styles.qrLabel, { color: colors.textMuted }]}>
+            CONDIVIDI L&apos;APP
+          </Text>
           <Image
             source={require("../assets/images/qr-code.png")}
             style={styles.qrImage}
@@ -483,30 +525,64 @@ export default function LandingScreen() {
               pressed && { opacity: 0.7 },
             ]}
             onPress={() => {
-              Share.share({ message: "https://classifica-basket.vercel.app", title: "Classifica Basket" });
+              Share.share({
+                message: "https://classifica-basket.vercel.app",
+                title: "Classifica Basket",
+              });
             }}
           >
-            <Ionicons name="share-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+            <Ionicons
+              name="share-outline"
+              size={18}
+              color="#FFF"
+              style={{ marginRight: 8 }}
+            />
             <Text style={styles.shareBtnText}>Condividi link</Text>
           </Pressable>
         </View>
 
         <View style={styles.bottomSection}>
           {error && (
-            <View style={[styles.feedbackCard, { backgroundColor: colors.lossBg, borderColor: colors.loss }]}>
-              <Ionicons name="alert-circle" size={18} color={colors.loss} style={{ marginRight: 8 }} />
-              <Text style={[styles.feedbackText, { color: colors.loss }]}>{error}</Text>
+            <View
+              style={[
+                styles.feedbackCard,
+                { backgroundColor: colors.lossBg, borderColor: colors.loss },
+              ]}
+            >
+              <Ionicons
+                name="alert-circle"
+                size={18}
+                color={colors.loss}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={[styles.feedbackText, { color: colors.loss }]}>
+                {error}
+              </Text>
             </View>
           )}
 
           {success && (
-            <View style={[styles.feedbackCard, { backgroundColor: colors.winBg, borderColor: colors.win }]}>
-              <Ionicons name="checkmark-circle" size={18} color={colors.win} style={{ marginRight: 8 }} />
-              <Text style={[styles.feedbackText, { color: colors.win }]}>{success}</Text>
+            <View
+              style={[
+                styles.feedbackCard,
+                { backgroundColor: colors.winBg, borderColor: colors.win },
+              ]}
+            >
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color={colors.win}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={[styles.feedbackText, { color: colors.win }]}>
+                {success}
+              </Text>
             </View>
           )}
 
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
             <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
               <View style={styles.toggleRow}>
                 <Pressable
@@ -514,12 +590,18 @@ export default function LandingScreen() {
                     styles.toggleBtn,
                     mode === "login" && { backgroundColor: colors.accent },
                   ]}
-                  onPress={() => { setMode("login"); setError(null); setSuccess(null); }}
+                  onPress={() => {
+                    setMode("login");
+                    setError(null);
+                    setSuccess(null);
+                  }}
                 >
                   <Text
                     style={[
                       styles.toggleText,
-                      mode === "login" ? { color: "#FFF" } : { color: colors.textSecondary },
+                      mode === "login"
+                        ? { color: "#FFF" }
+                        : { color: colors.textSecondary },
                     ]}
                   >
                     Accedi
@@ -530,12 +612,18 @@ export default function LandingScreen() {
                     styles.toggleBtn,
                     mode === "register" && { backgroundColor: colors.accent },
                   ]}
-                  onPress={() => { setMode("register"); setError(null); setSuccess(null); }}
+                  onPress={() => {
+                    setMode("register");
+                    setError(null);
+                    setSuccess(null);
+                  }}
                 >
                   <Text
                     style={[
                       styles.toggleText,
-                      mode === "register" ? { color: "#FFF" } : { color: colors.textSecondary },
+                      mode === "register"
+                        ? { color: "#FFF" }
+                        : { color: colors.textSecondary },
                     ]}
                   >
                     Registrati
@@ -546,32 +634,66 @@ export default function LandingScreen() {
               {mode === "login" ? (
                 <>
                   <View style={styles.headerReg}>
-                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        { backgroundColor: colors.accentBg },
+                      ]}
+                    >
                       <Ionicons name="log-in" size={28} color={colors.accent} />
                     </View>
-                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Bentornato!</Text>
-                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[styles.titleReg, { color: colors.textPrimary }]}
+                    >
+                      Bentornato!
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtitleReg,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Inserisci le tue credenziali per accedere
                     </Text>
                   </View>
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>NOME UTENTE</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    NOME UTENTE
+                  </Text>
                   <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.bg,
+                        color: colors.textPrimary,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     value={loginName}
-                    onChangeText={(t) => { setLoginName(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setLoginName(t);
+                      setError(null);
+                    }}
                     placeholder="Il tuo nome"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="words"
                     editable={!loading}
                   />
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    PASSWORD
+                  </Text>
                   <PasswordInput
-                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    containerStyle={{
+                      backgroundColor: colors.bg,
+                      borderColor: colors.border,
+                    }}
                     style={{ color: colors.textPrimary }}
                     value={loginPassword}
-                    onChangeText={(t) => { setLoginPassword(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setLoginPassword(t);
+                      setError(null);
+                    }}
                     placeholder="La tua password"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
@@ -579,7 +701,13 @@ export default function LandingScreen() {
                   />
 
                   <Pressable
-                    style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                    style={[
+                      styles.btn,
+                      {
+                        backgroundColor: colors.accent,
+                        opacity: loading ? 0.6 : 1,
+                      },
+                    ]}
                     onPress={handleLogin}
                     disabled={loading}
                   >
@@ -587,7 +715,12 @@ export default function LandingScreen() {
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <Ionicons name="enter-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                        <Ionicons
+                          name="enter-outline"
+                          size={18}
+                          color="#FFF"
+                          style={{ marginRight: 8 }}
+                        />
                         <Text style={styles.btnText}>Entra</Text>
                       </>
                     )}
@@ -596,10 +729,25 @@ export default function LandingScreen() {
                   {failedAttempts >= MAX_FAILS && (
                     <Pressable
                       style={styles.forgotLink}
-                      onPress={() => { setMode("forgot"); setForgotName(loginName); setError(null); setSuccess(null); }}
+                      onPress={() => {
+                        setMode("forgot");
+                        setForgotName(loginName);
+                        setError(null);
+                        setSuccess(null);
+                      }}
                     >
-                      <Ionicons name="help-circle-outline" size={14} color={colors.accent} style={{ marginRight: 4 }} />
-                      <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                      <Ionicons
+                        name="help-circle-outline"
+                        size={14}
+                        color={colors.accent}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text
+                        style={[
+                          styles.contactLinkText,
+                          { color: colors.accent },
+                        ]}
+                      >
                         Password dimenticata?
                       </Text>
                     </Pressable>
@@ -607,10 +755,19 @@ export default function LandingScreen() {
 
                   <Pressable
                     style={styles.contactLink}
-                    onPress={() => Linking.openURL("mailto:info@abccastelfiorentino.it")}
+                    onPress={() =>
+                      Linking.openURL("mailto:info@abccastelfiorentino.it")
+                    }
                   >
-                    <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.accent} style={{ marginRight: 4 }} />
-                    <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={14}
+                      color={colors.accent}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[styles.contactLinkText, { color: colors.accent }]}
+                    >
                       Vuoi contattarci?
                     </Text>
                   </Pressable>
@@ -618,31 +775,73 @@ export default function LandingScreen() {
               ) : mode === "register" ? (
                 <>
                   <View style={styles.headerReg}>
-                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
-                      <Ionicons name="person-add" size={28} color={colors.accent} />
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        { backgroundColor: colors.accentBg },
+                      ]}
+                    >
+                      <Ionicons
+                        name="person-add"
+                        size={28}
+                        color={colors.accent}
+                      />
                     </View>
-                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Registrati</Text>
-                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[styles.titleReg, { color: colors.textPrimary }]}
+                    >
+                      Registrati
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtitleReg,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Crea un account per accedere
                     </Text>
                   </View>
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>NOME</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    NOME
+                  </Text>
                   <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.bg,
+                        color: colors.textPrimary,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     value={regName}
-                    onChangeText={(t) => { setRegName(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setRegName(t);
+                      setError(null);
+                    }}
                     placeholder="Il tuo nome"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="words"
                     editable={!loading}
                   />
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    EMAIL
+                  </Text>
                   <TextInput
-                    style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                    style={[
+                      styles.input,
+                      {
+                        backgroundColor: colors.bg,
+                        color: colors.textPrimary,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     value={regEmail}
-                    onChangeText={(t) => { setRegEmail(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setRegEmail(t);
+                      setError(null);
+                    }}
                     placeholder="tua@email.com"
                     placeholderTextColor={colors.textMuted}
                     keyboardType="email-address"
@@ -650,24 +849,40 @@ export default function LandingScreen() {
                     editable={!loading}
                   />
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    PASSWORD
+                  </Text>
                   <PasswordInput
-                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    containerStyle={{
+                      backgroundColor: colors.bg,
+                      borderColor: colors.border,
+                    }}
                     style={{ color: colors.textPrimary }}
                     value={regPassword}
-                    onChangeText={(t) => { setRegPassword(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setRegPassword(t);
+                      setError(null);
+                    }}
                     placeholder="Minimo 6 caratteri"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
                     editable={!loading}
                   />
 
-                  <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
+                  <Text style={[styles.label, { color: colors.textMuted }]}>
+                    CONFERMA PASSWORD
+                  </Text>
                   <PasswordInput
-                    containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                    containerStyle={{
+                      backgroundColor: colors.bg,
+                      borderColor: colors.border,
+                    }}
                     style={{ color: colors.textPrimary }}
                     value={regConfirm}
-                    onChangeText={(t) => { setRegConfirm(t); setError(null); }}
+                    onChangeText={(t) => {
+                      setRegConfirm(t);
+                      setError(null);
+                    }}
                     placeholder="Riscrivi la password"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
@@ -676,26 +891,46 @@ export default function LandingScreen() {
 
                   <Pressable
                     style={styles.privacyRow}
-                    onPress={() => { setRegPrivacy(!regPrivacy); setError(null); }}
+                    onPress={() => {
+                      setRegPrivacy(!regPrivacy);
+                      setError(null);
+                    }}
                   >
                     <View
                       style={[
                         styles.checkbox,
                         {
-                          backgroundColor: regPrivacy ? colors.accent : colors.bg,
-                          borderColor: regPrivacy ? colors.accent : colors.border,
+                          backgroundColor: regPrivacy
+                            ? colors.accent
+                            : colors.bg,
+                          borderColor: regPrivacy
+                            ? colors.accent
+                            : colors.border,
                         },
                       ]}
                     >
-                      {regPrivacy && <Ionicons name="checkmark" size={16} color="#FFF" />}
+                      {regPrivacy && (
+                        <Ionicons name="checkmark" size={16} color="#FFF" />
+                      )}
                     </View>
-                    <Text style={[styles.privacyText, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.privacyText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Accetto l'informativa sulla privacy
                     </Text>
                   </Pressable>
 
                   <Pressable
-                    style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                    style={[
+                      styles.btn,
+                      {
+                        backgroundColor: colors.accent,
+                        opacity: loading ? 0.6 : 1,
+                      },
+                    ]}
                     onPress={handleRegister}
                     disabled={loading}
                   >
@@ -703,7 +938,12 @@ export default function LandingScreen() {
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <>
-                        <Ionicons name="person-add" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                        <Ionicons
+                          name="person-add"
+                          size={18}
+                          color="#FFF"
+                          style={{ marginRight: 8 }}
+                        />
                         <Text style={styles.btnText}>Registrati</Text>
                       </>
                     )}
@@ -712,11 +952,29 @@ export default function LandingScreen() {
               ) : (
                 <>
                   <View style={styles.headerReg}>
-                    <View style={[styles.iconCircle, { backgroundColor: colors.accentBg }]}>
-                      <Ionicons name="key-outline" size={28} color={colors.accent} />
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        { backgroundColor: colors.accentBg },
+                      ]}
+                    >
+                      <Ionicons
+                        name="key-outline"
+                        size={28}
+                        color={colors.accent}
+                      />
                     </View>
-                    <Text style={[styles.titleReg, { color: colors.textPrimary }]}>Password dimenticata?</Text>
-                    <Text style={[styles.subtitleReg, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[styles.titleReg, { color: colors.textPrimary }]}
+                    >
+                      Password dimenticata?
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtitleReg,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       {forgotStep === "request"
                         ? "Inserisci il tuo nome utente per ricevere il codice di reset"
                         : "Inserisci il codice e la nuova password"}
@@ -725,11 +983,23 @@ export default function LandingScreen() {
 
                   {forgotStep === "request" ? (
                     <>
-                      <Text style={[styles.label, { color: colors.textMuted }]}>NOME UTENTE</Text>
+                      <Text style={[styles.label, { color: colors.textMuted }]}>
+                        NOME UTENTE
+                      </Text>
                       <TextInput
-                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        style={[
+                          styles.input,
+                          {
+                            backgroundColor: colors.bg,
+                            color: colors.textPrimary,
+                            borderColor: colors.border,
+                          },
+                        ]}
                         value={forgotName}
-                        onChangeText={(t) => { setForgotName(t); setError(null); }}
+                        onChangeText={(t) => {
+                          setForgotName(t);
+                          setError(null);
+                        }}
                         placeholder="Il tuo nome"
                         placeholderTextColor={colors.textMuted}
                         autoCapitalize="words"
@@ -737,7 +1007,13 @@ export default function LandingScreen() {
                       />
 
                       <Pressable
-                        style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                        style={[
+                          styles.btn,
+                          {
+                            backgroundColor: colors.accent,
+                            opacity: loading ? 0.6 : 1,
+                          },
+                        ]}
                         onPress={handleForgotRequest}
                         disabled={loading}
                       >
@@ -745,7 +1021,12 @@ export default function LandingScreen() {
                           <ActivityIndicator size="small" color="#FFF" />
                         ) : (
                           <>
-                            <Ionicons name="paper-plane" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                            <Ionicons
+                              name="paper-plane"
+                              size={18}
+                              color="#FFF"
+                              style={{ marginRight: 8 }}
+                            />
                             <Text style={styles.btnText}>Richiedi codice</Text>
                           </>
                         )}
@@ -753,39 +1034,69 @@ export default function LandingScreen() {
                     </>
                   ) : (
                     <>
-                      <Text style={[styles.codeNotice, { color: colors.accent }]}>
+                      <Text
+                        style={[styles.codeNotice, { color: colors.accent }]}
+                      >
                         Codice: {forgotGeneratedCode}
                       </Text>
 
-                      <Text style={[styles.label, { color: colors.textMuted }]}>CODICE DI RESET</Text>
+                      <Text style={[styles.label, { color: colors.textMuted }]}>
+                        CODICE DI RESET
+                      </Text>
                       <TextInput
-                        style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                        style={[
+                          styles.input,
+                          {
+                            backgroundColor: colors.bg,
+                            color: colors.textPrimary,
+                            borderColor: colors.border,
+                          },
+                        ]}
                         value={forgotCode}
-                        onChangeText={(t) => { setForgotCode(t); setError(null); }}
+                        onChangeText={(t) => {
+                          setForgotCode(t);
+                          setError(null);
+                        }}
                         placeholder="Codice a 6 caratteri"
                         placeholderTextColor={colors.textMuted}
                         autoCapitalize="characters"
                         editable={!loading}
                       />
 
-                      <Text style={[styles.label, { color: colors.textMuted }]}>NUOVA PASSWORD</Text>
+                      <Text style={[styles.label, { color: colors.textMuted }]}>
+                        NUOVA PASSWORD
+                      </Text>
                       <PasswordInput
-                        containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                        containerStyle={{
+                          backgroundColor: colors.bg,
+                          borderColor: colors.border,
+                        }}
                         style={{ color: colors.textPrimary }}
                         value={forgotNewPassword}
-                        onChangeText={(t) => { setForgotNewPassword(t); setError(null); }}
+                        onChangeText={(t) => {
+                          setForgotNewPassword(t);
+                          setError(null);
+                        }}
                         placeholder="Minimo 6 caratteri"
                         placeholderTextColor={colors.textMuted}
                         autoCapitalize="none"
                         editable={!loading}
                       />
 
-                      <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA PASSWORD</Text>
+                      <Text style={[styles.label, { color: colors.textMuted }]}>
+                        CONFERMA PASSWORD
+                      </Text>
                       <PasswordInput
-                        containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                        containerStyle={{
+                          backgroundColor: colors.bg,
+                          borderColor: colors.border,
+                        }}
                         style={{ color: colors.textPrimary }}
                         value={forgotConfirmPassword}
-                        onChangeText={(t) => { setForgotConfirmPassword(t); setError(null); }}
+                        onChangeText={(t) => {
+                          setForgotConfirmPassword(t);
+                          setError(null);
+                        }}
                         placeholder="Riscrivi la password"
                         placeholderTextColor={colors.textMuted}
                         autoCapitalize="none"
@@ -793,7 +1104,13 @@ export default function LandingScreen() {
                       />
 
                       <Pressable
-                        style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                        style={[
+                          styles.btn,
+                          {
+                            backgroundColor: colors.accent,
+                            opacity: loading ? 0.6 : 1,
+                          },
+                        ]}
                         onPress={handleResetPassword}
                         disabled={loading}
                       >
@@ -801,8 +1118,15 @@ export default function LandingScreen() {
                           <ActivityIndicator size="small" color="#FFF" />
                         ) : (
                           <>
-                            <Ionicons name="checkmark-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                            <Text style={styles.btnText}>Reimposta password</Text>
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={18}
+                              color="#FFF"
+                              style={{ marginRight: 8 }}
+                            />
+                            <Text style={styles.btnText}>
+                              Reimposta password
+                            </Text>
                           </>
                         )}
                       </Pressable>
@@ -811,10 +1135,27 @@ export default function LandingScreen() {
 
                   <Pressable
                     style={styles.contactLink}
-                    onPress={() => { setMode("login"); setForgotStep("request"); setForgotName(""); setForgotCode(""); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotGeneratedCode(""); setError(null); setSuccess(null); }}
+                    onPress={() => {
+                      setMode("login");
+                      setForgotStep("request");
+                      setForgotName("");
+                      setForgotCode("");
+                      setForgotNewPassword("");
+                      setForgotConfirmPassword("");
+                      setForgotGeneratedCode("");
+                      setError(null);
+                      setSuccess(null);
+                    }}
                   >
-                    <Ionicons name="arrow-back" size={14} color={colors.accent} style={{ marginRight: 4 }} />
-                    <Text style={[styles.contactLinkText, { color: colors.accent }]}>
+                    <Ionicons
+                      name="arrow-back"
+                      size={14}
+                      color={colors.accent}
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text
+                      style={[styles.contactLinkText, { color: colors.accent }]}
+                    >
                       Torna al login
                     </Text>
                   </Pressable>
@@ -978,18 +1319,75 @@ const styles = StyleSheet.create({
   },
 
   headerReg: { alignItems: "center", marginBottom: 16 },
-  iconCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center", marginBottom: 12 },
-  titleReg: { fontSize: 22, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
-  subtitleReg: { fontSize: 13, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  titleReg: {
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  subtitleReg: {
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "center",
+    paddingHorizontal: 10,
+  },
   card: { borderRadius: 16, padding: 20 },
-  label: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginBottom: 8, marginTop: 14 },
-  input: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  privacyRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 18, marginBottom: 18 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, justifyContent: "center", alignItems: "center", marginTop: 1 },
+  label: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 14,
+  },
+  input: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  privacyRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginTop: 18,
+    marginBottom: 18,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 1,
+  },
   privacyText: { fontSize: 12, lineHeight: 18, flex: 1 },
-  btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", minHeight: 50 },
+  btn: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    minHeight: 50,
+  },
   btnText: { color: "#FFF", fontSize: 15, fontWeight: "700" },
-  feedbackCard: { borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, flexDirection: "row", alignItems: "center" },
+  feedbackCard: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
   contactLink: {
     flexDirection: "row",

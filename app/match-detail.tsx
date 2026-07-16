@@ -53,8 +53,8 @@ export default function MatchDetailScreen() {
     try {
       const res = await fetch(`${API_URL}/matches`);
       if (res.ok) {
-        const all: Match[] = await res.json();
-        const found = all.find((m) => m.id === Number(id));
+        const resData: { value: Match[] } = await res.json();
+        const found = resData.value.find((m) => m.id === Number(id));
         setMatch(found ?? null);
       }
     } catch (e) {

@@ -1,29 +1,32 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Text } from "@/src/theme";
+import PasswordInput from "@/src/components/PasswordInput";
+import { SponsorBanner } from "@/src/components/SponsorBanner";
 import { API_URL } from "@/src/config/api";
-import { useColors, useFontScaleControls, useToggleTheme, useTheme } from "@/src/theme/ThemeContext";
-import { useLeague, League } from "@/src/context/LeagueContext";
+import { getActiveSponsors } from "@/src/config/sponsors";
+import { useLeague } from "@/src/context/LeagueContext";
+import { Text } from "@/src/theme";
+import {
+  useColors,
+  useFontScaleControls,
+  useTheme,
+  useToggleTheme,
+} from "@/src/theme/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { SponsorBanner } from "@/src/components/SponsorBanner";
-import { getActiveSponsors } from "@/src/config/sponsors";
-import PasswordInput from "@/src/components/PasswordInput";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TOKEN_KEY = "@auth_token";
 const USER_KEY = "@auth_user";
@@ -55,7 +58,10 @@ function readLocalVotes(): Record<number, number> {
 
 async function readAsyncVotes(): Promise<Record<number, number>> {
   try {
-    const storage = await import("@react-native-async-storage/async-storage").then((m) => m.default);
+    const storage =
+      await import("@react-native-async-storage/async-storage").then(
+        (m) => m.default,
+      );
     const raw = await storage.getItem(POLLS_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
@@ -71,7 +77,10 @@ async function writeVotes(data: Record<number, number>): Promise<void> {
     }
   } catch {}
   try {
-    const storage = await import("@react-native-async-storage/async-storage").then((m) => m.default);
+    const storage =
+      await import("@react-native-async-storage/async-storage").then(
+        (m) => m.default,
+      );
     await storage.setItem(POLLS_STORAGE_KEY, json);
   } catch {}
 }
@@ -82,7 +91,8 @@ export default function ProfiloScreen() {
   const colors = useColors();
   const themeName = useTheme();
   const toggleTheme = useToggleTheme();
-  const { fontScale, increaseFontScale, decreaseFontScale } = useFontScaleControls();
+  const { fontScale, increaseFontScale, decreaseFontScale } =
+    useFontScaleControls();
   const { league, setLeague, config } = useLeague();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -115,13 +125,20 @@ export default function ProfiloScreen() {
   const [showAdminPw, setShowAdminPw] = useState(false);
   const [adminPwErr, setAdminPwErr] = useState("");
 
-
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
     slideAnim.setValue(12);
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 380, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 380, useNativeDriver: true }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 380,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, [fadeAnim, slideAnim]);
 
@@ -215,7 +232,13 @@ export default function ProfiloScreen() {
       const data = await res.json();
       if (!res.ok) {
         const msg = data.message;
-        setError(typeof msg === "string" ? msg : Array.isArray(msg) ? msg[0] : "Errore");
+        setError(
+          typeof msg === "string"
+            ? msg
+            : Array.isArray(msg)
+              ? msg[0]
+              : "Errore",
+        );
         return;
       }
       setSuccess("Profilo aggiornato con successo!");
@@ -266,7 +289,13 @@ export default function ProfiloScreen() {
       const data = await res.json();
       if (!res.ok) {
         const msg = data.message;
-        setError(typeof msg === "string" ? msg : Array.isArray(msg) ? msg[0] : "Errore");
+        setError(
+          typeof msg === "string"
+            ? msg
+            : Array.isArray(msg)
+              ? msg[0]
+              : "Errore",
+        );
         return;
       }
       setSuccess("Password cambiata con successo!");
@@ -298,14 +327,17 @@ export default function ProfiloScreen() {
 
   const submitVotes = useCallback(async (current: Record<number, number>) => {
     const initial = initialVotesRef.current;
-    for (const pollIdStr of [...new Set([...Object.keys(current), ...Object.keys(initial)])]) {
+    for (const pollIdStr of [
+      ...new Set([...Object.keys(current), ...Object.keys(initial)]),
+    ]) {
       const pollId = Number(pollIdStr);
       const currentChoice = current[pollId];
       const initialChoice = initial[pollId];
       if (currentChoice === initialChoice) continue;
-      const url = currentChoice !== undefined
-        ? `${API_URL}/polls/${pollId}/vote`
-        : `${API_URL}/polls/${pollId}/unvote`;
+      const url =
+        currentChoice !== undefined
+          ? `${API_URL}/polls/${pollId}/vote`
+          : `${API_URL}/polls/${pollId}/unvote`;
       const optionId = currentChoice ?? initialChoice;
       try {
         await fetch(url, {
@@ -350,7 +382,12 @@ export default function ProfiloScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.root,
+        { backgroundColor: colors.bg, paddingTop: insets.top },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         bounces={false}
@@ -358,17 +395,35 @@ export default function ProfiloScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.headerRow}>
-          <Ionicons name="settings-outline" size={22} color={colors.accent} style={{ marginRight: 10 }} />
-          <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Impostazioni</Text>
+          <Ionicons
+            name="settings-outline"
+            size={22}
+            color={colors.accent}
+            style={{ marginRight: 10 }}
+          />
+          <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>
+            Impostazioni
+          </Text>
         </View>
 
-        <Pressable style={[styles.profileCard, { backgroundColor: colors.bgCard }]} onPress={toggleProfileMenu}>
-          <View style={[styles.avatarCircle, { backgroundColor: colors.accentBg }]}>
+        <Pressable
+          style={[styles.profileCard, { backgroundColor: colors.bgCard }]}
+          onPress={toggleProfileMenu}
+        >
+          <View
+            style={[styles.avatarCircle, { backgroundColor: colors.accentBg }]}
+          >
             <Ionicons name="person" size={28} color={colors.accent} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.profileName, { color: colors.textPrimary }]}>{userName}</Text>
-            <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>{userEmail}</Text>
+            <Text style={[styles.profileName, { color: colors.textPrimary }]}>
+              {userName}
+            </Text>
+            <Text
+              style={[styles.profileEmail, { color: colors.textSecondary }]}
+            >
+              {userEmail}
+            </Text>
           </View>
           <Ionicons
             name={showProfileMenu ? "chevron-up" : "chevron-down"}
@@ -378,27 +433,64 @@ export default function ProfiloScreen() {
         </Pressable>
 
         {error && (
-          <View style={[styles.feedbackCard, { backgroundColor: colors.lossBg, borderColor: colors.loss }]}>
-            <Ionicons name="alert-circle" size={18} color={colors.loss} style={{ marginRight: 8 }} />
-            <Text style={[styles.feedbackText, { color: colors.loss }]}>{error}</Text>
+          <View
+            style={[
+              styles.feedbackCard,
+              { backgroundColor: colors.lossBg, borderColor: colors.loss },
+            ]}
+          >
+            <Ionicons
+              name="alert-circle"
+              size={18}
+              color={colors.loss}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={[styles.feedbackText, { color: colors.loss }]}>
+              {error}
+            </Text>
           </View>
         )}
         {success && (
-          <View style={[styles.feedbackCard, { backgroundColor: colors.winBg, borderColor: colors.win }]}>
-            <Ionicons name="checkmark-circle" size={18} color={colors.win} style={{ marginRight: 8 }} />
-            <Text style={[styles.feedbackText, { color: colors.win }]}>{success}</Text>
+          <View
+            style={[
+              styles.feedbackCard,
+              { backgroundColor: colors.winBg, borderColor: colors.win },
+            ]}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={colors.win}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={[styles.feedbackText, { color: colors.win }]}>
+              {success}
+            </Text>
           </View>
         )}
 
         {showProfileMenu && (
-          <View style={[styles.profileMenuCard, { backgroundColor: colors.bgCard }]}>
+          <View
+            style={[styles.profileMenuCard, { backgroundColor: colors.bgCard }]}
+          >
             <View style={styles.sectionContent}>
               <Pressable
                 style={[styles.subMenuRow, { borderColor: colors.border }]}
-                onPress={() => { setShowEditProfile(!showEditProfile); setShowChangePassword(false); }}
+                onPress={() => {
+                  setShowEditProfile(!showEditProfile);
+                  setShowChangePassword(false);
+                }}
               >
-                <Ionicons name="create-outline" size={18} color={colors.accent} />
-                <Text style={[styles.subMenuText, { color: colors.textPrimary }]}>Modifica profilo</Text>
+                <Ionicons
+                  name="create-outline"
+                  size={18}
+                  color={colors.accent}
+                />
+                <Text
+                  style={[styles.subMenuText, { color: colors.textPrimary }]}
+                >
+                  Modifica profilo
+                </Text>
                 <Ionicons
                   name={showEditProfile ? "chevron-up" : "chevron-down"}
                   size={18}
@@ -407,23 +499,49 @@ export default function ProfiloScreen() {
               </Pressable>
 
               {showEditProfile && (
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : undefined}
+                >
                   <View style={styles.subSection}>
-                    <Text style={[styles.label, { color: colors.textMuted }]}>NOME</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>
+                      NOME
+                    </Text>
                     <TextInput
-                      style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                      style={[
+                        styles.input,
+                        {
+                          backgroundColor: colors.bg,
+                          color: colors.textPrimary,
+                          borderColor: colors.border,
+                        },
+                      ]}
                       value={editName}
-                      onChangeText={(t) => { setEditName(t); setError(null); }}
+                      onChangeText={(t) => {
+                        setEditName(t);
+                        setError(null);
+                      }}
                       placeholder="Il tuo nome"
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="words"
                       editable={!loading}
                     />
-                    <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>
+                      EMAIL
+                    </Text>
                     <TextInput
-                      style={[styles.input, { backgroundColor: colors.bg, color: colors.textPrimary, borderColor: colors.border }]}
+                      style={[
+                        styles.input,
+                        {
+                          backgroundColor: colors.bg,
+                          color: colors.textPrimary,
+                          borderColor: colors.border,
+                        },
+                      ]}
                       value={editEmail}
-                      onChangeText={(t) => { setEditEmail(t); setError(null); }}
+                      onChangeText={(t) => {
+                        setEditEmail(t);
+                        setError(null);
+                      }}
                       placeholder="tua@email.com"
                       placeholderTextColor={colors.textMuted}
                       keyboardType="email-address"
@@ -431,7 +549,13 @@ export default function ProfiloScreen() {
                       editable={!loading}
                     />
                     <Pressable
-                      style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                      style={[
+                        styles.btn,
+                        {
+                          backgroundColor: colors.accent,
+                          opacity: loading ? 0.6 : 1,
+                        },
+                      ]}
                       onPress={handleUpdateProfile}
                       disabled={loading}
                     >
@@ -439,7 +563,12 @@ export default function ProfiloScreen() {
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
                         <>
-                          <Ionicons name="save-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                          <Ionicons
+                            name="save-outline"
+                            size={18}
+                            color="#FFF"
+                            style={{ marginRight: 8 }}
+                          />
                           <Text style={styles.btnText}>Salva modifiche</Text>
                         </>
                       )}
@@ -450,10 +579,21 @@ export default function ProfiloScreen() {
 
               <Pressable
                 style={[styles.subMenuRow, { borderColor: colors.border }]}
-                onPress={() => { setShowChangePassword(!showChangePassword); setShowEditProfile(false); }}
+                onPress={() => {
+                  setShowChangePassword(!showChangePassword);
+                  setShowEditProfile(false);
+                }}
               >
-                <Ionicons name="lock-closed-outline" size={18} color={colors.accent} />
-                <Text style={[styles.subMenuText, { color: colors.textPrimary }]}>Cambia password</Text>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color={colors.accent}
+                />
+                <Text
+                  style={[styles.subMenuText, { color: colors.textPrimary }]}
+                >
+                  Cambia password
+                </Text>
                 <Ionicons
                   name={showChangePassword ? "chevron-up" : "chevron-down"}
                   size={18}
@@ -462,43 +602,75 @@ export default function ProfiloScreen() {
               </Pressable>
 
               {showChangePassword && (
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : undefined}
+                >
                   <View style={styles.subSection}>
-                    <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD ATTUALE</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>
+                      PASSWORD ATTUALE
+                    </Text>
                     <PasswordInput
-                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      containerStyle={{
+                        backgroundColor: colors.bg,
+                        borderColor: colors.border,
+                      }}
                       style={{ color: colors.textPrimary }}
                       value={oldPassword}
-                      onChangeText={(t) => { setOldPassword(t); setError(null); }}
+                      onChangeText={(t) => {
+                        setOldPassword(t);
+                        setError(null);
+                      }}
                       placeholder="La tua password attuale"
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="none"
                       editable={!loading}
                     />
-                    <Text style={[styles.label, { color: colors.textMuted }]}>NUOVA PASSWORD</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>
+                      NUOVA PASSWORD
+                    </Text>
                     <PasswordInput
-                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      containerStyle={{
+                        backgroundColor: colors.bg,
+                        borderColor: colors.border,
+                      }}
                       style={{ color: colors.textPrimary }}
                       value={newPassword}
-                      onChangeText={(t) => { setNewPassword(t); setError(null); }}
+                      onChangeText={(t) => {
+                        setNewPassword(t);
+                        setError(null);
+                      }}
                       placeholder="Minimo 6 caratteri"
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="none"
                       editable={!loading}
                     />
-                    <Text style={[styles.label, { color: colors.textMuted }]}>CONFERMA NUOVA PASSWORD</Text>
+                    <Text style={[styles.label, { color: colors.textMuted }]}>
+                      CONFERMA NUOVA PASSWORD
+                    </Text>
                     <PasswordInput
-                      containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+                      containerStyle={{
+                        backgroundColor: colors.bg,
+                        borderColor: colors.border,
+                      }}
                       style={{ color: colors.textPrimary }}
                       value={confirmPassword}
-                      onChangeText={(t) => { setConfirmPassword(t); setError(null); }}
+                      onChangeText={(t) => {
+                        setConfirmPassword(t);
+                        setError(null);
+                      }}
                       placeholder="Riscrivi la nuova password"
                       placeholderTextColor={colors.textMuted}
                       autoCapitalize="none"
                       editable={!loading}
                     />
                     <Pressable
-                      style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.6 : 1 }]}
+                      style={[
+                        styles.btn,
+                        {
+                          backgroundColor: colors.accent,
+                          opacity: loading ? 0.6 : 1,
+                        },
+                      ]}
                       onPress={handleChangePassword}
                       disabled={loading}
                     >
@@ -506,7 +678,12 @@ export default function ProfiloScreen() {
                         <ActivityIndicator size="small" color="#FFF" />
                       ) : (
                         <>
-                          <Ionicons name="lock-open-outline" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                          <Ionicons
+                            name="lock-open-outline"
+                            size={18}
+                            color="#FFF"
+                            style={{ marginRight: 8 }}
+                          />
                           <Text style={styles.btnText}>Cambia password</Text>
                         </>
                       )}
@@ -520,38 +697,77 @@ export default function ProfiloScreen() {
 
         {/* STATISTICHE */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-          <Pressable style={styles.menuRow} onPress={() => router.push("/statistiche")}>
-            <Ionicons name="analytics-outline" size={22} color={colors.accent} />
-            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Statistiche</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => router.push("/statistiche")}
+          >
+            <Ionicons
+              name="analytics-outline"
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Statistiche
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textMuted}
+            />
           </Pressable>
         </View>
 
         {/* SELEZIONE LEGA */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <View style={styles.menuRow}>
-            <Ionicons name="git-branch-outline" size={22} color={colors.accent} />
-            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Serie</Text>
+            <Ionicons
+              name="git-branch-outline"
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Serie
+            </Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable
                 style={({ pressed }) => [
                   styles.leagueBtn,
-                  { backgroundColor: league === "M" ? colors.accent : colors.bg, borderColor: colors.accent },
+                  {
+                    backgroundColor: league === "M" ? colors.accent : colors.bg,
+                    borderColor: colors.accent,
+                  },
                   pressed && { opacity: 0.7 },
                 ]}
                 onPress={() => setLeague("M")}
               >
-                <Text style={[styles.leagueBtnText, { color: league === "M" ? "#FFF" : colors.accent }]}>Maschile</Text>
+                <Text
+                  style={[
+                    styles.leagueBtnText,
+                    { color: league === "M" ? "#FFF" : colors.accent },
+                  ]}
+                >
+                  Maschile
+                </Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
                   styles.leagueBtn,
-                  { backgroundColor: league === "F" ? colors.accent : colors.bg, borderColor: colors.accent },
+                  {
+                    backgroundColor: league === "F" ? colors.accent : colors.bg,
+                    borderColor: colors.accent,
+                  },
                   pressed && { opacity: 0.7 },
                 ]}
                 onPress={() => setLeague("F")}
               >
-                <Text style={[styles.leagueBtnText, { color: league === "F" ? "#FFF" : colors.accent }]}>Femminile</Text>
+                <Text
+                  style={[
+                    styles.leagueBtnText,
+                    { color: league === "F" ? "#FFF" : colors.accent },
+                  ]}
+                >
+                  Femminile
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -570,40 +786,82 @@ export default function ProfiloScreen() {
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <View style={styles.menuRow}>
             <Ionicons name="text-outline" size={22} color={colors.accent} />
-            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Schermo</Text>
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Schermo
+            </Text>
           </View>
           <View style={styles.displayBody}>
             <View style={styles.displaySection}>
-              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>CARATTERE</Text>
+              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>
+                CARATTERE
+              </Text>
               <View style={styles.displayRow}>
                 <Pressable
                   onPress={decreaseFontScale}
-                  style={({ pressed }) => [styles.displayBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+                  style={({ pressed }) => [
+                    styles.displayBtn,
+                    { backgroundColor: colors.bg },
+                    pressed && { opacity: 0.6 },
+                  ]}
                 >
-                  <Text style={[styles.displayBtnText, { color: colors.accent }]}>A–</Text>
+                  <Text
+                    style={[styles.displayBtnText, { color: colors.accent }]}
+                  >
+                    A–
+                  </Text>
                 </Pressable>
-                <View style={[styles.displayValueBadge, { backgroundColor: colors.accentBg }]}>
+                <View
+                  style={[
+                    styles.displayValueBadge,
+                    { backgroundColor: colors.accentBg },
+                  ]}
+                >
                   <Text style={[styles.displayValue, { color: colors.accent }]}>
                     {Math.round(fontScale * 100)}%
                   </Text>
                 </View>
                 <Pressable
                   onPress={increaseFontScale}
-                  style={({ pressed }) => [styles.displayBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+                  style={({ pressed }) => [
+                    styles.displayBtn,
+                    { backgroundColor: colors.bg },
+                    pressed && { opacity: 0.6 },
+                  ]}
                 >
-                  <Text style={[styles.displayBtnText, { color: colors.accent }]}>A+</Text>
+                  <Text
+                    style={[styles.displayBtnText, { color: colors.accent }]}
+                  >
+                    A+
+                  </Text>
                 </Pressable>
               </View>
             </View>
-            <View style={[styles.displayDivider, { backgroundColor: colors.border }]} />
+            <View
+              style={[
+                styles.displayDivider,
+                { backgroundColor: colors.border },
+              ]}
+            />
             <View style={styles.displaySection}>
-              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>TEMA</Text>
+              <Text style={[styles.displayLabel, { color: colors.textMuted }]}>
+                TEMA
+              </Text>
               <Pressable
                 onPress={toggleTheme}
-                style={({ pressed }) => [styles.themeBtn, { backgroundColor: colors.bg }, pressed && { opacity: 0.6 }]}
+                style={({ pressed }) => [
+                  styles.themeBtn,
+                  { backgroundColor: colors.bg },
+                  pressed && { opacity: 0.6 },
+                ]}
               >
-                <Ionicons name={themeName === "dark" ? "sunny" : "moon"} size={20} color={colors.accent} />
-                <Text style={[styles.themeLabel, { color: colors.textSecondary }]}>
+                <Ionicons
+                  name={themeName === "dark" ? "sunny" : "moon"}
+                  size={20}
+                  color={colors.accent}
+                />
+                <Text
+                  style={[styles.themeLabel, { color: colors.textSecondary }]}
+                >
                   {themeName === "dark" ? "Chiaro" : "Scuro"}
                 </Text>
               </Pressable>
@@ -614,8 +872,14 @@ export default function ProfiloScreen() {
         {/* SONDAGGI */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <Pressable style={styles.menuRow} onPress={toggleSondaggi}>
-            <Ionicons name="chatbubbles-outline" size={22} color={colors.accent} />
-            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Sondaggi</Text>
+            <Ionicons
+              name="chatbubbles-outline"
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Sondaggi
+            </Text>
             <Ionicons
               name={showSondaggi ? "chevron-up" : "chevron-down"}
               size={20}
@@ -632,37 +896,71 @@ export default function ProfiloScreen() {
               )}
 
               {!pollsLoading && polls.length === 0 && (
-                <View style={[styles.emptyBox, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-                  <Ionicons name="chatbubbles-outline" size={36} color={colors.textMuted} />
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>Nessun sondaggio attivo</Text>
+                <View
+                  style={[
+                    styles.emptyBox,
+                    { backgroundColor: colors.bg, borderColor: colors.border },
+                  ]}
+                >
+                  <Ionicons
+                    name="chatbubbles-outline"
+                    size={36}
+                    color={colors.textMuted}
+                  />
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+                    Nessun sondaggio attivo
+                  </Text>
                 </View>
               )}
 
               {polls.map((poll) => {
                 const myVote = votedOptions[poll.id];
                 const hasVoted = myVote !== undefined;
-                const totalVotes = poll.options.reduce((s, o) => s + o.votes, 0);
+                const totalVotes = poll.options.reduce(
+                  (s, o) => s + o.votes,
+                  0,
+                );
 
                 return (
-                  <View key={poll.id} style={[styles.pollCard, { backgroundColor: colors.bgCard }]}>
-                    <Text style={[styles.pollQuestion, { color: colors.textPrimary }]}>{poll.question}</Text>
+                  <View
+                    key={poll.id}
+                    style={[
+                      styles.pollCard,
+                      { backgroundColor: colors.bgCard },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.pollQuestion,
+                        { color: colors.textPrimary },
+                      ]}
+                    >
+                      {poll.question}
+                    </Text>
 
                     <View style={styles.pollOptions}>
                       {poll.options.map((opt) => {
                         const isMyVote = opt.id === myVote;
-                        const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+                        const pct =
+                          totalVotes > 0
+                            ? Math.round((opt.votes / totalVotes) * 100)
+                            : 0;
 
                         return (
                           <Pressable
                             key={opt.id}
-              style={({ pressed }) => [
-                styles.optionRow,
-                {
-                  backgroundColor: isMyVote ? colors.accent : colors.bg,
-                  borderColor: isMyVote ? colors.accent : colors.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
+                            style={({ pressed }) => [
+                              styles.optionRow,
+                              {
+                                backgroundColor: isMyVote
+                                  ? colors.accent
+                                  : colors.bg,
+                                borderColor: isMyVote
+                                  ? colors.accent
+                                  : colors.border,
+                                opacity: pressed ? 0.7 : 1,
+                              },
+                            ]}
                             onPress={() => handleVote(poll.id, opt.id)}
                           >
                             <Text
@@ -678,20 +976,34 @@ export default function ProfiloScreen() {
                               {opt.text}
                             </Text>
 
-                            <View style={[
-                              styles.optionRight,
-                              isMyVote && { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
-                            ]}>
+                            <View
+                              style={[
+                                styles.optionRight,
+                                isMyVote && {
+                                  backgroundColor: "rgba(255,255,255,0.2)",
+                                  borderRadius: 8,
+                                  paddingHorizontal: 10,
+                                  paddingVertical: 3,
+                                },
+                              ]}
+                            >
                               <Text
                                 style={[
                                   styles.optionPct,
-                                  { color: isMyVote ? "#FFF" : colors.textMuted },
+                                  {
+                                    color: isMyVote ? "#FFF" : colors.textMuted,
+                                  },
                                 ]}
                               >
                                 {hasVoted ? `${pct}%` : ""}
                               </Text>
                               {isMyVote && (
-                                <Ionicons name="checkmark-circle" size={16} color="#FFF" style={{ marginLeft: 4 }} />
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={16}
+                                  color="#FFF"
+                                  style={{ marginLeft: 4 }}
+                                />
                               )}
                             </View>
                           </Pressable>
@@ -700,12 +1012,21 @@ export default function ProfiloScreen() {
                     </View>
 
                     <View style={styles.pollFooter}>
-                      <Text style={[styles.totalVotes, { color: colors.textMuted }]}>
+                      <Text
+                        style={[styles.totalVotes, { color: colors.textMuted }]}
+                      >
                         {totalVotes} {totalVotes === 1 ? "voto" : "voti"}
                       </Text>
                       {hasVoted && (
-                        <Text style={[styles.totalVotes, { color: colors.textMuted }]}>
-                          · {myVote !== undefined && poll.options.find(o => o.id === myVote)?.text}
+                        <Text
+                          style={[
+                            styles.totalVotes,
+                            { color: colors.textMuted },
+                          ]}
+                        >
+                          ·{" "}
+                          {myVote !== undefined &&
+                            poll.options.find((o) => o.id === myVote)?.text}
                         </Text>
                       )}
                     </View>
@@ -718,16 +1039,41 @@ export default function ProfiloScreen() {
 
         {/* ADMIN */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-          <Pressable style={styles.menuRow} onPress={() => { setAdminPw(""); setAdminPwErr(""); setShowAdminPw(true); }}>
-            <Ionicons name="shield-checkmark-outline" size={22} color={colors.accent} />
-            <Text style={[styles.menuText, { color: colors.textPrimary }]}>Admin</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => {
+              setAdminPw("");
+              setAdminPwErr("");
+              setShowAdminPw(true);
+            }}
+          >
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Admin
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textMuted}
+            />
           </Pressable>
         </View>
 
         {/* ESCI */}
-        <Pressable style={[styles.logoutBtn, { borderColor: colors.loss }]} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={colors.loss} style={{ marginRight: 8 }} />
+        <Pressable
+          style={[styles.logoutBtn, { borderColor: colors.loss }]}
+          onPress={handleLogout}
+        >
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color={colors.loss}
+            style={{ marginRight: 8 }}
+          />
           <Text style={[styles.logoutText, { color: colors.loss }]}>Esci</Text>
         </Pressable>
       </ScrollView>
@@ -735,9 +1081,14 @@ export default function ProfiloScreen() {
       <Modal visible={showAdminPw} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalBox, { backgroundColor: colors.bgCard }]}>
-            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Password admin</Text>
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Password admin
+            </Text>
             <PasswordInput
-              containerStyle={{ backgroundColor: colors.bg, borderColor: colors.border }}
+              containerStyle={{
+                backgroundColor: colors.bg,
+                borderColor: colors.border,
+              }}
               style={{ color: colors.textPrimary }}
               placeholder="Inserisci password"
               placeholderTextColor={colors.textMuted}
@@ -745,34 +1096,44 @@ export default function ProfiloScreen() {
               onChangeText={setAdminPw}
               autoFocus
             />
-            {adminPwErr ? <Text style={[styles.modalError, { color: colors.loss }]}>{adminPwErr}</Text> : null}
+            {adminPwErr ? (
+              <Text style={[styles.modalError, { color: colors.loss }]}>
+                {adminPwErr}
+              </Text>
+            ) : null}
             <View style={styles.modalButtons}>
               <Pressable
                 style={[styles.modalBtn, { backgroundColor: colors.border }]}
                 onPress={() => setShowAdminPw(false)}
               >
-                <Text style={[styles.modalBtnText, { color: colors.textPrimary }]}>Annulla</Text>
+                <Text
+                  style={[styles.modalBtnText, { color: colors.textPrimary }]}
+                >
+                  Annulla
+                </Text>
               </Pressable>
               <Pressable
                 style={[styles.modalBtn, { backgroundColor: colors.accent }]}
                 onPress={() => {
                   const pw = adminPw.trim();
                   if (!pw) return;
-                    fetch(`${API_URL}/admin/users`, {
-                      headers: { Authorization: `Bearer ${pw}` },
+                  fetch(`${API_URL}/admin/users`, {
+                    headers: { Authorization: `Bearer ${pw}` },
+                  })
+                    .then((res) => {
+                      if (!res.ok) throw new Error("Password errata");
+                      return AsyncStorage.setItem("@admin_key", pw);
                     })
-                      .then((res) => {
-                        if (!res.ok) throw new Error("Password errata");
-                        return AsyncStorage.setItem("@admin_key", pw);
-                      })
-                      .then(() => {
-                        setShowAdminPw(false);
-                        router.push("/admin");
-                      })
-                      .catch((e) => setAdminPwErr(e.message));
+                    .then(() => {
+                      setShowAdminPw(false);
+                      router.push("/admin");
+                    })
+                    .catch((e) => setAdminPwErr(e.message));
                 }}
               >
-                <Text style={[styles.modalBtnText, { color: "#fff" }]}>Entra</Text>
+                <Text style={[styles.modalBtnText, { color: "#fff" }]}>
+                  Entra
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -784,14 +1145,28 @@ export default function ProfiloScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 16 },
-  scrollContent: { flexGrow: 1, paddingTop: 16, paddingBottom: 32, maxWidth: 600, alignSelf: "center", width: "100%" },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: 16,
+    paddingBottom: 32,
+    maxWidth: 600,
+    alignSelf: "center",
+    width: "100%",
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
   pageTitle: { fontSize: 22, fontWeight: "800" },
-  feedbackCard: { borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, flexDirection: "row", alignItems: "center" },
+  feedbackCard: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
   card: { borderRadius: 16, marginBottom: 16, overflow: "hidden" },
   menuRow: {
@@ -818,7 +1193,12 @@ const styles = StyleSheet.create({
   },
   profileName: { fontSize: 17, fontWeight: "800" },
   profileEmail: { fontSize: 13, fontWeight: "500", marginTop: 2 },
-  profileMenuCard: { borderRadius: 16, marginBottom: 16, overflow: "hidden", marginTop: -8 },
+  profileMenuCard: {
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: "hidden",
+    marginTop: -8,
+  },
   subMenuRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -829,9 +1209,29 @@ const styles = StyleSheet.create({
   },
   subMenuText: { fontSize: 14, fontWeight: "600", flex: 1, marginLeft: 10 },
   subSection: { paddingLeft: 4, paddingBottom: 4 },
-  label: { fontSize: 11, fontWeight: "700", letterSpacing: 1, marginBottom: 8, marginTop: 14 },
-  input: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", minHeight: 50, marginTop: 16 },
+  label: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 14,
+  },
+  input: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  btn: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    minHeight: 50,
+    marginTop: 16,
+  },
   btnText: { color: "#FFF", fontSize: 15, fontWeight: "700" },
   logoutBtn: {
     flexDirection: "row",
@@ -897,7 +1297,13 @@ const styles = StyleSheet.create({
   themeLabel: { fontSize: 13, fontWeight: "600" },
 
   pollsLoading: { padding: 20, alignItems: "center" },
-  emptyBox: { borderRadius: 12, padding: 30, alignItems: "center", gap: 10, borderWidth: 0.5 },
+  emptyBox: {
+    borderRadius: 12,
+    padding: 30,
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 0.5,
+  },
   emptyText: { fontSize: 14, fontWeight: "500", textAlign: "center" },
   pollCard: {
     borderRadius: 14,

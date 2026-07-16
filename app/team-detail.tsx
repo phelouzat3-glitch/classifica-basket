@@ -59,7 +59,8 @@ export default function TeamDetailScreen() {
     try {
       const res = await fetch(`${API_URL}/standings`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as TeamFromApi[];
+      const resData = (await res.json()) as { value: TeamFromApi[] };
+      const data = resData.value;
 
       // Cerchiamo la squadra specifica all'interno della classifica generale
       const foundTeam = data.find(

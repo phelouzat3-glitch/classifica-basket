@@ -1,6 +1,9 @@
 import { StandingsTable } from "@/components/StandingsTable";
 import { API_URL } from "@/src/config/api";
-import { useSeason, useTeamName } from "@/src/context/LeagueContext";
+import { useSeason } from "@/src/context/LeagueContext";
+import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
+import { Text } from "@/src/theme";
+import { useColors } from "@/src/theme/ThemeContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,9 +15,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text } from "@/src/theme";
-import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
-import { useColors } from "@/src/theme/ThemeContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,7 +85,6 @@ export default function ClassificaScreen() {
 
   const insets = useSafeAreaInsets();
   const season = useSeason();
-  const teamName = useTeamName();
 
   // Fade-in animation for content
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -119,10 +118,12 @@ export default function ClassificaScreen() {
       setError(null);
 
       try {
-        const res = await fetch(`${API_URL}/standings?season=${encodeURIComponent(season)}`);
+        const res = await fetch(
+          `${API_URL}/standings?season=${encodeURIComponent(season)}`,
+        );
         if (!res.ok) throw new Error(`Errore ${res.status}`);
-        const data = (await res.json()) as TeamFromApi[];
-        setTeams(data.map(mapTeam));
+        const resData = (await res.json()) as { value: TeamFromApi[] };
+        setTeams(resData.value.map(mapTeam));
         if (!isRefresh) animateIn();
       } catch (e: any) {
         setError(e.message || "Impossibile connettersi al server");
@@ -143,8 +144,16 @@ export default function ClassificaScreen() {
     if (liveEnabled) {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 0.3, duration: 600, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, {
+            toValue: 0.3,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
         ]),
       );
       loop.start();
@@ -182,13 +191,19 @@ export default function ClassificaScreen() {
       <View
         style={[
           styles.root,
-          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
+          {
+            backgroundColor: c.bg,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={c.accent} />
-          <Text style={[styles.loadingLabel, { color: c.textSecondary }]}>Caricamento in corso…</Text>
+          <Text style={[styles.loadingLabel, { color: c.textSecondary }]}>
+            Caricamento in corso…
+          </Text>
         </View>
       </View>
     );
@@ -201,23 +216,43 @@ export default function ClassificaScreen() {
       <View
         style={[
           styles.root,
-          { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
+          {
+            backgroundColor: c.bg,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          },
         ]}
       >
         <StatusBar barStyle="light-content" />
         <View style={styles.centered}>
-          <View style={[styles.errorCard, { backgroundColor: c.bgCard, borderColor: c.border }]}>
-            <View style={[styles.errorIconWrap, { borderColor: "rgba(240, 83, 58, 0.25)" }]}>
+          <View
+            style={[
+              styles.errorCard,
+              { backgroundColor: c.bgCard, borderColor: c.border },
+            ]}
+          >
+            <View
+              style={[
+                styles.errorIconWrap,
+                { borderColor: "rgba(240, 83, 58, 0.25)" },
+              ]}
+            >
               <Text style={[styles.errorIcon, { color: "#F0533A" }]}>!</Text>
             </View>
-            <Text style={[styles.errorTitle, { color: c.textPrimary }]}>Errore di caricamento</Text>
-            <Text style={[styles.errorBody, { color: c.textSecondary }]}>{error}</Text>
+            <Text style={[styles.errorTitle, { color: c.textPrimary }]}>
+              Errore di caricamento
+            </Text>
+            <Text style={[styles.errorBody, { color: c.textSecondary }]}>
+              {error}
+            </Text>
             <TouchableOpacity
               onPress={() => fetchStandings()}
               style={[styles.retryBtn, { backgroundColor: c.accent }]}
               activeOpacity={0.75}
             >
-              <Text style={[styles.retryBtnText, { color: "#1E293B" }]}>Riprova</Text>
+              <Text style={[styles.retryBtnText, { color: "#1E293B" }]}>
+                Riprova
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -231,7 +266,11 @@ export default function ClassificaScreen() {
     <View
       style={[
         styles.root,
-        { backgroundColor: c.bg, paddingTop: insets.top, paddingBottom: insets.bottom },
+        {
+          backgroundColor: c.bg,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
       ]}
       {...panHandlers}
     >
@@ -244,29 +283,52 @@ export default function ClassificaScreen() {
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
-          <View style={styles.headerTop}>
-            <View style={styles.liveRow}>
-              <View style={{ flex: 1 }} />
-              <TouchableOpacity
-                onPress={() => setLiveEnabled((p) => !p)}
-                activeOpacity={0.7}
+        <View style={styles.headerTop}>
+          <View style={styles.liveRow}>
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity
+              onPress={() => setLiveEnabled((p) => !p)}
+              activeOpacity={0.7}
+              style={[
+                styles.livePill,
+                {
+                  backgroundColor: liveEnabled
+                    ? "rgba(34, 197, 94, 0.15)"
+                    : "rgba(240, 83, 58, 0.15)",
+                  borderColor: liveEnabled
+                    ? "rgba(34, 197, 94, 0.25)"
+                    : "rgba(240, 83, 58, 0.25)",
+                },
+              ]}
+            >
+              <Animated.View
                 style={[
-                  styles.livePill,
+                  styles.liveDot,
                   {
-                    backgroundColor: liveEnabled ? "rgba(34, 197, 94, 0.15)" : "rgba(240, 83, 58, 0.15)",
-                    borderColor: liveEnabled ? "rgba(34, 197, 94, 0.25)" : "rgba(240, 83, 58, 0.25)",
+                    backgroundColor: liveEnabled ? "#22C55E" : "#F0533A",
+                    opacity: liveEnabled ? pulseAnim : 1,
                   },
                 ]}
+              />
+              <Text
+                style={[
+                  styles.liveText,
+                  { color: liveEnabled ? "#22C55E" : "#F0533A" },
+                ]}
               >
-                <Animated.View style={[styles.liveDot, { backgroundColor: liveEnabled ? "#22C55E" : "#F0533A", opacity: liveEnabled ? pulseAnim : 1 }]} />
-                <Text style={[styles.liveText, { color: liveEnabled ? "#22C55E" : "#F0533A" }]}>
-                  {liveEnabled ? `LIVE ${liveTimeLabel}` : "OFF"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.eyebrow, { color: c.textSecondary }]}>{season === "2025/26-F" ? "Stagione Regolare 2025 · 26 · Femminile" : "Stagione Regolare 2025 · 26"}</Text>
-            <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Classifica</Text>
+                {liveEnabled ? `LIVE ${liveTimeLabel}` : "OFF"}
+              </Text>
+            </TouchableOpacity>
           </View>
+          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>
+            {season === "2025/26-F"
+              ? "Stagione Regolare 2025 · 26 · Femminile"
+              : "Stagione Regolare 2025 · 26"}
+          </Text>
+          <Text style={[styles.pageTitle, { color: c.textPrimary }]}>
+            Classifica
+          </Text>
+        </View>
 
         {/* Thin accent rule */}
         <View style={[styles.headerRule, { backgroundColor: c.border }]} />
@@ -275,7 +337,14 @@ export default function ClassificaScreen() {
       {/* Search */}
       <View style={{ paddingHorizontal: 22, marginTop: 14, marginBottom: 4 }}>
         <TextInput
-          style={[styles.searchInput, { backgroundColor: c.bg, color: c.textPrimary, borderColor: c.border }]}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: c.bg,
+              color: c.textPrimary,
+              borderColor: c.border,
+            },
+          ]}
           value={searchText}
           onChangeText={setSearchText}
           placeholder="Cerca posizione o squadra..."
@@ -290,7 +359,12 @@ export default function ClassificaScreen() {
       <Animated.View
         style={[
           styles.tableWrapper,
-          { backgroundColor: c.bgCard, borderColor: c.border, opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          {
+            backgroundColor: c.bgCard,
+            borderColor: c.border,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
         ]}
       >
         <StandingsTable
@@ -305,7 +379,9 @@ export default function ClassificaScreen() {
             activeOpacity={0.7}
           >
             <Text style={[styles.expandBtnText, { color: c.accent }]}>
-              {classificaExpanded ? "Mostra meno" : `Mostra tutte (${filteredTeams.length})`}
+              {classificaExpanded
+                ? "Mostra meno"
+                : `Mostra tutte (${filteredTeams.length})`}
             </Text>
           </TouchableOpacity>
         )}

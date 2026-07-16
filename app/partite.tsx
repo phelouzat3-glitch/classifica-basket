@@ -98,7 +98,8 @@ export default function PartiteScreen() {
     try {
       const res = await fetch(`${API_URL}/matches`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setMatches((await res.json()) as MatchFromApi[]);
+      const resData = (await res.json()) as { value: MatchFromApi[] };
+      setMatches(resData.value);
       if (!isRefresh) animateIn();
     } catch (e: any) {
       setError(e.message);
