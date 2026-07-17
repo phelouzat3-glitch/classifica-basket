@@ -15,7 +15,7 @@ type LeagueInfo = {
 const LEAGUE_CONFIG: Record<League, LeagueInfo> = {
   M: {
     season: "2025/26",
-    teamName: "ABC Castelfiorentino",
+    teamName: "Abc Castelfiorentino",
     teamId: "abc-castelfiorentino",
     division: "Serie C · Girone B",
     displaySeason: "Stagione 2025/26",
