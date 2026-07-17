@@ -1,28 +1,28 @@
-import React, { useState, useEffect, useRef, useCallback } from "react"
+import LogoABC from "@/components/LogoABC";
+import { API_URL } from "@/src/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  Share,
+  ActivityIndicator,
   Animated,
   Easing,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Share,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   useWindowDimensions,
-  ActivityIndicator,
-} from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import LogoABC from "@/components/LogoABC"
-import { API_URL } from "@/src/config/api"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { useRouter } from "expo-router"
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TOKEN_KEY = "@auth_token"
-const USER_KEY = "@auth_user"
+const TOKEN_KEY = "@auth_token";
+const USER_KEY = "@auth_user";
 
 const COLORS = {
   orange: "#EA580C",
@@ -35,149 +35,175 @@ const COLORS = {
   court: "#C89B6A",
   line: "rgba(255,255,255,0.85)",
   ballLine: "#B84B12",
-}
+};
 
-const APP_URL = "classifica-basket.vercel.app"
+const APP_URL = "classifica-basket.vercel.app";
 
-type Team = "maschile" | "femminile"
-type AuthTab = "accedi" | "registrati"
+type Team = "maschile" | "femminile";
+type AuthTab = "accedi" | "registrati";
 
 export default function HomeScreen() {
-  const { width } = useWindowDimensions()
-  const isLarge = width > 600
-  const router = useRouter()
-  const insets = useSafeAreaInsets()
+  const { width } = useWindowDimensions();
+  const isLarge = width > 600;
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const [team, setTeam] = useState<Team>("femminile")
-  const [authVisible, setAuthVisible] = useState(false)
-  const [shareVisible, setShareVisible] = useState(false)
-  const [authTab, setAuthTab] = useState<AuthTab>("accedi")
+  const [team, setTeam] = useState<Team>("femminile");
+  const [authVisible, setAuthVisible] = useState(false);
+  const [shareVisible, setShareVisible] = useState(false);
+  const [authTab, setAuthTab] = useState<AuthTab>("accedi");
 
-  const [email, setEmail] = useState("")
-  const [name, setName] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [checkingToken, setCheckingToken] = useState(true)
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [checkingToken, setCheckingToken] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const token = await AsyncStorage.getItem(TOKEN_KEY)
+        const token = await AsyncStorage.getItem(TOKEN_KEY);
         if (token) {
-          router.replace("/(tabs)/home")
-          return
+          router.replace("/(tabs)/home");
+          return;
         }
       } catch (e) {
-        console.error(e)
+        console.error(e);
       }
-      setCheckingToken(false)
-    })()
-  }, [router])
+      setCheckingToken(false);
+    })();
+  }, [router]);
 
   const openAuth = (tab: AuthTab = "accedi") => {
-    setAuthTab(tab)
-    setError(null)
-    setSuccess(null)
-    setAuthVisible(true)
-  }
-  const closeAuth = () => { setAuthVisible(false); setError(null); setSuccess(null) }
+    setAuthTab(tab);
+    setError(null);
+    setSuccess(null);
+    setAuthVisible(true);
+  };
+  const closeAuth = () => {
+    setAuthVisible(false);
+    setError(null);
+    setSuccess(null);
+  };
 
   const handleLogin = useCallback(async () => {
-    setError(null)
+    setError(null);
     if (!email.trim() || !password.trim()) {
-      setError("Compila tutti i campi")
-      return
+      setError("Compila tutti i campi");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (!res.ok) {
-        setError(typeof data.message === "string" ? data.message : "Errore durante l'accesso")
-        return
+        setError(
+          typeof data.message === "string"
+            ? data.message
+            : "Errore durante l'accesso",
+        );
+        return;
       }
-      await AsyncStorage.setItem(TOKEN_KEY, data.token)
-      await AsyncStorage.setItem(USER_KEY, data.name)
-      router.replace("/(tabs)/home")
+      await AsyncStorage.setItem(TOKEN_KEY, data.token);
+      await AsyncStorage.setItem(USER_KEY, data.name);
+      router.replace("/(tabs)/home");
     } catch {
-      setError("Errore di connessione al server")
+      setError("Errore di connessione al server");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [email, password, router])
+  }, [email, password, router]);
 
   const handleRegister = useCallback(async () => {
-    setError(null)
-    setSuccess(null)
+    setError(null);
+    setSuccess(null);
     if (!name.trim() || !email.trim() || !password.trim()) {
-      setError("Compila tutti i campi")
-      return
+      setError("Compila tutti i campi");
+      return;
     }
     if (password !== confirmPassword) {
-      setError("Le password non coincidono")
-      return
+      setError("Le password non coincidono");
+      return;
     }
     if (password.length < 6) {
-      setError("La password deve essere di almeno 6 caratteri")
-      return
+      setError("La password deve essere di almeno 6 caratteri");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
-      })
-      const data = await res.json()
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
+      const data = await res.json();
       if (!res.ok) {
-        const msg = data.message
-        setError(Array.isArray(msg) ? msg[0] : typeof msg === "string" ? msg : "Errore durante la registrazione")
-        return
+        const msg = data.message;
+        setError(
+          Array.isArray(msg)
+            ? msg[0]
+            : typeof msg === "string"
+              ? msg
+              : "Errore durante la registrazione",
+        );
+        return;
       }
-      setSuccess(`Registrazione completata! Benvenuto, ${data.name}`)
-      setName("")
-      setEmail("")
-      setPassword("")
-      setConfirmPassword("")
-      setTimeout(() => { setAuthTab("accedi"); setSuccess(null) }, 1500)
+      setSuccess(`Registrazione completata! Benvenuto, ${data.name}`);
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        setAuthTab("accedi");
+        setSuccess(null);
+      }, 1500);
     } catch {
-      setError("Errore di connessione al server")
+      setError("Errore di connessione al server");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [name, email, password, confirmPassword])
+  }, [name, email, password, confirmPassword]);
 
   const handleSubmit = () => {
-    if (authTab === "accedi") handleLogin()
-    else handleRegister()
-  }
+    if (authTab === "accedi") handleLogin();
+    else handleRegister();
+  };
 
   const handleShare = async () => {
     try {
       await Share.share({
         message: `Segui ABC Castelfiorentino su ${APP_URL}`,
         url: `https://${APP_URL}`,
-      })
+      });
     } catch (e) {
-      console.log("[v0] share error", e)
+      console.log("[v0] share error", e);
     }
-  }
+  };
 
   if (checkingToken) {
     return (
       <View style={[styles.safe, { paddingTop: insets.top }]}>
-        <View style={[styles.centerHost, { justifyContent: "center", alignItems: "center" }]}>
+        <View
+          style={[
+            styles.centerHost,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
           <ActivityIndicator size="large" color={COLORS.orange} />
         </View>
       </View>
-    )
+    );
   }
 
   return (
@@ -210,20 +236,36 @@ export default function HomeScreen() {
           <View style={styles.toggleRow}>
             <TouchableOpacity
               activeOpacity={0.85}
-              style={[styles.toggleBtn, team === "maschile" && styles.toggleBtnActive]}
+              style={[
+                styles.toggleBtn,
+                team === "maschile" && styles.toggleBtnActive,
+              ]}
               onPress={() => setTeam("maschile")}
             >
-              <Text style={[styles.toggleText, team === "maschile" && styles.toggleTextActive]}>
+              <Text
+                style={[
+                  styles.toggleText,
+                  team === "maschile" && styles.toggleTextActive,
+                ]}
+              >
                 Maschile
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.85}
-              style={[styles.toggleBtn, team === "femminile" && styles.toggleBtnActive]}
+              style={[
+                styles.toggleBtn,
+                team === "femminile" && styles.toggleBtnActive,
+              ]}
               onPress={() => setTeam("femminile")}
             >
-              <Text style={[styles.toggleText, team === "femminile" && styles.toggleTextActive]}>
+              <Text
+                style={[
+                  styles.toggleText,
+                  team === "femminile" && styles.toggleTextActive,
+                ]}
+              >
                 Femminile
               </Text>
             </TouchableOpacity>
@@ -235,7 +277,11 @@ export default function HomeScreen() {
           <View style={{ flex: 1, minHeight: 24 }} />
 
           {/* CTA principal */}
-          <TouchableOpacity activeOpacity={0.9} style={styles.cta} onPress={() => openAuth("accedi")}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.cta}
+            onPress={() => openAuth("accedi")}
+          >
             <Text style={styles.ctaText}>Accedi all{"'"}app</Text>
           </TouchableOpacity>
 
@@ -262,7 +308,11 @@ export default function HomeScreen() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={styles.modalOverlay}
         >
-          <TouchableOpacity style={styles.backdropTouch} activeOpacity={1} onPress={closeAuth} />
+          <TouchableOpacity
+            style={styles.backdropTouch}
+            activeOpacity={1}
+            onPress={closeAuth}
+          />
 
           <View style={[styles.sheet, isLarge && styles.sheetLarge]}>
             <View style={styles.handle} />
@@ -273,17 +323,30 @@ export default function HomeScreen() {
                 onPress={() => setAuthTab("accedi")}
                 activeOpacity={0.85}
               >
-                <Text style={[styles.tabText, authTab === "accedi" && styles.tabTextActive]}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    authTab === "accedi" && styles.tabTextActive,
+                  ]}
+                >
                   Accedi
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.tab, authTab === "registrati" && styles.tabActive]}
+                style={[
+                  styles.tab,
+                  authTab === "registrati" && styles.tabActive,
+                ]}
                 onPress={() => setAuthTab("registrati")}
                 activeOpacity={0.85}
               >
-                <Text style={[styles.tabText, authTab === "registrati" && styles.tabTextActive]}>
+                <Text
+                  style={[
+                    styles.tabText,
+                    authTab === "registrati" && styles.tabTextActive,
+                  ]}
+                >
                   Registrati
                 </Text>
               </TouchableOpacity>
@@ -420,24 +483,31 @@ export default function HomeScreen() {
 
             <Text style={styles.qrUrl}>{APP_URL}</Text>
 
-            <TouchableOpacity style={styles.submit} activeOpacity={0.9} onPress={handleShare}>
+            <TouchableOpacity
+              style={styles.submit}
+              activeOpacity={0.9}
+              onPress={handleShare}
+            >
               <Text style={styles.submitText}>Condividi link</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setShareVisible(false)} style={styles.cancel}>
+            <TouchableOpacity
+              onPress={() => setShareVisible(false)}
+              style={styles.cancel}
+            >
               <Text style={styles.cancelText}>Chiudi</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
     </View>
-  )
+  );
 }
 
 /* --- Terrain avec ballon animé (Animated) --- */
 function BasketballCourt() {
-  const bounce = useRef(new Animated.Value(0)).current
-  const spin = useRef(new Animated.Value(0)).current
+  const bounce = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -455,7 +525,7 @@ function BasketballCourt() {
           useNativeDriver: true,
         }),
       ]),
-    ).start()
+    ).start();
 
     Animated.loop(
       Animated.timing(spin, {
@@ -464,13 +534,25 @@ function BasketballCourt() {
         easing: Easing.linear,
         useNativeDriver: true,
       }),
-    ).start()
-  }, [bounce, spin])
+    ).start();
+  }, [bounce, spin]);
 
-  const translateY = bounce.interpolate({ inputRange: [0, 1], outputRange: [-22, 6] })
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] })
-  const shadowScale = bounce.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] })
-  const shadowOpacity = bounce.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.45] })
+  const translateY = bounce.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-22, 6],
+  });
+  const rotate = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+  const shadowScale = bounce.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1],
+  });
+  const shadowOpacity = bounce.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.2, 0.45],
+  });
 
   return (
     <View style={styles.court}>
@@ -488,11 +570,14 @@ function BasketballCourt() {
           </View>
         </Animated.View>
         <Animated.View
-          style={[styles.ballShadow, { opacity: shadowOpacity, transform: [{ scaleX: shadowScale }] }]}
+          style={[
+            styles.ballShadow,
+            { opacity: shadowOpacity, transform: [{ scaleX: shadowScale }] },
+          ]}
         />
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -526,7 +611,14 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
 
-  header: { flexDirection: "row", alignItems: "center", gap: 10, width: "100%", marginBottom: 16, marginTop: 4 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+    marginBottom: 16,
+    marginTop: 4,
+  },
   logo: { width: 44, height: 44, borderRadius: 12 },
   logoTitle: { fontSize: 14, fontWeight: "800", color: COLORS.ink },
   logoSub: { fontSize: 11, fontWeight: "600", color: COLORS.muted },
@@ -540,8 +632,18 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: COLORS.orange, fontWeight: "700", fontSize: 13 },
 
-  title: { fontSize: 24, fontWeight: "800", color: COLORS.ink, textAlign: "center" },
-  subtitle: { fontSize: 14, color: COLORS.muted, marginTop: 4, marginBottom: 18 },
+  title: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: COLORS.ink,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.muted,
+    marginTop: 4,
+    marginBottom: 18,
+  },
 
   toggleRow: { flexDirection: "row", gap: 10, marginBottom: 22 },
   toggleBtn: {
@@ -565,9 +667,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  midLine: { position: "absolute", width: 2, height: "100%", backgroundColor: COLORS.line },
-  centerCircle: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, borderColor: COLORS.line },
-  key: { position: "absolute", width: 60, height: 70, borderWidth: 2, borderColor: COLORS.line },
+  midLine: {
+    position: "absolute",
+    width: 2,
+    height: "100%",
+    backgroundColor: COLORS.line,
+  },
+  centerCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 2,
+    borderColor: COLORS.line,
+  },
+  key: {
+    position: "absolute",
+    width: 60,
+    height: 70,
+    borderWidth: 2,
+    borderColor: COLORS.line,
+  },
   keyLeft: { left: 0, borderLeftWidth: 0 },
   keyRight: { right: 0, borderRightWidth: 0 },
 
@@ -583,10 +702,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
-  ballLineV: { position: "absolute", width: 2, height: "100%", backgroundColor: COLORS.ballLine },
-  ballLineH: { position: "absolute", height: 2, width: "100%", backgroundColor: COLORS.ballLine },
-  ballCurve: { position: "absolute", width: 16, height: 34, borderRadius: 8, borderWidth: 2, borderColor: COLORS.ballLine },
-  ballShadow: { marginTop: 4, height: 6, width: 28, borderRadius: 999, backgroundColor: "#000" },
+  ballLineV: {
+    position: "absolute",
+    width: 2,
+    height: "100%",
+    backgroundColor: COLORS.ballLine,
+  },
+  ballLineH: {
+    position: "absolute",
+    height: 2,
+    width: "100%",
+    backgroundColor: COLORS.ballLine,
+  },
+  ballCurve: {
+    position: "absolute",
+    width: 16,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: COLORS.ballLine,
+  },
+  ballShadow: {
+    marginTop: 4,
+    height: 6,
+    width: 28,
+    borderRadius: 999,
+    backgroundColor: "#000",
+  },
 
   cta: {
     width: "100%",
@@ -614,7 +756,12 @@ const styles = StyleSheet.create({
   },
   ctaSecondaryText: { color: COLORS.orange, fontSize: 16, fontWeight: "800" },
 
-  modalOverlay: { flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(15,23,42,0.45)" },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    backgroundColor: "rgba(15,23,42,0.45)",
+  },
   backdropTouch: { ...StyleSheet.absoluteFillObject },
   sheet: {
     width: "100%",
@@ -626,9 +773,22 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   sheetLarge: { maxWidth: 480, borderRadius: 28, marginBottom: 24 },
-  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 999, backgroundColor: COLORS.border, marginBottom: 18 },
+  handle: {
+    alignSelf: "center",
+    width: 44,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: COLORS.border,
+    marginBottom: 18,
+  },
 
-  tabs: { flexDirection: "row", backgroundColor: COLORS.bg, borderRadius: 14, padding: 4, marginBottom: 22 },
+  tabs: {
+    flexDirection: "row",
+    backgroundColor: COLORS.bg,
+    borderRadius: 14,
+    padding: 4,
+    marginBottom: 22,
+  },
   tab: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: "center" },
   tabActive: { backgroundColor: COLORS.orange },
   tabText: { fontWeight: "700", color: COLORS.muted },
@@ -645,11 +805,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   authIconGlyph: { color: COLORS.orange, fontSize: 22, fontWeight: "800" },
-  authTitle: { fontSize: 22, fontWeight: "800", color: COLORS.ink, textAlign: "center" },
-  authHint: { fontSize: 14, color: COLORS.muted, textAlign: "center", marginTop: 4, marginBottom: 20 },
+  authTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: COLORS.ink,
+    textAlign: "center",
+  },
+  authHint: {
+    fontSize: 14,
+    color: COLORS.muted,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 20,
+  },
 
   form: { width: "100%" },
-  label: { fontSize: 13, fontWeight: "700", color: COLORS.ink, marginBottom: 6, marginTop: 12 },
+  label: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.ink,
+    marginBottom: 6,
+    marginTop: 12,
+  },
   input: {
     borderWidth: 1.5,
     borderColor: COLORS.border,
@@ -659,12 +836,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.ink,
   },
-  submit: { backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 22 },
+  submit: {
+    backgroundColor: COLORS.orange,
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 22,
+  },
   submitText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
   cancel: { paddingVertical: 14, alignItems: "center" },
   cancelText: { color: COLORS.muted, fontWeight: "600" },
 
-  shareOverline: { fontSize: 12, fontWeight: "800", letterSpacing: 1, color: COLORS.muted, textAlign: "center", marginBottom: 6 },
+  shareOverline: {
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    color: COLORS.muted,
+    textAlign: "center",
+    marginBottom: 6,
+  },
   qrCard: {
     alignSelf: "center",
     backgroundColor: COLORS.white,
@@ -680,9 +870,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
-  qrFallback: { width: 180, height: 180, borderRadius: 12, backgroundColor: COLORS.bg, justifyContent: "center", alignItems: "center" },
+  qrFallback: {
+    width: 180,
+    height: 180,
+    borderRadius: 12,
+    backgroundColor: COLORS.bg,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   qrFallbackText: { fontSize: 28, fontWeight: "800", color: COLORS.muted },
-  qrUrl: { fontSize: 14, fontWeight: "700", color: COLORS.ink, textAlign: "center", marginBottom: 18 },
+  qrUrl: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.ink,
+    textAlign: "center",
+    marginBottom: 18,
+  },
 
   errorBox: {
     backgroundColor: "#FEF2F2",
@@ -692,7 +895,12 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  errorText: { color: "#EF4444", fontSize: 13, fontWeight: "600", textAlign: "center" },
+  errorText: {
+    color: "#EF4444",
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 
   successBox: {
     backgroundColor: "#F0FDF4",
@@ -702,5 +910,10 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  successText: { color: "#22C55E", fontSize: 13, fontWeight: "600", textAlign: "center" },
-})
+  successText: {
+    color: "#22C55E",
+    fontSize: 13,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+});

@@ -1081,6 +1081,28 @@ export default function ProfiloScreen() {
           )}
         </View>
 
+        {/* QR CODE */}
+        <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
+          <Pressable
+            style={styles.menuRow}
+            onPress={() => router.push("/")}
+          >
+            <Ionicons
+              name="qr-code-outline"
+              size={22}
+              color={colors.accent}
+            />
+            <Text style={[styles.menuText, { color: colors.textPrimary }]}>
+              Codice QR
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textMuted}
+            />
+          </Pressable>
+        </View>
+
         {/* ADMIN */}
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <Pressable
