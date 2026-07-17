@@ -58,6 +58,7 @@ export default function HomeScreen() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [checkingToken, setCheckingToken] = useState(true)
 
   useEffect(() => {
@@ -78,9 +79,10 @@ export default function HomeScreen() {
   const openAuth = (tab: AuthTab = "accedi") => {
     setAuthTab(tab)
     setError(null)
+    setSuccess(null)
     setAuthVisible(true)
   }
-  const closeAuth = () => { setAuthVisible(false); setError(null) }
+  const closeAuth = () => { setAuthVisible(false); setError(null); setSuccess(null) }
 
   const handleLogin = useCallback(async () => {
     setError(null)
@@ -112,6 +114,7 @@ export default function HomeScreen() {
 
   const handleRegister = useCallback(async () => {
     setError(null)
+    setSuccess(null)
     if (!name.trim() || !email.trim() || !password.trim()) {
       setError("Compila tutti i campi")
       return
@@ -137,15 +140,18 @@ export default function HomeScreen() {
         setError(Array.isArray(msg) ? msg[0] : typeof msg === "string" ? msg : "Errore durante la registrazione")
         return
       }
-      await AsyncStorage.setItem(TOKEN_KEY, data.token)
-      await AsyncStorage.setItem(USER_KEY, data.name)
-      router.replace("/(tabs)/home")
+      setSuccess(`Registrazione completata! Benvenuto, ${data.name}`)
+      setName("")
+      setEmail("")
+      setPassword("")
+      setConfirmPassword("")
+      setTimeout(() => { setAuthTab("accedi"); setSuccess(null) }, 1500)
     } catch {
       setError("Errore di connessione al server")
     } finally {
       setLoading(false)
     }
-  }, [name, email, password, confirmPassword, router])
+  }, [name, email, password, confirmPassword])
 
   const handleSubmit = () => {
     if (authTab === "accedi") handleLogin()
@@ -299,6 +305,11 @@ export default function HomeScreen() {
               {error && (
                 <View style={styles.errorBox}>
                   <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+              {success && (
+                <View style={styles.successBox}>
+                  <Text style={styles.successText}>{success}</Text>
                 </View>
               )}
 
@@ -681,4 +692,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   errorText: { color: "#EF4444", fontSize: 13, fontWeight: "600", textAlign: "center" },
+
+  successBox: {
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#22C55E",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  successText: { color: "#22C55E", fontSize: 13, fontWeight: "600", textAlign: "center" },
 })
