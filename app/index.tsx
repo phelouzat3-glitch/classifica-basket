@@ -1,1469 +1,544 @@
-import PasswordInput from "@/src/components/PasswordInput";
-import { API_URL } from "@/src/config/api";
+import React, { useState, useEffect, useRef } from "react"
 import {
-  useDivision,
-  useLeague,
-  useSeason,
-  useTeamName,
-} from "@/src/context/LeagueContext";
-import { Text } from "@/src/theme";
-import { useColors } from "@/src/theme/ThemeContext";
-import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Share,
   Animated,
   Easing,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  Share,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  useWindowDimensions,
+} from "react-native"
+import LogoABC from "@/components/LogoABC"
 
-const COURT_COLOR = "#C8955A";
-const LINE_COLOR = "#FFFFFF";
-
-const TOKEN_KEY = "@auth_token";
-const USER_KEY = "@auth_user";
-const FAIL_KEY = "@login_fails";
-const MAX_FAILS = 3;
-
-const ORBIT_RADIUS = Platform.select({ web: 28, default: 24 });
-const CIRCLE_POINTS = 16;
-
-const inputRange = Array.from(
-  { length: CIRCLE_POINTS + 1 },
-  (_, i) => i / CIRCLE_POINTS,
-);
-const orbitXMap = inputRange.map(
-  (t) => Math.cos(t * Math.PI * 2) * ORBIT_RADIUS,
-);
-const orbitYMap = inputRange.map(
-  (t) => Math.sin(t * Math.PI * 2) * ORBIT_RADIUS,
-);
-
-function useOrbitAnimation() {
-  const orbitAnim = useRef(new Animated.Value(0)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const driver = Platform.OS !== "web";
-    const orbitLoop = Animated.loop(
-      Animated.timing(orbitAnim, {
-        toValue: 1,
-        duration: 3000,
-        easing: Easing.linear,
-        useNativeDriver: driver,
-      }),
-      { iterations: -1 },
-    );
-    const spinLoop = Animated.loop(
-      Animated.timing(spinAnim, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: driver,
-      }),
-      { iterations: -1 },
-    );
-    orbitLoop.start();
-    spinLoop.start();
-    return () => {
-      orbitLoop.stop();
-      spinLoop.stop();
-    };
-  }, [orbitAnim, spinAnim]);
-
-  const ballX = orbitAnim.interpolate({
-    inputRange,
-    outputRange: orbitXMap,
-    extrapolate: "clamp",
-  });
-  const ballY = orbitAnim.interpolate({
-    inputRange,
-    outputRange: orbitYMap,
-    extrapolate: "clamp",
-  });
-  const spinRotation = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
-
-  return { ballX, ballY, spinRotation };
+const COLORS = {
+  orange: "#EA580C",
+  orangeSoft: "#FFF1E8",
+  white: "#FFFFFF",
+  bg: "#F5F6F8",
+  ink: "#0F172A",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  court: "#C89B6A",
+  line: "rgba(255,255,255,0.85)",
+  ballLine: "#B84B12",
 }
 
-function BasketballField({
-  ballX,
-  ballY,
-  spinRotation,
-}: {
-  ballX: Animated.AnimatedInterpolation<number>;
-  ballY: Animated.AnimatedInterpolation<number>;
-  spinRotation: Animated.AnimatedInterpolation<string>;
-}) {
-  return (
-    <View style={styles.fieldBorder}>
-      <View style={styles.centerLine} />
-      <View style={styles.centerCircle} />
-      <View style={[styles.leftKey, styles.keyBase]} />
-      <View style={[styles.rightKey, styles.keyBase]} />
-      <View style={styles.leftFreeThrow} />
-      <View style={styles.rightFreeThrow} />
-      <Animated.Text
-        style={[
-          styles.fieldBall,
-          {
-            transform: [
-              { translateX: ballX },
-              { translateY: ballY },
-              { rotate: spinRotation },
-            ],
-          },
-        ]}
-      >
-        🏀
-      </Animated.Text>
-    </View>
-  );
-}
+const APP_URL = "classifica-basket.vercel.app"
 
-type Mode = "login" | "register" | "forgot";
+type Team = "maschile" | "femminile"
+type AuthTab = "accedi" | "registrati"
 
-export default function LandingScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const colors = useColors();
-  const { ballX, ballY, spinRotation } = useOrbitAnimation();
-  const season = useSeason();
-  const teamName = useTeamName();
-  const division = useDivision();
-  const { league, setLeague } = useLeague();
+export default function HomeScreen() {
+  const { width } = useWindowDimensions()
+  const isLarge = width > 600 // PC / tablette / Expo Web
 
-  const [mode, setMode] = useState<Mode>("login");
+  const [team, setTeam] = useState<Team>("femminile")
+  const [authVisible, setAuthVisible] = useState(false)
+  const [shareVisible, setShareVisible] = useState(false)
+  const [authTab, setAuthTab] = useState<AuthTab>("accedi")
 
-  const [loginName, setLoginName] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
-  const [regName, setRegName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regConfirm, setRegConfirm] = useState("");
-  const [regPrivacy, setRegPrivacy] = useState(false);
+  const openAuth = (tab: AuthTab = "accedi") => {
+    setAuthTab(tab)
+    setAuthVisible(true)
+  }
+  const closeAuth = () => setAuthVisible(false)
 
-  const [forgotName, setForgotName] = useState("");
-  const [forgotCode, setForgotCode] = useState("");
-  const [forgotNewPassword, setForgotNewPassword] = useState("");
-  const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
-  const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
-  const [forgotGeneratedCode, setForgotGeneratedCode] = useState("");
+  const handleSubmit = () => {
+    // TODO: brancher sur ton backend NestJS
+    // accedi -> POST /auth/login | registrati -> POST /auth/register
+    console.log("[v0] submit", { authTab, email, team })
+    closeAuth()
+  }
 
-  const [loading, setLoading] = useState(false);
-  const [checkingToken, setCheckingToken] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const token = await AsyncStorage.getItem(TOKEN_KEY);
-        if (token) {
-          router.replace("/(tabs)/home");
-          return;
-        }
-        const fails = await AsyncStorage.getItem(FAIL_KEY);
-        if (fails) setFailedAttempts(parseInt(fails, 10) || 0);
-      } catch (e) {
-        console.error(e);
-      }
-      setCheckingToken(false);
-    })();
-  }, [router]);
-
-  const handleLogin = useCallback(async () => {
-    setError(null);
-    setSuccess(null);
-
-    if (!loginName.trim() || !loginPassword.trim()) {
-      setError("Compila tutti i campi");
-      return;
-    }
-
-    setLoading(true);
+  const handleShare = async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: loginName.trim(),
-          password: loginPassword,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const newFails = failedAttempts + 1;
-        setFailedAttempts(newFails);
-        await AsyncStorage.setItem(FAIL_KEY, JSON.stringify(newFails));
-        const msg = data.message;
-        const remaining = MAX_FAILS - newFails;
-        setError(
-          typeof msg === "string"
-            ? `${msg} (${remaining > 0 ? `tentativi rimasti: ${remaining}` : "password dimenticata?"})`
-            : "Errore durante l'accesso",
-        );
-        return;
-      }
-
-      setFailedAttempts(0);
-      await AsyncStorage.setItem(FAIL_KEY, "0");
-      await AsyncStorage.setItem(TOKEN_KEY, data.token);
-      await AsyncStorage.setItem(USER_KEY, data.name);
-
-      router.replace("/(tabs)/home");
-    } catch {
-      setError("Errore di connessione al server");
-    } finally {
-      setLoading(false);
+      await Share.share({
+        message: `Segui ABC Castelfiorentino su ${APP_URL}`,
+        url: `https://${APP_URL}`,
+      })
+    } catch (e) {
+      console.log("[v0] share error", e)
     }
-  }, [loginName, loginPassword, failedAttempts, router]);
-
-  const handleRegister = useCallback(async () => {
-    setError(null);
-    setSuccess(null);
-
-    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
-      setError("Compila tutti i campi");
-      return;
-    }
-    if (regPassword !== regConfirm) {
-      setError("Le password non coincidono");
-      return;
-    }
-    if (regPassword.length < 6) {
-      setError("La password deve essere di almeno 6 caratteri");
-      return;
-    }
-    if (!regPrivacy) {
-      setError("Devi accettare l'informativa sulla privacy");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: regName.trim(),
-          email: regEmail.trim(),
-          password: regPassword,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const msg = data.message;
-        if (Array.isArray(msg)) {
-          setError(msg[0]);
-        } else if (typeof msg === "string") {
-          setError(msg);
-        } else {
-          setError("Errore durante la registrazione");
-        }
-        return;
-      }
-
-      setSuccess(`Registrazione completata! Benvenuto, ${data.name}`);
-      setRegName("");
-      setRegEmail("");
-      setRegPassword("");
-      setRegConfirm("");
-      setRegPrivacy(false);
-      setTimeout(() => setMode("login"), 1500);
-    } catch {
-      setError("Errore di connessione al server");
-    } finally {
-      setLoading(false);
-    }
-  }, [regName, regEmail, regPassword, regConfirm, regPrivacy]);
-
-  const handleForgotRequest = useCallback(async () => {
-    setError(null);
-    setSuccess(null);
-
-    if (!forgotName.trim()) {
-      setError("Inserisci il tuo nome utente");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: forgotName.trim() }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const msg = data.message;
-        setError(typeof msg === "string" ? msg : "Errore");
-        return;
-      }
-
-      setForgotGeneratedCode(data.code);
-      setForgotStep("reset");
-      setSuccess("Codice di reset generato!");
-    } catch {
-      setError("Errore di connessione al server");
-    } finally {
-      setLoading(false);
-    }
-  }, [forgotName]);
-
-  const handleResetPassword = useCallback(async () => {
-    setError(null);
-    setSuccess(null);
-
-    if (
-      !forgotCode.trim() ||
-      !forgotNewPassword.trim() ||
-      !forgotConfirmPassword.trim()
-    ) {
-      setError("Compila tutti i campi");
-      return;
-    }
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      setError("Le password non coincidono");
-      return;
-    }
-    if (forgotNewPassword.length < 6) {
-      setError("La password deve essere di almeno 6 caratteri");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: forgotName.trim(),
-          code: forgotCode.trim(),
-          newPassword: forgotNewPassword,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const msg = data.message;
-        setError(typeof msg === "string" ? msg : "Errore");
-        return;
-      }
-
-      setSuccess("Password reimpostata! Ora puoi accedere.");
-      setFailedAttempts(0);
-      await AsyncStorage.setItem(FAIL_KEY, "0");
-      setTimeout(() => {
-        setMode("login");
-        setForgotStep("request");
-        setForgotName("");
-        setForgotCode("");
-        setForgotNewPassword("");
-        setForgotConfirmPassword("");
-        setForgotGeneratedCode("");
-      }, 1500);
-    } catch {
-      setError("Errore di connessione al server");
-    } finally {
-      setLoading(false);
-    }
-  }, [forgotName, forgotCode, forgotNewPassword, forgotConfirmPassword]);
-
-  if (checkingToken) {
-    return (
-      <View
-        style={[
-          styles.root,
-          {
-            backgroundColor: colors.bg,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-      >
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
   }
 
   return (
-    <View
-      style={[
-        styles.root,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colors.bg,
-        },
-      ]}
-    >
-      <StatusBar style="light" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <View
-            style={[
-              styles.badge,
-              {
-                backgroundColor: colors.accent + "18",
-                borderColor: colors.accent + "30",
-              },
-            ]}
-          >
-            <Text style={[styles.badgeText, { color: colors.accent }]}>
-              {division}
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
+
+      <View style={styles.centerHost}>
+        <View style={[styles.container, isLarge && styles.containerLarge]}>
+          {/* Barre supérieure : logo en haut à gauche */}
+          <View style={styles.header}>
+            <LogoABC size={52} />
+            <View>
+              <Text style={styles.logoTitle}>ABC</Text>
+              <Text style={styles.logoSub}>Castelfiorentino</Text>
+            </View>
+          </View>
+
+          {/* Badge */}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {team === "femminile" ? "Serie C Femminile" : "Serie C Maschile"}
             </Text>
           </View>
-          <Text
-            style={[styles.teamName, { color: colors.textPrimary }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {teamName}
-          </Text>
-          <Text style={[styles.season, { color: colors.textSecondary }]}>
-            {season === "2025/26-F"
-              ? "Stagione 2025/26 · Femminile"
-              : "Stagione 2025/26"}
-          </Text>
-        </View>
 
-        <View style={styles.landingLeagueRow}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.landingLeagueBtn,
-              {
-                backgroundColor: league === "M" ? colors.accent : colors.bgCard,
-                borderColor: colors.accent,
-              },
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => setLeague("M")}
-          >
-            <Text
-              style={[
-                styles.landingLeagueText,
-                { color: league === "M" ? "#FFF" : colors.accent },
-              ]}
+          {/* Titre */}
+          <Text style={styles.title}>ABC Castelfiorentino</Text>
+          <Text style={styles.subtitle}>Stagione 2025/26</Text>
+
+          {/* Toggle Maschile / Femminile */}
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.toggleBtn, team === "maschile" && styles.toggleBtnActive]}
+              onPress={() => setTeam("maschile")}
             >
-              Maschile
-            </Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.landingLeagueBtn,
-              {
-                backgroundColor: league === "F" ? colors.accent : colors.bgCard,
-                borderColor: colors.accent,
-              },
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => setLeague("F")}
-          >
-            <Text
-              style={[
-                styles.landingLeagueText,
-                { color: league === "F" ? "#FFF" : colors.accent },
-              ]}
-            >
-              Femminile
-            </Text>
-          </Pressable>
-        </View>
-
-        <BasketballField
-          ballX={ballX}
-          ballY={ballY}
-          spinRotation={spinRotation}
-        />
-
-        <View style={styles.qrCard}>
-          <Text style={[styles.qrLabel, { color: colors.textMuted }]}>
-            CONDIVIDI L&apos;APP
-          </Text>
-          <Image
-            source={require("../assets/images/qr-code.png")}
-            style={styles.qrImage}
-            contentFit="contain"
-          />
-          <Text style={[styles.qrUrl, { color: colors.textSecondary }]}>
-            classifica-basket.vercel.app
-          </Text>
-          <Pressable
-            style={({ pressed }) => [
-              styles.shareBtn,
-              { backgroundColor: colors.accent },
-              pressed && { opacity: 0.7 },
-            ]}
-            onPress={() => {
-              Share.share({
-                message: "https://classifica-basket.vercel.app",
-                title: "Classifica Basket",
-              });
-            }}
-          >
-            <Ionicons
-              name="share-outline"
-              size={18}
-              color="#FFF"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.shareBtnText}>Condividi link</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.bottomSection}>
-          {error && (
-            <View
-              style={[
-                styles.feedbackCard,
-                { backgroundColor: colors.lossBg, borderColor: colors.loss },
-              ]}
-            >
-              <Ionicons
-                name="alert-circle"
-                size={18}
-                color={colors.loss}
-                style={{ marginRight: 8 }}
-              />
-              <Text style={[styles.feedbackText, { color: colors.loss }]}>
-                {error}
+              <Text style={[styles.toggleText, team === "maschile" && styles.toggleTextActive]}>
+                Maschile
               </Text>
-            </View>
-          )}
+            </TouchableOpacity>
 
-          {success && (
-            <View
-              style={[
-                styles.feedbackCard,
-                { backgroundColor: colors.winBg, borderColor: colors.win },
-              ]}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={[styles.toggleBtn, team === "femminile" && styles.toggleBtnActive]}
+              onPress={() => setTeam("femminile")}
             >
-              <Ionicons
-                name="checkmark-circle"
-                size={18}
-                color={colors.win}
-                style={{ marginRight: 8 }}
-              />
-              <Text style={[styles.feedbackText, { color: colors.win }]}>
-                {success}
+              <Text style={[styles.toggleText, team === "femminile" && styles.toggleTextActive]}>
+                Femminile
               </Text>
-            </View>
-          )}
+            </TouchableOpacity>
+          </View>
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          {/* Terrain avec ballon animé */}
+          <BasketballCourt />
+
+          <View style={{ flex: 1, minHeight: 24 }} />
+
+          {/* CTA principal */}
+          <TouchableOpacity activeOpacity={0.9} style={styles.cta} onPress={() => openAuth("accedi")}>
+            <Text style={styles.ctaText}>Accedi all&apos;app</Text>
+          </TouchableOpacity>
+
+          {/* Bouton secondaire : partage */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.ctaSecondary}
+            onPress={() => setShareVisible(true)}
           >
-            <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-              <View style={styles.toggleRow}>
-                <Pressable
-                  style={[
-                    styles.toggleBtn,
-                    mode === "login" && { backgroundColor: colors.accent },
-                  ]}
-                  onPress={() => {
-                    setMode("login");
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.toggleText,
-                      mode === "login"
-                        ? { color: "#FFF" }
-                        : { color: colors.textSecondary },
-                    ]}
-                  >
-                    Accedi
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.toggleBtn,
-                    mode === "register" && { backgroundColor: colors.accent },
-                  ]}
-                  onPress={() => {
-                    setMode("register");
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.toggleText,
-                      mode === "register"
-                        ? { color: "#FFF" }
-                        : { color: colors.textSecondary },
-                    ]}
-                  >
-                    Registrati
-                  </Text>
-                </Pressable>
-              </View>
+            <Text style={styles.ctaSecondaryText}>Condividi l&apos;app</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-              {mode === "login" ? (
+      {/* --- MODALE AUTH --- */}
+      <Modal
+        visible={authVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closeAuth}
+        statusBarTranslucent
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.modalOverlay}
+        >
+          <TouchableOpacity style={styles.backdropTouch} activeOpacity={1} onPress={closeAuth} />
+
+          <View style={[styles.sheet, isLarge && styles.sheetLarge]}>
+            <View style={styles.handle} />
+
+            <View style={styles.tabs}>
+              <TouchableOpacity
+                style={[styles.tab, authTab === "accedi" && styles.tabActive]}
+                onPress={() => setAuthTab("accedi")}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.tabText, authTab === "accedi" && styles.tabTextActive]}>
+                  Accedi
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tab, authTab === "registrati" && styles.tabActive]}
+                onPress={() => setAuthTab("registrati")}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.tabText, authTab === "registrati" && styles.tabTextActive]}>
+                  Registrati
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.authIcon}>
+              <Text style={styles.authIconGlyph}>➜</Text>
+            </View>
+
+            <Text style={styles.authTitle}>
+              {authTab === "accedi" ? "Bentornato!" : "Crea il tuo account"}
+            </Text>
+            <Text style={styles.authHint}>
+              {authTab === "accedi"
+                ? "Inserisci le tue credenziali per accedere"
+                : "Registrati per seguire la tua squadra"}
+            </Text>
+
+            <View style={styles.form}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="nome@email.com"
+                placeholderTextColor={COLORS.muted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
+
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor={COLORS.muted}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+
+              {authTab === "registrati" && (
                 <>
-                  <View style={styles.headerReg}>
-                    <View
-                      style={[
-                        styles.iconCircle,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons name="log-in" size={28} color={colors.accent} />
-                    </View>
-                    <Text
-                      style={[styles.titleReg, { color: colors.textPrimary }]}
-                    >
-                      Bentornato!
-                    </Text>
-                    <Text
-                      style={[
-                        styles.subtitleReg,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      Inserisci le tue credenziali per accedere
-                    </Text>
-                  </View>
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    NOME UTENTE
-                  </Text>
+                  <Text style={styles.label}>Conferma password</Text>
                   <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.bg,
-                        color: colors.textPrimary,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    value={loginName}
-                    onChangeText={(t) => {
-                      setLoginName(t);
-                      setError(null);
-                    }}
-                    placeholder="Il tuo nome"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="words"
-                    editable={!loading}
+                    style={styles.input}
+                    placeholder="••••••••"
+                    placeholderTextColor={COLORS.muted}
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
                   />
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    PASSWORD
-                  </Text>
-                  <PasswordInput
-                    containerStyle={{
-                      backgroundColor: colors.bg,
-                      borderColor: colors.border,
-                    }}
-                    style={{ color: colors.textPrimary }}
-                    value={loginPassword}
-                    onChangeText={(t) => {
-                      setLoginPassword(t);
-                      setError(null);
-                    }}
-                    placeholder="La tua password"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="none"
-                    editable={!loading}
-                  />
-
-                  <Pressable
-                    style={[
-                      styles.btn,
-                      {
-                        backgroundColor: colors.accent,
-                        opacity: loading ? 0.6 : 1,
-                      },
-                    ]}
-                    onPress={handleLogin}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <>
-                        <Ionicons
-                          name="enter-outline"
-                          size={18}
-                          color="#FFF"
-                          style={{ marginRight: 8 }}
-                        />
-                        <Text style={styles.btnText}>Entra</Text>
-                      </>
-                    )}
-                  </Pressable>
-
-                  {failedAttempts >= MAX_FAILS && (
-                    <Pressable
-                      style={styles.forgotLink}
-                      onPress={() => {
-                        setMode("forgot");
-                        setForgotName(loginName);
-                        setError(null);
-                        setSuccess(null);
-                      }}
-                    >
-                      <Ionicons
-                        name="help-circle-outline"
-                        size={14}
-                        color={colors.accent}
-                        style={{ marginRight: 4 }}
-                      />
-                      <Text
-                        style={[
-                          styles.contactLinkText,
-                          { color: colors.accent },
-                        ]}
-                      >
-                        Password dimenticata?
-                      </Text>
-                    </Pressable>
-                  )}
-
-                  <Pressable
-                    style={styles.contactLink}
-                    onPress={() =>
-                      Linking.openURL("mailto:info@abccastelfiorentino.it")
-                    }
-                  >
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={14}
-                      color={colors.accent}
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text
-                      style={[styles.contactLinkText, { color: colors.accent }]}
-                    >
-                      Vuoi contattarci?
-                    </Text>
-                  </Pressable>
-                </>
-              ) : mode === "register" ? (
-                <>
-                  <View style={styles.headerReg}>
-                    <View
-                      style={[
-                        styles.iconCircle,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name="person-add"
-                        size={28}
-                        color={colors.accent}
-                      />
-                    </View>
-                    <Text
-                      style={[styles.titleReg, { color: colors.textPrimary }]}
-                    >
-                      Registrati
-                    </Text>
-                    <Text
-                      style={[
-                        styles.subtitleReg,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      Crea un account per accedere
-                    </Text>
-                  </View>
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    NOME
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.bg,
-                        color: colors.textPrimary,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    value={regName}
-                    onChangeText={(t) => {
-                      setRegName(t);
-                      setError(null);
-                    }}
-                    placeholder="Il tuo nome"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="words"
-                    editable={!loading}
-                  />
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    EMAIL
-                  </Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.bg,
-                        color: colors.textPrimary,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    value={regEmail}
-                    onChangeText={(t) => {
-                      setRegEmail(t);
-                      setError(null);
-                    }}
-                    placeholder="tua@email.com"
-                    placeholderTextColor={colors.textMuted}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    editable={!loading}
-                  />
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    PASSWORD
-                  </Text>
-                  <PasswordInput
-                    containerStyle={{
-                      backgroundColor: colors.bg,
-                      borderColor: colors.border,
-                    }}
-                    style={{ color: colors.textPrimary }}
-                    value={regPassword}
-                    onChangeText={(t) => {
-                      setRegPassword(t);
-                      setError(null);
-                    }}
-                    placeholder="Minimo 6 caratteri"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="none"
-                    editable={!loading}
-                  />
-
-                  <Text style={[styles.label, { color: colors.textMuted }]}>
-                    CONFERMA PASSWORD
-                  </Text>
-                  <PasswordInput
-                    containerStyle={{
-                      backgroundColor: colors.bg,
-                      borderColor: colors.border,
-                    }}
-                    style={{ color: colors.textPrimary }}
-                    value={regConfirm}
-                    onChangeText={(t) => {
-                      setRegConfirm(t);
-                      setError(null);
-                    }}
-                    placeholder="Riscrivi la password"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="none"
-                    editable={!loading}
-                  />
-
-                  <Pressable
-                    style={styles.privacyRow}
-                    onPress={() => {
-                      setRegPrivacy(!regPrivacy);
-                      setError(null);
-                    }}
-                  >
-                    <View
-                      style={[
-                        styles.checkbox,
-                        {
-                          backgroundColor: regPrivacy
-                            ? colors.accent
-                            : colors.bg,
-                          borderColor: regPrivacy
-                            ? colors.accent
-                            : colors.border,
-                        },
-                      ]}
-                    >
-                      {regPrivacy && (
-                        <Ionicons name="checkmark" size={16} color="#FFF" />
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.privacyText,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      Accetto l'informativa sulla privacy
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    style={[
-                      styles.btn,
-                      {
-                        backgroundColor: colors.accent,
-                        opacity: loading ? 0.6 : 1,
-                      },
-                    ]}
-                    onPress={handleRegister}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator size="small" color="#FFF" />
-                    ) : (
-                      <>
-                        <Ionicons
-                          name="person-add"
-                          size={18}
-                          color="#FFF"
-                          style={{ marginRight: 8 }}
-                        />
-                        <Text style={styles.btnText}>Registrati</Text>
-                      </>
-                    )}
-                  </Pressable>
-                </>
-              ) : (
-                <>
-                  <View style={styles.headerReg}>
-                    <View
-                      style={[
-                        styles.iconCircle,
-                        { backgroundColor: colors.accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name="key-outline"
-                        size={28}
-                        color={colors.accent}
-                      />
-                    </View>
-                    <Text
-                      style={[styles.titleReg, { color: colors.textPrimary }]}
-                    >
-                      Password dimenticata?
-                    </Text>
-                    <Text
-                      style={[
-                        styles.subtitleReg,
-                        { color: colors.textSecondary },
-                      ]}
-                    >
-                      {forgotStep === "request"
-                        ? "Inserisci il tuo nome utente per ricevere il codice di reset"
-                        : "Inserisci il codice e la nuova password"}
-                    </Text>
-                  </View>
-
-                  {forgotStep === "request" ? (
-                    <>
-                      <Text style={[styles.label, { color: colors.textMuted }]}>
-                        NOME UTENTE
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            backgroundColor: colors.bg,
-                            color: colors.textPrimary,
-                            borderColor: colors.border,
-                          },
-                        ]}
-                        value={forgotName}
-                        onChangeText={(t) => {
-                          setForgotName(t);
-                          setError(null);
-                        }}
-                        placeholder="Il tuo nome"
-                        placeholderTextColor={colors.textMuted}
-                        autoCapitalize="words"
-                        editable={!loading}
-                      />
-
-                      <Pressable
-                        style={[
-                          styles.btn,
-                          {
-                            backgroundColor: colors.accent,
-                            opacity: loading ? 0.6 : 1,
-                          },
-                        ]}
-                        onPress={handleForgotRequest}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                          <>
-                            <Ionicons
-                              name="paper-plane"
-                              size={18}
-                              color="#FFF"
-                              style={{ marginRight: 8 }}
-                            />
-                            <Text style={styles.btnText}>Richiedi codice</Text>
-                          </>
-                        )}
-                      </Pressable>
-                    </>
-                  ) : (
-                    <>
-                      <Text
-                        style={[styles.codeNotice, { color: colors.accent }]}
-                      >
-                        Codice: {forgotGeneratedCode}
-                      </Text>
-
-                      <Text style={[styles.label, { color: colors.textMuted }]}>
-                        CODICE DI RESET
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            backgroundColor: colors.bg,
-                            color: colors.textPrimary,
-                            borderColor: colors.border,
-                          },
-                        ]}
-                        value={forgotCode}
-                        onChangeText={(t) => {
-                          setForgotCode(t);
-                          setError(null);
-                        }}
-                        placeholder="Codice a 6 caratteri"
-                        placeholderTextColor={colors.textMuted}
-                        autoCapitalize="characters"
-                        editable={!loading}
-                      />
-
-                      <Text style={[styles.label, { color: colors.textMuted }]}>
-                        NUOVA PASSWORD
-                      </Text>
-                      <PasswordInput
-                        containerStyle={{
-                          backgroundColor: colors.bg,
-                          borderColor: colors.border,
-                        }}
-                        style={{ color: colors.textPrimary }}
-                        value={forgotNewPassword}
-                        onChangeText={(t) => {
-                          setForgotNewPassword(t);
-                          setError(null);
-                        }}
-                        placeholder="Minimo 6 caratteri"
-                        placeholderTextColor={colors.textMuted}
-                        autoCapitalize="none"
-                        editable={!loading}
-                      />
-
-                      <Text style={[styles.label, { color: colors.textMuted }]}>
-                        CONFERMA PASSWORD
-                      </Text>
-                      <PasswordInput
-                        containerStyle={{
-                          backgroundColor: colors.bg,
-                          borderColor: colors.border,
-                        }}
-                        style={{ color: colors.textPrimary }}
-                        value={forgotConfirmPassword}
-                        onChangeText={(t) => {
-                          setForgotConfirmPassword(t);
-                          setError(null);
-                        }}
-                        placeholder="Riscrivi la password"
-                        placeholderTextColor={colors.textMuted}
-                        autoCapitalize="none"
-                        editable={!loading}
-                      />
-
-                      <Pressable
-                        style={[
-                          styles.btn,
-                          {
-                            backgroundColor: colors.accent,
-                            opacity: loading ? 0.6 : 1,
-                          },
-                        ]}
-                        onPress={handleResetPassword}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <ActivityIndicator size="small" color="#FFF" />
-                        ) : (
-                          <>
-                            <Ionicons
-                              name="checkmark-circle"
-                              size={18}
-                              color="#FFF"
-                              style={{ marginRight: 8 }}
-                            />
-                            <Text style={styles.btnText}>
-                              Reimposta password
-                            </Text>
-                          </>
-                        )}
-                      </Pressable>
-                    </>
-                  )}
-
-                  <Pressable
-                    style={styles.contactLink}
-                    onPress={() => {
-                      setMode("login");
-                      setForgotStep("request");
-                      setForgotName("");
-                      setForgotCode("");
-                      setForgotNewPassword("");
-                      setForgotConfirmPassword("");
-                      setForgotGeneratedCode("");
-                      setError(null);
-                      setSuccess(null);
-                    }}
-                  >
-                    <Ionicons
-                      name="arrow-back"
-                      size={14}
-                      color={colors.accent}
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text
-                      style={[styles.contactLinkText, { color: colors.accent }]}
-                    >
-                      Torna al login
-                    </Text>
-                  </Pressable>
                 </>
               )}
+
+              <TouchableOpacity style={styles.submit} activeOpacity={0.9} onPress={handleSubmit}>
+                <Text style={styles.submitText}>
+                  {authTab === "accedi" ? "Accedi" : "Registrati"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={closeAuth} style={styles.cancel}>
+                <Text style={styles.cancelText}>Annulla</Text>
+              </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* --- MODALE PARTAGE / QR --- */}
+      <Modal
+        visible={shareVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShareVisible(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.backdropTouch}
+            activeOpacity={1}
+            onPress={() => setShareVisible(false)}
+          />
+
+          <View style={[styles.sheet, isLarge && styles.sheetLarge]}>
+            <View style={styles.handle} />
+
+            <Text style={styles.shareOverline}>CONDIVIDI L&apos;APP</Text>
+            <Text style={styles.authTitle}>Invita i tifosi</Text>
+            <Text style={styles.authHint}>
+              Inquadra il QR code o condividi il link con la tua squadra
+            </Text>
+
+            <View style={styles.qrCard}>
+              {/* Option QR réel : npx expo install react-native-qrcode-svg react-native-svg
+                  puis <QRCode value={`https://${APP_URL}`} size={180} /> */}
+              <View style={styles.qrFallback}>
+                <Text style={styles.qrFallbackText}>QR</Text>
+              </View>
+            </View>
+
+            <Text style={styles.qrUrl}>{APP_URL}</Text>
+
+            <TouchableOpacity style={styles.submit} activeOpacity={0.9} onPress={handleShare}>
+              <Text style={styles.submitText}>Condividi link</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setShareVisible(false)} style={styles.cancel}>
+              <Text style={styles.cancelText}>Chiudi</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
+      </Modal>
+    </SafeAreaView>
+  )
+}
+
+/* --- Terrain avec ballon animé (Animated) --- */
+function BasketballCourt() {
+  const bounce = useRef(new Animated.Value(0)).current
+  const spin = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounce, {
+          toValue: 1,
+          duration: 550,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounce, {
+          toValue: 0,
+          duration: 550,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start()
+
+    Animated.loop(
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 2200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ).start()
+  }, [bounce, spin])
+
+  const translateY = bounce.interpolate({ inputRange: [0, 1], outputRange: [-22, 6] })
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] })
+  const shadowScale = bounce.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] })
+  const shadowOpacity = bounce.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.45] })
+
+  return (
+    <View style={styles.court}>
+      <View style={styles.midLine} />
+      <View style={styles.centerCircle} />
+      <View style={[styles.key, styles.keyLeft]} />
+      <View style={[styles.key, styles.keyRight]} />
+
+      <View style={styles.ballWrap}>
+        <Animated.View style={{ transform: [{ translateY }, { rotate }] }}>
+          <View style={styles.ball}>
+            <View style={styles.ballLineV} />
+            <View style={styles.ballLineH} />
+            <View style={styles.ballCurve} />
+          </View>
+        </Animated.View>
+        <Animated.View
+          style={[styles.ballShadow, { opacity: shadowOpacity, transform: [{ scaleX: shadowScale }] }]}
+        />
+      </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  root: {
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  centerHost: {
     flex: 1,
-    maxWidth: 900,
     width: "100%",
-    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  container: {
+    flex: 1,
+    width: "100%",
     paddingHorizontal: 24,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "space-between",
-    paddingTop: Platform.select({ web: 16, default: 8 }),
-    paddingBottom: Platform.select({ web: 20, default: 12 }),
-    maxWidth: Platform.select({ web: 700, default: 500 }),
-    alignSelf: "center",
-    width: "100%",
-  },
-  header: {
+    paddingTop: 12,
     alignItems: "center",
-    marginBottom: 10,
+    borderRadius: 28,
+    backgroundColor: COLORS.white,
+    marginVertical: 12,
+    shadowColor: COLORS.ink,
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
+  containerLarge: {
+    maxWidth: 480,
+    minHeight: 640,
+    maxHeight: "92%",
+    marginVertical: 24,
+  },
+
+  header: { flexDirection: "row", alignItems: "center", gap: 10, width: "100%", marginBottom: 16, marginTop: 4 },
+  logo: { width: 44, height: 44, borderRadius: 12 },
+  logoTitle: { fontSize: 14, fontWeight: "800", color: COLORS.ink },
+  logoSub: { fontSize: 11, fontWeight: "600", color: COLORS.muted },
+
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 6,
+    backgroundColor: COLORS.orangeSoft,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 12,
   },
-  badgeText: {
-    fontSize: Platform.select({ web: 11, default: 11 }),
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  teamName: {
-    fontSize: Platform.select({ web: 22, default: 22 }),
-    fontWeight: "800",
-    textAlign: "center",
-    letterSpacing: -0.5,
-  },
-  season: {
-    fontSize: Platform.select({ web: 13, default: 13 }),
-    fontWeight: "500",
-    marginTop: 2,
-  },
-  fieldBorder: {
-    width: Platform.select({ web: 400, default: 320 }),
-    height: Platform.select({ web: 200, default: 180 }),
-    backgroundColor: COURT_COLOR,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: LINE_COLOR,
-    overflow: "hidden",
-    position: "relative",
-    alignSelf: "center",
-  },
-  centerLine: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: "50%",
-    width: 2,
-    backgroundColor: LINE_COLOR,
-    marginLeft: -1,
-  },
-  centerCircle: {
-    position: "absolute",
-    width: Platform.select({ web: 52, default: 44 }),
-    height: Platform.select({ web: 52, default: 44 }),
-    borderRadius: Platform.select({ web: 26, default: 22 }),
-    borderWidth: 2,
-    borderColor: LINE_COLOR,
-    top: "50%",
-    left: "50%",
-    marginLeft: Platform.select({ web: -26, default: -22 }),
-    marginTop: Platform.select({ web: -26, default: -22 }),
-  },
-  keyBase: {
-    position: "absolute",
-    width: Platform.select({ web: 48, default: 38 }),
-    height: Platform.select({ web: 64, default: 56 }),
-    borderWidth: 2,
-    borderColor: LINE_COLOR,
-  },
-  leftKey: {
-    position: "absolute",
-    left: 0,
-    top: "50%",
-    marginTop: Platform.select({ web: -32, default: -28 }),
-    borderLeftWidth: 0,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  rightKey: {
-    position: "absolute",
-    right: 0,
-    top: "50%",
-    marginTop: Platform.select({ web: -32, default: -28 }),
-    borderRightWidth: 0,
-    borderTopLeftRadius: 4,
-    borderBottomLeftRadius: 4,
-  },
-  leftFreeThrow: {
-    position: "absolute",
-    left: Platform.select({ web: 48, default: 38 }),
-    top: "50%",
-    marginTop: -1,
-    width: Platform.select({ web: 30, default: 24 }),
-    height: 2,
-    backgroundColor: LINE_COLOR,
-  },
-  rightFreeThrow: {
-    position: "absolute",
-    right: Platform.select({ web: 48, default: 38 }),
-    top: "50%",
-    marginTop: -1,
-    width: Platform.select({ web: 30, default: 20 }),
-    height: 2,
-    backgroundColor: LINE_COLOR,
-  },
-  fieldBall: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginLeft: Platform.select({ web: -14, default: -11 }),
-    marginTop: Platform.select({ web: -14, default: -11 }),
-    fontSize: Platform.select({ web: 28, default: 22 }),
-  },
-  bottomSection: {
-    gap: Platform.select({ web: 24, default: 20 }),
-  },
+  badgeText: { color: COLORS.orange, fontWeight: "700", fontSize: 13 },
 
-  toggleRow: {
-    flexDirection: "row",
-    backgroundColor: "#00000012",
-    borderRadius: 10,
-    padding: 3,
-    marginBottom: 16,
-  },
+  title: { fontSize: 24, fontWeight: "800", color: COLORS.ink, textAlign: "center" },
+  subtitle: { fontSize: 14, color: COLORS.muted, marginTop: 4, marginBottom: 18 },
+
+  toggleRow: { flexDirection: "row", gap: 10, marginBottom: 22 },
   toggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: COLORS.orange,
+    backgroundColor: COLORS.white,
+  },
+  toggleBtnActive: { backgroundColor: COLORS.orange },
+  toggleText: { color: COLORS.orange, fontWeight: "700" },
+  toggleTextActive: { color: COLORS.white },
+
+  court: {
+    width: "100%",
+    aspectRatio: 1.7,
+    backgroundColor: COLORS.court,
+    borderRadius: 16,
+    overflow: "hidden",
+    justifyContent: "center",
     alignItems: "center",
   },
-  toggleText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
+  midLine: { position: "absolute", width: 2, height: "100%", backgroundColor: COLORS.line },
+  centerCircle: { width: 90, height: 90, borderRadius: 45, borderWidth: 2, borderColor: COLORS.line },
+  key: { position: "absolute", width: 60, height: 70, borderWidth: 2, borderColor: COLORS.line },
+  keyLeft: { left: 0, borderLeftWidth: 0 },
+  keyRight: { right: 0, borderRightWidth: 0 },
 
-  headerReg: { alignItems: "center", marginBottom: 16 },
-  iconCircle: {
+  ballWrap: { position: "absolute", marginLeft: 30, alignItems: "center" },
+  ball: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.orange,
+    borderWidth: 2,
+    borderColor: COLORS.ballLine,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  ballLineV: { position: "absolute", width: 2, height: "100%", backgroundColor: COLORS.ballLine },
+  ballLineH: { position: "absolute", height: 2, width: "100%", backgroundColor: COLORS.ballLine },
+  ballCurve: { position: "absolute", width: 16, height: 34, borderRadius: 8, borderWidth: 2, borderColor: COLORS.ballLine },
+  ballShadow: { marginTop: 4, height: 6, width: 28, borderRadius: 999, backgroundColor: "#000" },
+
+  cta: {
+    width: "100%",
+    backgroundColor: COLORS.orange,
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: "center",
+    marginBottom: 12,
+    shadowColor: COLORS.orange,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  ctaText: { color: COLORS.white, fontSize: 17, fontWeight: "800" },
+  ctaSecondary: {
+    width: "100%",
+    backgroundColor: COLORS.white,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: COLORS.orange,
+  },
+  ctaSecondaryText: { color: COLORS.orange, fontSize: 16, fontWeight: "800" },
+
+  modalOverlay: { flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(15,23,42,0.45)" },
+  backdropTouch: { ...StyleSheet.absoluteFillObject },
+  sheet: {
+    width: "100%",
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    paddingTop: 12,
+  },
+  sheetLarge: { maxWidth: 480, borderRadius: 28, marginBottom: 24 },
+  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 999, backgroundColor: COLORS.border, marginBottom: 18 },
+
+  tabs: { flexDirection: "row", backgroundColor: COLORS.bg, borderRadius: 14, padding: 4, marginBottom: 22 },
+  tab: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: "center" },
+  tabActive: { backgroundColor: COLORS.orange },
+  tabText: { fontWeight: "700", color: COLORS.muted },
+  tabTextActive: { color: COLORS.white },
+
+  authIcon: {
+    alignSelf: "center",
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: COLORS.orangeSoft,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
   },
-  titleReg: {
-    fontSize: 22,
-    fontWeight: "900",
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  subtitleReg: {
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: "center",
-    paddingHorizontal: 10,
-  },
-  card: { borderRadius: 16, padding: 20 },
-  label: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 1,
-    marginBottom: 8,
-    marginTop: 14,
-  },
+  authIconGlyph: { color: COLORS.orange, fontSize: 22, fontWeight: "800" },
+  authTitle: { fontSize: 22, fontWeight: "800", color: COLORS.ink, textAlign: "center" },
+  authHint: { fontSize: 14, color: COLORS.muted, textAlign: "center", marginTop: 4, marginBottom: 20 },
+
+  form: { width: "100%" },
+  label: { fontSize: 13, fontWeight: "700", color: COLORS.ink, marginBottom: 6, marginTop: 12 },
   input: {
-    borderRadius: 10,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-  privacyRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    marginTop: 18,
-    marginBottom: 18,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 1,
-  },
-  privacyText: { fontSize: 12, lineHeight: 18, flex: 1 },
-  btn: {
-    borderRadius: 12,
     paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    minHeight: 50,
+    fontSize: 15,
+    color: COLORS.ink,
   },
-  btnText: { color: "#FFF", fontSize: 15, fontWeight: "700" },
-  feedbackCard: {
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  feedbackText: { fontSize: 14, fontWeight: "600", flex: 1 },
-  contactLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 16,
-    paddingVertical: 8,
-  },
-  contactLinkText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  forgotLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 12,
-    paddingVertical: 8,
-  },
-  codeNotice: {
-    fontSize: 16,
-    fontWeight: "800",
-    textAlign: "center",
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
+  submit: { backgroundColor: COLORS.orange, paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 22 },
+  submitText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
+  cancel: { paddingVertical: 14, alignItems: "center" },
+  cancelText: { color: COLORS.muted, fontWeight: "600" },
+
+  shareOverline: { fontSize: 12, fontWeight: "800", letterSpacing: 1, color: COLORS.muted, textAlign: "center", marginBottom: 6 },
   qrCard: {
-    alignItems: "center",
-    paddingVertical: 12,
-    marginBottom: 16,
-  },
-  qrLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  qrImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 12,
-  },
-  qrUrl: {
-    fontSize: 12,
-    fontWeight: "500",
+    alignSelf: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
     marginTop: 8,
-    marginBottom: 12,
-  },
-  shareBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  shareBtnText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  landingLeagueRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 12,
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  landingLeagueBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    marginBottom: 14,
     borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.ink,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
-  landingLeagueText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-});
+  qrFallback: { width: 180, height: 180, borderRadius: 12, backgroundColor: COLORS.bg, justifyContent: "center", alignItems: "center" },
+  qrFallbackText: { fontSize: 28, fontWeight: "800", color: COLORS.muted },
+  qrUrl: { fontSize: 14, fontWeight: "700", color: COLORS.ink, textAlign: "center", marginBottom: 18 },
+})
