@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import QRCode from "react-native-qrcode-svg";
 
 const TOKEN_KEY = "@auth_token";
 const USER_KEY = "@auth_user";
@@ -479,11 +480,12 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.qrCard}>
-              {/* Option QR réel : npx expo install react-native-qrcode-svg react-native-svg
-                  puis <QRCode value={`https://${APP_URL}`} size={180} /> */}
-              <View style={styles.qrFallback}>
-                <Text style={styles.qrFallbackText}>QR</Text>
-              </View>
+              <QRCode
+                value={`https://${APP_URL}`}
+                size={180}
+                backgroundColor="white"
+                color="#0F172A"
+              />
             </View>
 
             <Text style={styles.qrUrl}>{APP_URL}</Text>
