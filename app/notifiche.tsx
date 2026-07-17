@@ -6,7 +6,6 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -15,48 +14,96 @@ import {
 } from "react-native";
 import { Text } from "@/src/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSeason } from "@/src/context/LeagueContext";
+import { useSeason, useTeamName } from "@/src/context/LeagueContext";
 
-type NotificationItem = {
+type ApiMatch = {
   id: number;
+  round: number;
+  date: string;
+  time: string | null;
+  home_team: string;
+  away_team: string;
+  home_score: number | null;
+  away_score: number | null;
+  is_my_team: boolean;
+};
+
+type NotifItem = {
+  id: string;
   title: string;
-  body: string | null;
-  type: "match_result" | "news" | "standings" | "admin" | "general";
-  linkRoute: string | null;
-  isRead: boolean;
-  season: string | null;
-  createdAt: string;
+  body: string;
+  type: "match_result" | "upcoming" | "news";
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  date: string;
+  matchId?: number;
 };
 
-type NewsArticle = {
-  id: number;
-  title: string;
-  content: string;
-  publishedAt: string;
-  season: string;
-};
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const days = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+  const months = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+}
 
-const TYPE_CONFIG: Record<
-  string,
-  { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }
-> = {
-  match_result: { icon: "basketball", color: "#E8600A", label: "Risultato" },
-  news: { icon: "newspaper", color: "#3B82F6", label: "Notizia" },
-  standings: { icon: "trophy", color: "#22C55E", label: "Classifica" },
-  admin: { icon: "megaphone", color: "#8B5CF6", label: "Comunicazione" },
-  general: { icon: "notifications", color: "#94A3B8", label: "Notifica" },
-};
+function formatDateShort(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const months = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
 
-function dedupeMatchResults(items: NotificationItem[]): NotificationItem[] {
-  const seen = new Set<string>();
-  return items.filter((n) => {
-    if (n.type === "match_result" && n.body) {
-      const key = n.body;
-      if (seen.has(key)) return false;
-      seen.add(key);
+function formatRelative(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diffDays = Math.round((target.getTime() - today.getTime()) / 86400000);
+  if (diffDays === 0) return "Oggi";
+  if (diffDays === 1) return "Domani";
+  if (diffDays > 1 && diffDays <= 7) return `Tra ${diffDays} giorni`;
+  return formatDateShort(dateStr);
+}
+
+function matchToNotifications(matches: ApiMatch[], teamName: string): NotifItem[] {
+  const items: NotifItem[] = [];
+  const now = new Date();
+
+  for (const m of matches) {
+    const matchDate = new Date(m.date + "T00:00:00");
+    const isPlayed = m.home_score != null && m.away_score != null;
+
+    if (isPlayed) {
+      const won = m.is_my_team
+        ? (m.home_team === teamName ? m.home_score! > m.away_score! : m.away_score! > m.home_score!)
+        : false;
+
+      items.push({
+        id: `result-${m.id}`,
+        title: won ? "Vittoria!" : m.is_my_team ? "Sconfitta" : `Giornata ${m.round}`,
+        body: `${m.home_team} ${m.home_score} - ${m.away_score} ${m.away_team}`,
+        type: "match_result",
+        icon: m.is_my_team ? (won ? "trophy" : "close-circle") : "basketball",
+        color: m.is_my_team ? (won ? "#22C55E" : "#EF4444") : "#E8600A",
+        date: m.date,
+        matchId: m.id,
+      });
+    } else if (matchDate > now) {
+      const venue = m.home_team === teamName ? "In casa" : "In trasferta";
+
+      items.push({
+        id: `upcoming-${m.id}`,
+        title: `Prossima partita · ${formatRelative(m.date)}`,
+        body: `${m.home_team} vs ${m.away_team}${m.is_my_team ? ` · ${venue}` : ""}`,
+        type: "upcoming",
+        icon: "calendar",
+        color: "#3B82F6",
+        date: m.date,
+        matchId: m.id,
+      });
     }
-    return true;
-  });
+  }
+
+  return items;
 }
 
 export default function NotificheScreen() {
@@ -64,99 +111,87 @@ export default function NotificheScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const season = useSeason();
+  const teamName = useTeamName();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [items, setItems] = useState<NotifItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchNotifications = useCallback(async (isRefresh = false) => {
+  const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [notifRes, newsRes] = await Promise.all([
-        fetch(`${API_URL}/notifications?season=${encodeURIComponent(season)}`),
-        fetch(`${API_URL}/news?season=${encodeURIComponent(season)}`),
-      ]);
-      const notifs: NotificationItem[] = notifRes.ok ? await notifRes.json() : [];
-      const allNews: NewsArticle[] = newsRes.ok ? await newsRes.json() : [];
-      const newsItems: NotificationItem[] = allNews.map((a) => ({
-        id: a.id + 100000,
-        title: a.title,
-        body: a.content,
-        type: "news" as const,
-        linkRoute: `/notizie?id=${a.id}`,
-        isRead: true,
-        season: a.season,
-        createdAt: a.publishedAt,
-      }));
-      const merged = [...notifs, ...newsItems].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      setNotifications(dedupeMatchResults(merged));
+      const res = await fetch(`${API_URL}/matches?team=${encodeURIComponent(teamName)}&season=${encodeURIComponent(season)}`);
+      if (res.ok) {
+        const matches: ApiMatch[] = await res.json();
+        const notifs = matchToNotifications(matches, teamName);
+        notifs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setItems(notifs);
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [season]);
+  }, [season, teamName]);
 
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    fetchData();
+  }, [fetchData]);
 
-  const markAsRead = useCallback(
-    async (id: number) => {
-      try {
-        await fetch(`${API_URL}/notifications/${id}/read`, {
-          method: "PATCH",
-        });
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [],
-  );
+  const { upcoming, results } = useMemo(() => {
+    const up: NotifItem[] = [];
+    const res: NotifItem[] = [];
+    for (const item of items) {
+      if (item.type === "upcoming") up.push(item);
+      else res.push(item);
+    }
+    up.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return { upcoming: up, results: res };
+  }, [items]);
 
   const handlePress = useCallback(
-    (n: NotificationItem) => {
-      markAsRead(n.id);
-      if (n.linkRoute) {
-        router.push(n.linkRoute as any);
-      } else {
-        markAsRead(n.id);
+    (item: NotifItem) => {
+      if (item.matchId) {
+        router.push(`/match-detail?id=${item.matchId}` as any);
       }
     },
-    [router, markAsRead],
+    [router],
   );
 
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return "Poco fa";
-    if (hours < 24) return `${hours}h fa`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}g fa`;
-    return d.toLocaleDateString("it-IT", {
-      day: "numeric",
-      month: "short",
-    });
-  };
-
-  const { results, news } = useMemo(() => {
-    const r: NotificationItem[] = [];
-    const n: NotificationItem[] = [];
-    for (const item of notifications) {
-      if (item.type === "news") n.push(item);
-      else r.push(item);
-    }
-    return { results: r, news: n };
-  }, [notifications]);
+  const renderCard = (item: NotifItem, index: number) => (
+    <Pressable
+      key={item.id}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: c.bgCard, borderColor: c.border },
+        pressed && { opacity: 0.7 },
+      ]}
+      onPress={() => handlePress(item)}
+    >
+      <View
+        style={[
+          styles.iconWrap,
+          { backgroundColor: item.color + "18", borderColor: item.color + "30" },
+        ]}
+      >
+        <Ionicons name={item.icon} size={18} color={item.color} />
+      </View>
+      <View style={styles.content}>
+        <Text style={[styles.cardTitle, { color: c.textPrimary }]} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={[styles.cardBody, { color: c.textSecondary }]} numberOfLines={2}>
+          {item.body}
+        </Text>
+        <Text style={[styles.dateText, { color: c.textMuted }]}>
+          {formatDate(item.date)}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
+    </Pressable>
+  );
 
   return (
     <View
@@ -182,11 +217,11 @@ export default function NotificheScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      {loading && notifications.length === 0 ? (
+      {loading && items.length === 0 ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={c.accent} />
         </View>
-      ) : notifications.length === 0 ? (
+      ) : items.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="notifications-off-outline" size={48} color={c.textMuted} />
           <Text style={[styles.emptyText, { color: c.textMuted }]}>
@@ -203,143 +238,33 @@ export default function NotificheScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={() => fetchNotifications(true)}
+              onRefresh={() => fetchData(true)}
               tintColor={c.accent}
               colors={[c.accent]}
             />
           }
         >
-          {results.length > 0 && (
-            <View style={{ marginBottom: 8 }}>
-              <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
-                Risultati
-              </Text>
-              {results.map((n) => {
-                const cfg = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.general;
-                return (
-                  <Pressable
-                    key={n.id}
-                    style={({ pressed }) => [
-                      styles.card,
-                      { backgroundColor: n.isRead ? c.bg : c.bgCard, borderColor: c.border },
-                      pressed && { opacity: 0.7 },
-                    ]}
-                    onPress={() => handlePress(n)}
-                  >
-                    <View
-                      style={[
-                        styles.iconWrap,
-                        { backgroundColor: cfg.color + "18", borderColor: cfg.color + "30" },
-                      ]}
-                    >
-                      <Ionicons
-                        name={cfg.icon}
-                        size={18}
-                        color={cfg.color}
-                      />
-                    </View>
-                    <View style={styles.content}>
-                      <View style={styles.titleRow}>
-                        <Text
-                          style={[
-                            styles.cardTitle,
-                            { color: c.textPrimary },
-                            !n.isRead && styles.unread,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {n.title}
-                        </Text>
-                        {!n.isRead && (
-                          <View style={[styles.dot, { backgroundColor: c.accent }]} />
-                        )}
-                      </View>
-                      {n.body && (
-                        <Text
-                          style={[styles.cardBody, { color: c.textSecondary }]}
-                          numberOfLines={2}
-                        >
-                          {n.body}
-                        </Text>
-                      )}
-                      <View style={styles.metaRow}>
-                        <Text style={[styles.typeLabel, { color: cfg.color }]}>
-                          {cfg.label}
-                        </Text>
-                        <Text style={[styles.timeText, { color: c.textMuted }]}>
-                          {formatTime(n.createdAt)}
-                        </Text>
-                      </View>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
-                  </Pressable>
-                );
-              })}
+          {upcoming.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <View style={[styles.sectionHeader, { backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.2)" }]}>
+                <Ionicons name="calendar" size={14} color="#3B82F6" />
+                <Text style={[styles.sectionTitle, { color: "#3B82F6" }]}>
+                  Prossime partite ({upcoming.length})
+                </Text>
+              </View>
+              {upcoming.map((item, i) => renderCard(item, i))}
             </View>
           )}
-          {news.length > 0 && (
+
+          {results.length > 0 && (
             <View>
-              <Text style={[styles.sectionTitle, { color: c.textMuted }]}>
-                Notizie
-              </Text>
-              {news.map((n) => {
-                const cfg = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.general;
-                return (
-                  <Pressable
-                    key={n.id}
-                    style={({ pressed }) => [
-                      styles.card,
-                      { backgroundColor: n.isRead ? c.bg : c.bgCard, borderColor: c.border },
-                      pressed && { opacity: 0.7 },
-                    ]}
-                    onPress={() => handlePress(n)}
-                  >
-                    <View
-                      style={[
-                        styles.iconWrap,
-                        { backgroundColor: cfg.color + "18", borderColor: cfg.color + "30" },
-                      ]}
-                    >
-                      <Ionicons
-                        name={cfg.icon}
-                        size={18}
-                        color={cfg.color}
-                      />
-                    </View>
-                    <View style={styles.content}>
-                      <View style={styles.titleRow}>
-                        <Text
-                          style={[
-                            styles.cardTitle,
-                            { color: c.textPrimary },
-                            !n.isRead && styles.unread,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {n.title}
-                        </Text>
-                      </View>
-                      {n.body && (
-                        <Text
-                          style={[styles.cardBody, { color: c.textSecondary }]}
-                          numberOfLines={2}
-                        >
-                          {n.body}
-                        </Text>
-                      )}
-                      <View style={styles.metaRow}>
-                        <Text style={[styles.typeLabel, { color: cfg.color }]}>
-                          {cfg.label}
-                        </Text>
-                        <Text style={[styles.timeText, { color: c.textMuted }]}>
-                          {formatTime(n.createdAt)}
-                        </Text>
-                      </View>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={c.textMuted} />
-                  </Pressable>
-                );
-              })}
+              <View style={[styles.sectionHeader, { backgroundColor: "rgba(232, 96, 10, 0.08)", borderColor: "rgba(232, 96, 10, 0.2)" }]}>
+                <Ionicons name="basketball" size={14} color="#E8600A" />
+                <Text style={[styles.sectionTitle, { color: "#E8600A" }]}>
+                  Risultati ({results.length})
+                </Text>
+              </View>
+              {results.map((item, i) => renderCard(item, i))}
             </View>
           )}
         </ScrollView>
@@ -375,15 +300,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: { fontSize: 17, fontWeight: "700", textAlign: "center" },
-  markAllBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 0.5,
-  },
-  markAllText: { fontSize: 11, fontWeight: "700" },
 
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 8 },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  sectionTitle: { fontSize: 12, fontWeight: "700", letterSpacing: 0.5, textTransform: "uppercase" },
 
   card: {
     flexDirection: "row",
@@ -403,13 +334,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   content: { flex: 1, gap: 2 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  cardTitle: { fontSize: 14, fontWeight: "600", flex: 1 },
-  unread: { fontWeight: "800" },
-  sectionTitle: { fontSize: 12, fontWeight: "700", letterSpacing: 0.5, marginBottom: 6, marginTop: 4, textTransform: "uppercase" },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  cardTitle: { fontSize: 14, fontWeight: "700" },
   cardBody: { fontSize: 12, lineHeight: 16, marginTop: 1 },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
-  typeLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.3 },
-  timeText: { fontSize: 10, fontWeight: "500" },
+  dateText: { fontSize: 10, fontWeight: "500", marginTop: 3 },
 });
