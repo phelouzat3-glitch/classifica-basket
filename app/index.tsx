@@ -1,7 +1,7 @@
 import LogoABC from "@/components/LogoABC";
 import { API_URL } from "@/src/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -47,6 +47,7 @@ export default function HomeScreen() {
   const isLarge = width > 600;
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { preview } = useLocalSearchParams<{ preview?: string }>();
 
   const [team, setTeam] = useState<Team>("femminile");
   const [authVisible, setAuthVisible] = useState(false);
@@ -65,6 +66,10 @@ export default function HomeScreen() {
   useEffect(() => {
     (async () => {
       try {
+        if (preview) {
+          setCheckingToken(false);
+          return;
+        }
         const token = await AsyncStorage.getItem(TOKEN_KEY);
         if (token) {
           router.replace("/(tabs)/home");
