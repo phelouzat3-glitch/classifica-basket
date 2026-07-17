@@ -125,6 +125,7 @@ export default function ProfiloScreen() {
   const [adminPw, setAdminPw] = useState("");
   const [showAdminPw, setShowAdminPw] = useState(false);
   const [adminPwErr, setAdminPwErr] = useState("");
+  const [showQR, setShowQR] = useState(false);
 
   const animateIn = useCallback(() => {
     fadeAnim.setValue(0);
@@ -1085,7 +1086,7 @@ export default function ProfiloScreen() {
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <Pressable
             style={styles.menuRow}
-            onPress={() => router.push("/index")}
+            onPress={() => setShowQR(true)}
           >
             <Ionicons
               name="qr-code-outline"
@@ -1202,6 +1203,45 @@ export default function ProfiloScreen() {
                 </Text>
               </Pressable>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showQR} transparent animationType="fade" onRequestClose={() => setShowQR(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { backgroundColor: colors.bgCard, alignItems: "center" }]}>
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Codice QR
+            </Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 16, textAlign: "center" }}>
+              Inquadra il codice o condividi il link con la tua squadra
+            </Text>
+            <View style={{
+              width: 180, height: 180, borderRadius: 12, borderWidth: 1, borderColor: colors.border,
+              backgroundColor: colors.bg, justifyContent: "center", alignItems: "center", marginBottom: 12,
+            }}>
+              <Ionicons name="qr-code" size={120} color={colors.textPrimary} />
+            </View>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.accent, marginBottom: 16 }}>
+              classifica-basket.vercel.app
+            </Text>
+            <Pressable
+              style={[styles.modalBtn, { backgroundColor: colors.accent }]}
+              onPress={async () => {
+                try {
+                  const { Share } = await import("react-native");
+                  await Share.share({ message: "Segui ABC Castelfiorentino su classifica-basket.vercel.app", url: "https://classifica-basket.vercel.app" });
+                } catch {}
+              }}
+            >
+              <Text style={[styles.modalBtnText, { color: "#fff" }]}>Condividi link</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.modalBtn, { backgroundColor: colors.border, marginTop: 8 }]}
+              onPress={() => setShowQR(false)}
+            >
+              <Text style={[styles.modalBtnText, { color: colors.textPrimary }]}>Chiudi</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
