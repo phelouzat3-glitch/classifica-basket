@@ -1085,7 +1085,7 @@ export default function ProfiloScreen() {
         <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
           <Pressable
             style={styles.menuRow}
-            onPress={() => router.push("/")}
+            onPress={() => router.push("/index")}
           >
             <Ionicons
               name="qr-code-outline"
