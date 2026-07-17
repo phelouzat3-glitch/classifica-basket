@@ -235,7 +235,7 @@ export default function HomeScreen() {
 
           {/* CTA principal */}
           <TouchableOpacity activeOpacity={0.9} style={styles.cta} onPress={() => openAuth("accedi")}>
-            <Text style={styles.ctaText}>Accedi all&apos;app</Text>
+            <Text style={styles.ctaText}>Accedi all{"'"}app</Text>
           </TouchableOpacity>
 
           {/* Bouton secondaire : partage */}
@@ -244,7 +244,7 @@ export default function HomeScreen() {
             style={styles.ctaSecondary}
             onPress={() => setShareVisible(true)}
           >
-            <Text style={styles.ctaSecondaryText}>Condividi l&apos;app</Text>
+            <Text style={styles.ctaSecondaryText}>Condividi l{"'"}app</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -403,7 +403,7 @@ export default function HomeScreen() {
           <View style={[styles.sheet, isLarge && styles.sheetLarge]}>
             <View style={styles.handle} />
 
-            <Text style={styles.shareOverline}>CONDIVIDI L&apos;APP</Text>
+            <Text style={styles.shareOverline}>CONDIVIDI L{"'"}APP</Text>
             <Text style={styles.authTitle}>Invita i tifosi</Text>
             <Text style={styles.authHint}>
               Inquadra il QR code o condividi il link con la tua squadra

@@ -75,6 +75,5 @@ const styles = StyleSheet.create({
     color: ORANGE,
     fontWeight: "900",
     letterSpacing: 0.5,
-    lineHeight: undefined,
   },
 })
