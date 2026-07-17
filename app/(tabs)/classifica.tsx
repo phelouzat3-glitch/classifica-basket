@@ -1,4 +1,5 @@
 import { StandingsTable } from "@/components/StandingsTable";
+import { LeagueBadge } from "@/components/LeagueBadge";
 import { API_URL } from "@/src/config/api";
 import { useSeason } from "@/src/context/LeagueContext";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
@@ -320,11 +321,7 @@ export default function ClassificaScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>
-            {season === "2025/26-F"
-              ? "Stagione Regolare 2025 · 26 · Femminile"
-              : "Stagione Regolare 2025 · 26"}
-          </Text>
+          <LeagueBadge />
           <Text style={[styles.pageTitle, { color: c.textPrimary }]}>
             Classifica
           </Text>

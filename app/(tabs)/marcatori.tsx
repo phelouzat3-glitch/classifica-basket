@@ -1,4 +1,5 @@
 import { API_URL } from "@/src/config/api";
+import { LeagueBadge } from "@/components/LeagueBadge";
 import { useSeason } from "@/src/context/LeagueContext";
 import { getPlayerInitials, getPlayerColor } from "@/src/config/playerImages";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
@@ -160,6 +161,7 @@ export default function MarcatoriScreen() {
         })}
       </View>
 
+      <LeagueBadge />
       <Text style={[styles.title, { color: c.textPrimary }]}>Classifica Marcatori</Text>
 
       <View style={styles.filterRow}>

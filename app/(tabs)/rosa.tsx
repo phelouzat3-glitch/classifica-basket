@@ -1,7 +1,8 @@
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
+import { LeagueBadge } from "@/components/LeagueBadge";
 import { useColors } from "@/src/theme/ThemeContext";
 import { API_URL } from "@/src/config/api";
-import { useSeason, useTeamName } from "@/src/context/LeagueContext";
+import { useSeason } from "@/src/context/LeagueContext";
 import PlayerAvatar from "@/src/components/PlayerAvatar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
@@ -113,7 +114,6 @@ export default function RosaScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const season = useSeason();
-  const teamName = useTeamName();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
@@ -341,7 +341,7 @@ export default function RosaScreen() {
         ]}
       >
         <View style={styles.headerTop}>
-          <Text style={[styles.eyebrow, { color: c.textSecondary }]}>{teamName}</Text>
+          <LeagueBadge />
           <View style={styles.headerTitleRow}>
             <Text style={[styles.pageTitle, { color: c.textPrimary }]}>Rosa</Text>
             <View style={{ flex: 1 }} />

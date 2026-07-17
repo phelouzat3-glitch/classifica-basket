@@ -1,7 +1,10 @@
 import CalendarioList from "@/components/CalendarioList";
+import { LeagueBadge } from "@/components/LeagueBadge";
 import { API_URL } from "@/src/config/api";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColors } from "@/src/theme/ThemeContext";
 
 type MatchFromAPI = {
   id: number;
@@ -47,6 +50,8 @@ export default function CalendarioScreen() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
+  const c = useColors();
 
   useEffect(() => {
     const url = `${API_URL}/matches?team=${encodeURIComponent(ABC)}`;
@@ -67,11 +72,12 @@ export default function CalendarioScreen() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#0F1923",
+          backgroundColor: c.bg,
+          paddingTop: insets.top,
         }}
       >
-        <ActivityIndicator size="large" color="#E8600A" />
-        <Text style={{ color: "#9AA3AD", marginTop: 12 }}>
+        <ActivityIndicator size="large" color={c.accent} />
+        <Text style={{ color: c.textMuted, marginTop: 12 }}>
           Caricamento calendario...
         </Text>
       </View>
@@ -85,19 +91,41 @@ export default function CalendarioScreen() {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#0F1923",
+          backgroundColor: c.bg,
+          paddingTop: insets.top,
           padding: 24,
         }}
       >
         <Text style={{ color: "#ef4444", fontSize: 16, fontWeight: "bold" }}>
           Errore di rete
         </Text>
-        <Text style={{ color: "#9AA3AD", marginTop: 8, textAlign: "center" }}>
+        <Text style={{ color: c.textMuted, marginTop: 8, textAlign: "center" }}>
           {error}
         </Text>
       </View>
     );
   }
 
-  return <CalendarioList matches={matches} />;
+  return (
+    <View style={[styles.container, { backgroundColor: c.bg, paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <LeagueBadge />
+        <Text style={[styles.title, { color: c.textPrimary }]}>Calendario</Text>
+      </View>
+      <CalendarioList matches={matches} />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "800",
+  },
+});

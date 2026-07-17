@@ -1,4 +1,5 @@
 import { TeamLogo } from "@/components/TeamLogo";
+import { LeagueBadge } from "@/components/LeagueBadge";
 import { API_URL } from "@/src/config/api";
 import { useHorizontalSwipe } from "@/src/hooks/useHorizontalSwipe";
 import { SponsorBanner } from "@/src/components/SponsorBanner";
@@ -221,9 +222,7 @@ export default function HomeTabScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={[styles.headerSub, { color: c.textMuted }]}>
-              {teamName}
-            </Text>
+            <LeagueBadge />
             <Text style={[styles.headerTitle, { color: c.textPrimary }]}>
               Stagione {myTeam?.season ?? season}
             </Text>
