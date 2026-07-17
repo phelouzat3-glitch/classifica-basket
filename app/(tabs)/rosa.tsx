@@ -147,8 +147,8 @@ export default function RosaScreen() {
       try {
         const res = await fetch(`${API_URL}/players?season=${encodeURIComponent(season)}`);
         if (!res.ok) throw new Error(`Errore ${res.status}`);
-        const resData = (await res.json()) as { value: PlayerFromApi[] };
-        setPlayers(sortPlayers(resData.value.map(mapPlayer)));
+        const resData = (await res.json()) as PlayerFromApi[];
+        setPlayers(sortPlayers(resData.map(mapPlayer)));
         if (!isRefresh) animateIn();
       } catch (e: any) {
         setError(e.message || "Impossibile connettersi al server");

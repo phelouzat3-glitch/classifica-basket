@@ -98,6 +98,7 @@ export default function ProfiloScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(12)).current;
 
+  const [notLoggedIn, setNotLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -145,7 +146,7 @@ export default function ProfiloScreen() {
   const loadProfile = useCallback(async () => {
     const token = await AsyncStorage.getItem(TOKEN_KEY);
     if (!token) {
-      router.replace("/");
+      setNotLoggedIn(true);
       return;
     }
     setLoading(true);
@@ -157,7 +158,7 @@ export default function ProfiloScreen() {
       if (!res.ok) {
         if (res.status === 401) {
           await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
-          router.replace("/");
+          setNotLoggedIn(true);
           return;
         }
         setError(data.message || "Errore nel caricamento del profilo");
@@ -351,8 +352,8 @@ export default function ProfiloScreen() {
 
   const handleLogout = useCallback(async () => {
     await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
-    router.replace("/");
-  }, [router]);
+    setNotLoggedIn(true);
+  }, []);
 
   const toggleProfileMenu = () => {
     if (showSondaggi) {
@@ -380,6 +381,49 @@ export default function ProfiloScreen() {
     setError(null);
     setSuccess(null);
   };
+
+  if (notLoggedIn) {
+    return (
+      <View
+        style={[
+          styles.root,
+          { backgroundColor: colors.bg, paddingTop: insets.top },
+        ]}
+      >
+        <View style={[styles.centered]}>
+          <View
+            style={[
+              styles.errorCard,
+              { backgroundColor: colors.bgCard, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons
+              name="log-in-outline"
+              size={40}
+              color={colors.accent}
+              style={{ marginBottom: 16 }}
+            />
+            <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>
+              Connessione richiesta
+            </Text>
+            <Text
+              style={[styles.errorBody, { color: colors.textSecondary }]}
+            >
+              Devi effettuare l{"'"}accesso per visualizzare le impostazioni.
+            </Text>
+            <Pressable
+              style={[styles.retryBtn, { backgroundColor: colors.accent }]}
+              onPress={() => router.replace("/")}
+            >
+              <Text style={[styles.retryBtnText, { color: "#FFF" }]}>
+                Accedi
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -1145,6 +1189,42 @@ export default function ProfiloScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 16 },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  errorCard: {
+    borderRadius: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 28,
+    alignItems: "center",
+    width: "100%",
+    borderWidth: 1,
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 8,
+    letterSpacing: -0.2,
+  },
+  errorBody: {
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 19,
+    marginBottom: 24,
+  },
+  retryBtn: {
+    paddingVertical: 11,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+  },
+  retryBtnText: {
+    fontWeight: "700",
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingTop: 16,

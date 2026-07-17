@@ -122,8 +122,8 @@ export default function ClassificaScreen() {
           `${API_URL}/standings?season=${encodeURIComponent(season)}`,
         );
         if (!res.ok) throw new Error(`Errore ${res.status}`);
-        const resData = (await res.json()) as { value: TeamFromApi[] };
-        setTeams(resData.value.map(mapTeam));
+        const resData = (await res.json()) as TeamFromApi[];
+        setTeams(resData.map(mapTeam));
         if (!isRefresh) animateIn();
       } catch (e: any) {
         setError(e.message || "Impossibile connettersi al server");

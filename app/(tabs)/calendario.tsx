@@ -53,9 +53,9 @@ export default function CalendarioScreen() {
     fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<{ value: MatchFromAPI[] }>;
+        return res.json() as Promise<MatchFromAPI[]>;
       })
-      .then((data) => setMatches(data.value.map(mapMatch)))
+      .then((data) => setMatches(data.map(mapMatch)))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);

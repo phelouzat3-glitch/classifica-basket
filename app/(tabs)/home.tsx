@@ -620,7 +620,7 @@ export default function HomeTabScreen() {
                     { color: (myTeam.diff ?? 0) >= 0 ? c.win : c.loss },
                   ]}
                 >
-                  {(myTeam.diff ?? 0 >= 0) ? "+" : ""}
+                  {((myTeam.diff ?? 0) >= 0) ? "+" : ""}
                   {myTeam.diff}
                 </Text>
                 <Text style={[styles.statsBoxSub, { color: c.textMuted }]}>
