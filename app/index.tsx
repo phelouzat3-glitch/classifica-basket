@@ -6,7 +6,6 @@ import {
   Modal,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -16,6 +15,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
 } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import LogoABC from "@/components/LogoABC"
 import { API_URL } from "@/src/config/api"
 import AsyncStorage from "@react-native-async-storage/async-storage"
@@ -46,6 +46,7 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions()
   const isLarge = width > 600
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   const [team, setTeam] = useState<Team>("femminile")
   const [authVisible, setAuthVisible] = useState(false)
@@ -171,16 +172,16 @@ export default function HomeScreen() {
 
   if (checkingToken) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
         <View style={[styles.centerHost, { justifyContent: "center", alignItems: "center" }]}>
           <ActivityIndicator size="large" color={COLORS.orange} />
         </View>
-      </SafeAreaView>
+      </View>
     )
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
 
       <View style={styles.centerHost}>
@@ -429,7 +430,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   )
 }
 

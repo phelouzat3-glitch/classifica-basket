@@ -89,7 +89,7 @@ function LayoutContent() {
           <Stack.Screen name="statistiche" options={{ headerShown: true, title: "Statistiche", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="admin" options={{ headerShown: true, title: "Admin", animation: "slide_from_right", animationDuration: 300 }} />
           <Stack.Screen name="partite" options={{ headerShown: false, animation: "slide_from_right", animationDuration: 300 }} />
-          <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300 }} />
+          <Stack.Screen name="index" options={{ animation: "fade", animationDuration: 300, headerShown: false }} />
           <Stack.Screen
             name="notizie"
             options={{ headerShown: true, title: "Notizie", animation: "slide_from_right", animationDuration: 300 }}
