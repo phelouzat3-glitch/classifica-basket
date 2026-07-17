@@ -72,6 +72,16 @@ function mapTeam(t: TeamFromApi): Team {
   };
 }
 
+function dedupTeams(teams: Team[]): Team[] {
+  const seen = new Map<string, Team>();
+  for (const t of teams) {
+    if (!seen.has(t.teamId)) {
+      seen.set(t.teamId, t);
+    }
+  }
+  return Array.from(seen.values()).sort((a, b) => a.position - b.position);
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClassificaScreen() {
@@ -124,7 +134,7 @@ export default function ClassificaScreen() {
         );
         if (!res.ok) throw new Error(`Errore ${res.status}`);
         const resData = (await res.json()) as TeamFromApi[];
-        setTeams(resData.map(mapTeam));
+        setTeams(dedupTeams(resData.map(mapTeam)));
         if (!isRefresh) animateIn();
       } catch (e: any) {
         setError(e.message || "Impossibile connettersi al server");

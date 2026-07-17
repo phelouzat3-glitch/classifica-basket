@@ -99,7 +99,7 @@ export default function MarcatoriScreen() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [season]);
 
   const currentFilter = FILTERS.find((f) => f.key === activeKey) ?? FILTERS[0];
 

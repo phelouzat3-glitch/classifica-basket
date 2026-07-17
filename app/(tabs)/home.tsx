@@ -79,6 +79,14 @@ function formatDateLong(dateStr: string): string {
 
 const YOUTH_SEASONS = ['2025/26-U17', '2025/26-U19', '2025/26-U15', '2025/26-U13', '2025/26-DR2'];
 
+function dedupStandings(items: Standing[]): Standing[] {
+  const seen = new Map<string, Standing>();
+  for (const s of items) {
+    if (!seen.has(s.team_id)) seen.set(s.team_id, s);
+  }
+  return Array.from(seen.values()).sort((a, b) => a.position - b.position);
+}
+
 export default function HomeTabScreen() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -127,7 +135,7 @@ export default function HomeTabScreen() {
             fetch(`${API_URL}/matches?season=${encodeURIComponent(s)}`).then(r => r.ok ? r.json() : [])
           ),
         ]);
-        if (sRes.ok) setStandings(await sRes.json());
+        if (sRes.ok) setStandings(dedupStandings(await sRes.json()));
         if (mRes.ok) setMatches(await mRes.json());
         setYouthMatches(youthRes.flat());
         if (!isRefresh) animateIn();

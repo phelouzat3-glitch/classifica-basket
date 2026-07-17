@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, RefreshControl, View } from "react-native";
 import { MatchCard } from "./MatchCard";
 
 type Match = {
@@ -16,17 +16,30 @@ type Match = {
 
 interface CalendarioListProps {
   matches: Match[];
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
-export default function CalendarioList({ matches }: CalendarioListProps) {
+export default function CalendarioList({ matches, refreshing, onRefresh }: CalendarioListProps) {
   return (
-    <View style={{ flex: 1, backgroundColor: "#0F1923" }}>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={matches}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => <MatchCard match={item} />}
         contentContainerStyle={{ padding: 12, gap: 12 }}
         scrollEnabled={true}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing ?? false}
+              onRefresh={onRefresh}
+              tintColor="#E8600A"
+              colors={["#E8600A"]}
+            />
+          ) : undefined
+        }
       />
     </View>
   );

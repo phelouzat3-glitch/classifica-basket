@@ -1,7 +1,8 @@
 import CalendarioList from "@/components/CalendarioList";
 import { LeagueBadge } from "@/components/LeagueBadge";
 import { API_URL } from "@/src/config/api";
-import React, { useEffect, useState } from "react";
+import { useTeamName, useSeason } from "@/src/context/LeagueContext";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/src/theme/ThemeContext";
@@ -44,26 +45,37 @@ function mapMatch(m: MatchFromAPI): Match {
   };
 }
 
-const ABC = "Abc Castelfiorentino";
-
 export default function CalendarioScreen() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const c = useColors();
+  const teamName = useTeamName();
+  const season = useSeason();
+
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/matches?team=${encodeURIComponent(teamName)}&season=${encodeURIComponent(season)}`);
+      if (res.ok) {
+        const data = (await res.json()) as MatchFromAPI[];
+        setMatches(data.map(mapMatch));
+      }
+    } catch (e: any) {
+      setError(e.message || "Impossibile connettersi al server");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [teamName, season]);
 
   useEffect(() => {
-    const url = `${API_URL}/matches?team=${encodeURIComponent(ABC)}`;
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<MatchFromAPI[]>;
-      })
-      .then((data) => setMatches(data.map(mapMatch)))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+    load();
+  }, [load]);
 
   if (loading) {
     return (
@@ -112,7 +124,13 @@ export default function CalendarioScreen() {
         <LeagueBadge />
         <Text style={[styles.title, { color: c.textPrimary }]}>Calendario</Text>
       </View>
-      <CalendarioList matches={matches} />
+      <View style={[styles.listContainer, { backgroundColor: c.bg }]}>
+        <CalendarioList
+          matches={matches}
+          refreshing={refreshing}
+          onRefresh={() => load(true)}
+        />
+      </View>
     </View>
   );
 }
@@ -123,6 +141,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 4,
+  },
+  listContainer: {
+    flex: 1,
   },
   title: {
     fontSize: 24,
