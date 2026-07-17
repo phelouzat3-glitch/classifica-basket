@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import {
   View,
   Text,
@@ -14,8 +14,15 @@ import {
   Animated,
   Easing,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native"
 import LogoABC from "@/components/LogoABC"
+import { API_URL } from "@/src/config/api"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useRouter } from "expo-router"
+
+const TOKEN_KEY = "@auth_token"
+const USER_KEY = "@auth_user"
 
 const COLORS = {
   orange: "#EA580C",
@@ -37,7 +44,8 @@ type AuthTab = "accedi" | "registrati"
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions()
-  const isLarge = width > 600 // PC / tablette / Expo Web
+  const isLarge = width > 600
+  const router = useRouter()
 
   const [team, setTeam] = useState<Team>("femminile")
   const [authVisible, setAuthVisible] = useState(false)
@@ -45,20 +53,103 @@ export default function HomeScreen() {
   const [authTab, setAuthTab] = useState<AuthTab>("accedi")
 
   const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [checkingToken, setCheckingToken] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await AsyncStorage.getItem(TOKEN_KEY)
+        if (token) {
+          router.replace("/(tabs)/home")
+          return
+        }
+      } catch (e) {
+        console.error(e)
+      }
+      setCheckingToken(false)
+    })()
+  }, [router])
 
   const openAuth = (tab: AuthTab = "accedi") => {
     setAuthTab(tab)
+    setError(null)
     setAuthVisible(true)
   }
-  const closeAuth = () => setAuthVisible(false)
+  const closeAuth = () => { setAuthVisible(false); setError(null) }
+
+  const handleLogin = useCallback(async () => {
+    setError(null)
+    if (!email.trim() || !password.trim()) {
+      setError("Compila tutti i campi")
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(typeof data.message === "string" ? data.message : "Errore durante l'accesso")
+        return
+      }
+      await AsyncStorage.setItem(TOKEN_KEY, data.token)
+      await AsyncStorage.setItem(USER_KEY, data.name)
+      router.replace("/(tabs)/home")
+    } catch {
+      setError("Errore di connessione al server")
+    } finally {
+      setLoading(false)
+    }
+  }, [email, password, router])
+
+  const handleRegister = useCallback(async () => {
+    setError(null)
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError("Compila tutti i campi")
+      return
+    }
+    if (password !== confirmPassword) {
+      setError("Le password non coincidono")
+      return
+    }
+    if (password.length < 6) {
+      setError("La password deve essere di almeno 6 caratteri")
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msg = data.message
+        setError(Array.isArray(msg) ? msg[0] : typeof msg === "string" ? msg : "Errore durante la registrazione")
+        return
+      }
+      await AsyncStorage.setItem(TOKEN_KEY, data.token)
+      await AsyncStorage.setItem(USER_KEY, data.name)
+      router.replace("/(tabs)/home")
+    } catch {
+      setError("Errore di connessione al server")
+    } finally {
+      setLoading(false)
+    }
+  }, [name, email, password, confirmPassword, router])
 
   const handleSubmit = () => {
-    // TODO: brancher sur ton backend NestJS
-    // accedi -> POST /auth/login | registrati -> POST /auth/register
-    console.log("[v0] submit", { authTab, email, team })
-    closeAuth()
+    if (authTab === "accedi") handleLogin()
+    else handleRegister()
   }
 
   const handleShare = async () => {
@@ -70,6 +161,16 @@ export default function HomeScreen() {
     } catch (e) {
       console.log("[v0] share error", e)
     }
+  }
+
+  if (checkingToken) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={[styles.centerHost, { justifyContent: "center", alignItems: "center" }]}>
+          <ActivityIndicator size="large" color={COLORS.orange} />
+        </View>
+      </SafeAreaView>
+    )
   }
 
   return (
@@ -195,6 +296,26 @@ export default function HomeScreen() {
             </Text>
 
             <View style={styles.form}>
+              {error && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              {authTab === "registrati" && (
+                <>
+                  <Text style={styles.label}>Nome</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Il tuo nome"
+                    placeholderTextColor={COLORS.muted}
+                    autoCapitalize="words"
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </>
+              )}
+
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
@@ -230,10 +351,19 @@ export default function HomeScreen() {
                 </>
               )}
 
-              <TouchableOpacity style={styles.submit} activeOpacity={0.9} onPress={handleSubmit}>
-                <Text style={styles.submitText}>
-                  {authTab === "accedi" ? "Accedi" : "Registrati"}
-                </Text>
+              <TouchableOpacity
+                style={[styles.submit, loading && { opacity: 0.6 }]}
+                activeOpacity={0.9}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.submitText}>
+                    {authTab === "accedi" ? "Accedi" : "Registrati"}
+                  </Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity onPress={closeAuth} style={styles.cancel}>
@@ -541,4 +671,14 @@ const styles = StyleSheet.create({
   qrFallback: { width: 180, height: 180, borderRadius: 12, backgroundColor: COLORS.bg, justifyContent: "center", alignItems: "center" },
   qrFallbackText: { fontSize: 28, fontWeight: "800", color: COLORS.muted },
   qrUrl: { fontSize: 14, fontWeight: "700", color: COLORS.ink, textAlign: "center", marginBottom: 18 },
+
+  errorBox: {
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  errorText: { color: "#EF4444", fontSize: 13, fontWeight: "600", textAlign: "center" },
 })
